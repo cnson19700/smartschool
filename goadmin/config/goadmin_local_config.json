@@ -1,0 +1,94 @@
+{
+  "postgres_connection_string": "host=128.199.180.120 port=5432 user=busmapdb dbname=phenikaamaas_checkindb password=BuS[M]@PTESTdb sslmode=disable TimeZone=Asia/Ho_Chi_Minh",
+  "database": {
+    "default": {
+      "host": "128.199.180.120",
+      "port": "5432",
+      "user": "busmapdb",
+      "pwd": "BuS[M]@PTESTdb",
+      "name": "phenikaamaas_checkindb",
+      "max_idle_con": 5,
+      "max_open_con": 10,
+      "driver": "postgresql"
+    }
+  },
+  "redis": {
+    "host": "134.209.99.45",
+    "port": 5433,
+    "password": "bScH0ol@_R3D1s.DaTAb@s3",
+    "page": 5
+  },
+  "smtp": {
+    "username": "no-reply@busmap.vn",
+    "password": "buSm@p.n0r3ply"
+  },
+  "worker_quantity": 5,
+  "postgres_log_mode": true,
+  "debug_api": true,
+  "qor_secret_key": "bSm@RtlIBR@r#(.)@uth2021",
+  "app_name": "bSmartCheckin_portal_version2",
+  "app_id": "bSmartCheckin_portal_version2",
+  "organization_name": "Phenikaa Maas",
+  "cdn_url": "http://localhost:6001",
+  "domain": "http://127.0.0.1:6002",
+  "media_dir": "/public",
+  "portal_logging_retention_days": 14,
+  "portal_port": 6001,
+  "jobs_port": 6003,
+  "api_port": 6002,
+  "language": "vi_vn",
+  "prefix": "admin",
+  "theme": "sword",
+  "store": {
+    "path": "./public",
+    "prefix": "public"
+  },
+  "title": "bSmartCheckin Portal",
+  "logo": "bSmartCheckin",
+  "mini_logo": "bSC",
+  "index": "/",
+  "login_url": "/login",
+  "debug": true,
+  "env": "local",
+  "info_log": "logs/info.log",
+  "error_log": "logs/error.log",
+  "access_log": "logs/access.log",
+  "session_life_time": 7200,
+  "file_upload_engine": {
+    "name": "local"
+  },
+  "login_title": "bSmart Checkin",
+  "login_logo": "GoAdmin",
+  "auth_user_table": "goadmin_users",
+  "bootstrap_file_path": "bootstrap.go",
+  "go_mod_file_path": "go.mod",
+  "asset_root_path": "./public/",
+  "url_format": {
+    "info": "/info/:__prefix",
+    "detail": "/info/:__prefix/detail",
+    "create": "/new/:__prefix",
+    "delete": "/delete/:__prefix",
+    "export": "/export/:__prefix",
+    "edit": "/edit/:__prefix",
+    "show_edit": "/info/:__prefix/edit",
+    "show_create": "/info/:__prefix/new",
+    "update": "/update/:__prefix"
+  },
+  "firebase_file_name": "firebase_phenikaa_maas_school.json",
+  "firebase_name": "maas-smart-school",
+  "recaptcha": {
+    "site_key": "6LfhxSUcAAAAAAk8Jfl4yaZ9SAMb8F_f3RN2Ed-t",
+    "secret_key": "6LfhxSUcAAAAAJNoi1GL6zX72w-_O1PlUEpmOTQW"
+  },
+  "camera_ai": {
+    "feature_enabled": false,
+    "client_id": "dde3acdf04d67c3c9cc7059f1f77109f",
+    "client_secret": "a7af1912780ae35baa434e83b3fb1b1d",
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE4NzM2MjE4NDM3NzE2Mjk1NjgiLCJlbWFpbCI6Im5ndXllbmR1eXRhbTMzOTdAZ21haWwuY29tIiwiY2xpZW50X2lkIjoiZGRlM2FjZGYwNGQ2N2MzYzljYzcwNTlmMWY3NzEwOWYiLCJ0eXBlIjoicmVmcmVzaF90b2tlbiIsImlhdCI6MTYzNDA5MjkxMSwiZXhwIjoxNjY1NjI4OTExfQ.yiKncojZKgA1Tfd5Zul3hqP4bbDyAyfqEw3H2gCJwmE",
+    "place_id": "6628"
+  },
+  "phenikaa_maas": {
+    "feature_enabled": false
+  },
+  "qr_code_prefix_key" : "7"
+}
