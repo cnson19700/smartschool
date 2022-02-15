@@ -42,6 +42,7 @@ func MigrateDatabase() {
 	DbEntity.AutoMigrate(&entity.Attendance{})
 	DbEntity.AutoMigrate(&entity.StudentCourse{})
 	DbEntity.AutoMigrate(&entity.Scheduler{})
+	DbEntity.AutoMigrate(&entity.Device{})
 
 	errJoin := DbEntity.SetupJoinTable(&entity.Student{}, "Courses", &entity.StudentCourse{})
 
