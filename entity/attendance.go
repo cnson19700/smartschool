@@ -17,5 +17,5 @@ type Attendance struct {
 	Student       Student        `gorm:"foreignKey:StudentID;references:ID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	Course        Course         `gorm:"foreignKey:CourseID;references:ID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	Room          Room           `gorm:"foreignKey:RoomID;references:ID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	IsDelete      gorm.DeletedAt `gorm:"column:deleted_at"`
+	DeletedAt     gorm.DeletedAt `gorm:"column:deleted_at"`
 }

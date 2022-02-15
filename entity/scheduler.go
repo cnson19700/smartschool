@@ -14,5 +14,5 @@ type Scheduler struct {
 	EndTime   time.Time      `json:"end_time"`
 	Room      Room           `gorm:"foreignKey:RoomID;references:ID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	Course    Course         `gorm:"foreignKey:CourseID;references:ID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	IsDelete  gorm.DeletedAt `gorm:"column:deleted_at"`
+	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
 }

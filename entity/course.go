@@ -9,5 +9,5 @@ type Course struct {
 	NumberOfStudent int            `json:"number_of_student"`
 	Students        []*Student     `gorm:"many2many:student_courses; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	Rooms           []*Room        `gorm:"many2many:schedulers; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	IsDelete        gorm.DeletedAt `gorm:"column:deleted_at"`
+	DeletedAt       gorm.DeletedAt `gorm:"column:deleted_at"`
 }
