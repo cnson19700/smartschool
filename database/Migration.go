@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var DbEntity *gorm.DB
+var DbInstance *gorm.DB
 
 func Init() {
 	ConnectDatabase()
@@ -17,16 +17,17 @@ func Init() {
 }
 
 func Close() {
-	safe, _ := DbEntity.DB()
+	safe, _ := DbInstance.DB()
 
 	defer safe.Close()
 }
 
 func ConnectDatabase() {
-	dbURI := "host=13.228.244.196 port=5432 user=busmapdb dbname=phenikaamaas_attendancedb sslmode=disable password=frjsdfhaflpzlcdzgnfvuxkdwiiiiklpojzowxajmendeeoqtbzyrgi"
+	//dbURI := "host=13.228.244.196 port=5432 user=busmapdb dbname=phenikaamaas_attendancedb sslmode=disable password=frjsdfhaflpzlcdzgnfvuxkdwiiiiklpojzowxajmendeeoqtbzyrgi"
+	dbURI := "host=localhost user=postgres dbname=nhan_local_database sslmode=disable password=Postgres port=5432"
 
 	var err error
-	DbEntity, err = gorm.Open(postgres.Open(dbURI), &gorm.Config{})
+	DbInstance, err = gorm.Open(postgres.Open(dbURI), &gorm.Config{})
 
 	if err != nil {
 		panic(err)
@@ -36,21 +37,21 @@ func ConnectDatabase() {
 }
 
 func MigrateDatabase() {
-	DbEntity.AutoMigrate(&entity.Student{})
-	DbEntity.AutoMigrate(&entity.Course{})
-	DbEntity.AutoMigrate(&entity.Room{})
-	DbEntity.AutoMigrate(&entity.Attendance{})
-	DbEntity.AutoMigrate(&entity.StudentCourse{})
-	DbEntity.AutoMigrate(&entity.Scheduler{})
-	DbEntity.AutoMigrate(&entity.Device{})
+	DbInstance.AutoMigrate(&entity.Student{})
+	DbInstance.AutoMigrate(&entity.Course{})
+	DbInstance.AutoMigrate(&entity.Room{})
+	DbInstance.AutoMigrate(&entity.Attendance{})
+	DbInstance.AutoMigrate(&entity.StudentCourse{})
+	DbInstance.AutoMigrate(&entity.Scheduler{})
+	DbInstance.AutoMigrate(&entity.Device{})
 
-	errJoin := DbEntity.SetupJoinTable(&entity.Student{}, "Courses", &entity.StudentCourse{})
+	errJoin := DbInstance.SetupJoinTable(&entity.Student{}, "Courses", &entity.StudentCourse{})
 
 	if errJoin != nil {
 		panic(errJoin)
 	}
 
-	errJoin = DbEntity.SetupJoinTable(&entity.Room{}, "Courses", &entity.Scheduler{})
+	errJoin = DbInstance.SetupJoinTable(&entity.Room{}, "Courses", &entity.Scheduler{})
 
 	if errJoin != nil {
 		panic(errJoin)
