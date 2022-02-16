@@ -1,10 +1,15 @@
 package main
 
-import "github.com/smartschool/api/routers"
+import (
+	"github.com/smartschool/database"
+	"github.com/smartschool/model/dto"
+	"github.com/smartschool/service"
+)
 
 func main() {
-	//database.Init()
-
-	r := routers.Initialize()
-	r.Run(":6969")
+	database.Init()
+	var dummy dto.DeviceSignal
+	service.CheckIn(dummy)
+	// r := routers.Initialize()
+	// r.Run(":6969")
 }
