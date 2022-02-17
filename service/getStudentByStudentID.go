@@ -5,9 +5,9 @@ import (
 	"github.com/smartschool/entity"
 )
 
-func GetStudentByID(id int) *entity.Student {
+func GetStudentByID(id string) *entity.Student {
 	var student entity.Student
-	database.DbInstance.Where("id = ?", id).First(&student)
+	database.DbInstance.Where("student_id = ?", id).First(&student)
 	if student.ID == 0 {
 		return nil
 	}
