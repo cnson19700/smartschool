@@ -17,7 +17,8 @@ func CheckIn(deviceSignal dto.DeviceSignal) {
 	//checkinType := "Card"
 	switch checkinType {
 	case "Card":
-		recordCheckin(checkinValue, deviceSignal.CompanyTokenKey, deviceSignal.TimeStamp.UTC())
+		loc, _ := time.LoadLocation("Asia/Ho_Chi_Minh")
+		recordCheckin(checkinValue, deviceSignal.CompanyTokenKey, deviceSignal.TimeStamp.In(loc))
 
 		//t0 := helper.StringToTimeUTC("2022-02-16T9:59:00Z")
 		//fmt.Println(t0)
@@ -28,15 +29,15 @@ func CheckIn(deviceSignal dto.DeviceSignal) {
 		//fmt.Println(checkAttend.ID)
 
 	case "QR":
+		fmt.Println("Service checkin QR called")
+
 	default:
 		return
 	}
 }
 
 func recordCheckin(studentID string, deviceID string, checkinTime time.Time) {
-	loc, _ := time.LoadLocation("Asia/Ho_Chi_Minh")
-
-	fmt.Println(checkinTime.In(loc))
+	fmt.Println(checkinTime)
 
 	var device entity.Device
 	database.DbInstance.Select("room_id").Where("device_id = ?", deviceID).Find(&device)
