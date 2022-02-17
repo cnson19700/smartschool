@@ -41,24 +41,31 @@ func recordCheckin(studentID string, deviceID string, checkinTime time.Time) {
 
 	var device entity.Device
 	database.DbInstance.Select("room_id").Where("device_id = ?", deviceID).Find(&device)
+	if device.RoomID == 0 {
+		fmt.Println("Device does not match any room!!!")
+		return
+	}
 
 	var scheduler entity.Scheduler
-	database.DbInstance.Select("course_id", "start_time", "end_time").Where("room_id = ? AND start_time <= ? AND end_time > ?", device.RoomID, checkinTime, checkinTime).Find(&scheduler)
-
-	if scheduler.CourseID == 0 {
-		fmt.Println("Schedule not set!!!")
+	database.DbInstance.Select("id", "course_id", "start_time", "end_time").Where("room_id = ? AND start_time <= ? AND end_time > ?", device.RoomID, checkinTime, checkinTime).Find(&scheduler)
+	if scheduler.ID == 0 {
+		fmt.Println("Time slot not in Schedule!!!")
 		return
 	}
 
 	var student entity.Student
 	database.DbInstance.Select("id").Where("student_id = ?", studentID).First(&student)
+	if student.ID == 0 {
+		fmt.Println("Student not recognize!!!")
+		return
+	}
 
 	var verify entity.StudentCourse
 	database.DbInstance.Select("id").Where("student_id = ? AND course_id = ?", student.ID, scheduler.CourseID).Find(&verify)
 
 	if verify.ID != 0 {
 		var checkAttend entity.Attendance
-		database.DbInstance.Select("id").Where("student_id = ? AND course_id = ? AND room_id = ? AND end_time > ?", student.ID, scheduler.CourseID, device.RoomID, checkinTime).Find(&checkAttend)
+		database.DbInstance.Select("id").Where("student_id = ? AND scheduler_id = ?", student.ID, scheduler.ID).Find(&checkAttend)
 
 		if checkAttend.ID == 0 {
 			checkinStatus := "Attend"
@@ -66,12 +73,12 @@ func recordCheckin(studentID string, deviceID string, checkinTime time.Time) {
 				checkinStatus = "Late"
 			}
 
-			database.DbInstance.Create(&entity.Attendance{StudentID: student.ID, CourseID: scheduler.CourseID, RoomID: device.RoomID, CheckInTime: checkinTime, EndTime: scheduler.EndTime, CheckInStatus: checkinStatus})
+			database.DbInstance.Create(&entity.Attendance{StudentID: student.ID, SchedulerID: scheduler.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
 			fmt.Println("Checkin Success!!!")
 		} else {
 			fmt.Println("Checkin exist!!!")
 		}
 	} else {
-		fmt.Println("Record not found")
+		fmt.Println("Student dont take this course!!!")
 	}
 }

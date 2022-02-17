@@ -13,7 +13,6 @@ var DbInstance *gorm.DB
 func Init() {
 	ConnectDatabase()
 	MigrateDatabase()
-
 	//createDummy()
 	//readDummy()
 }
@@ -42,10 +41,10 @@ func MigrateDatabase() {
 	DbInstance.AutoMigrate(&entity.Student{})
 	DbInstance.AutoMigrate(&entity.Course{})
 	DbInstance.AutoMigrate(&entity.Room{})
-	DbInstance.AutoMigrate(&entity.Attendance{})
 	DbInstance.AutoMigrate(&entity.StudentCourse{})
 	DbInstance.AutoMigrate(&entity.Scheduler{})
 	DbInstance.AutoMigrate(&entity.Device{})
+	DbInstance.AutoMigrate(&entity.Attendance{})
 
 	errJoin := DbInstance.SetupJoinTable(&entity.Student{}, "Courses", &entity.StudentCourse{})
 
