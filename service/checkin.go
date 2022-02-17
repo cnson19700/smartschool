@@ -43,7 +43,7 @@ func recordCheckin(studentID string, deviceID string, checkinTime time.Time) {
 	database.DbInstance.Select("room_id").Where("device_id = ?", deviceID).Find(&device)
 
 	var scheduler entity.Scheduler
-	database.DbInstance.Select("course_id", "end_time").Where("room_id = ? AND start_time <= ? AND end_time > ?", device.RoomID, checkinTime, checkinTime).Find(&scheduler)
+	database.DbInstance.Select("course_id", "start_time", "end_time").Where("room_id = ? AND start_time <= ? AND end_time > ?", device.RoomID, checkinTime, checkinTime).Find(&scheduler)
 
 	if scheduler.CourseID == 0 {
 		fmt.Println("Schedule not set!!!")
@@ -61,7 +61,12 @@ func recordCheckin(studentID string, deviceID string, checkinTime time.Time) {
 		database.DbInstance.Select("id").Where("student_id = ? AND course_id = ? AND room_id = ? AND end_time > ?", student.ID, scheduler.CourseID, device.RoomID, checkinTime).Find(&checkAttend)
 
 		if checkAttend.ID == 0 {
-			database.DbInstance.Create(&entity.Attendance{StudentID: student.ID, CourseID: scheduler.CourseID, RoomID: device.RoomID, CheckInTime: checkinTime, EndTime: scheduler.EndTime, CheckInStatus: "Attend"})
+			checkinStatus := "Attend"
+			if timeDiff := checkinTime.Sub(scheduler.StartTime); timeDiff > (time.Minute * 20) {
+				checkinStatus = "Late"
+			}
+
+			database.DbInstance.Create(&entity.Attendance{StudentID: student.ID, CourseID: scheduler.CourseID, RoomID: device.RoomID, CheckInTime: checkinTime, EndTime: scheduler.EndTime, CheckInStatus: checkinStatus})
 			fmt.Println("Checkin Success!!!")
 		} else {
 			fmt.Println("Checkin exist!!!")
