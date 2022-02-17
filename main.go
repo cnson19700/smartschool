@@ -14,6 +14,11 @@ import (
 )
 
 func main() {
+	//database.Init()
+
+	//r := routers.Initialize()
+	//r.Run(":6969")
+
 	r := gin.Default()
 
 	// Instantiate a GoAdmin engine object.
