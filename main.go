@@ -11,13 +11,11 @@ import (
 	"github.com/GoAdminGroup/go-admin/template/types"
 	_ "github.com/GoAdminGroup/themes/adminlte" // ui theme
 	"github.com/gin-gonic/gin"
+	"github.com/smartschool/database"
 )
 
 func main() {
-	//database.Init()
-
-	//r := routers.Initialize()
-	//r.Run(":6969")
+	database.Init()
 
 	r := gin.Default()
 
@@ -48,8 +46,6 @@ func main() {
 	eng.HTML("GET", "/admin", DashboardPage)
 
 	_ = r.Run(":9035")
-
-	// database.Init()
 }
 
 func DashboardPage(ctx *context.Context) (types.Panel, error) {

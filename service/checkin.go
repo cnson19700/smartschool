@@ -47,7 +47,7 @@ func recordCheckin(studentID string, deviceID string, checkinTime time.Time) {
 	}
 
 	var scheduler entity.Scheduler
-	database.DbInstance.Select("id", "course_id", "start_time", "end_time").Where("room_id = ? AND start_time <= ? AND end_time > ?", device.RoomID, checkinTime, checkinTime).Find(&scheduler)
+	database.DbInstance.Order("end_time").Select("id", "course_id", "start_time", "end_time").Where("room_id = ? AND end_time >= ?", device.RoomID, checkinTime).Find(&scheduler)
 	if scheduler.ID == 0 {
 		fmt.Println("Time slot not in Schedule!!!")
 		return
