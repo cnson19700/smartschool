@@ -12,6 +12,7 @@ import (
 	_ "github.com/GoAdminGroup/themes/adminlte" // ui theme
 	"github.com/gin-gonic/gin"
 	"github.com/smartschool/database"
+	"github.com/smartschool/tables"
 )
 
 func main() {
@@ -41,6 +42,7 @@ func main() {
 
 	// Add configuration and plugins, use the Use method to mount to the web framework.
 	_ = eng.AddConfig(&cfg).
+		AddGenerators(tables.Generators).
 		Use(r)
 
 	eng.HTML("GET", "/admin", DashboardPage)
