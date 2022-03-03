@@ -8,6 +8,7 @@ import (
 func Initialize() *gin.Engine {
 	r := gin.New()
 
+	r.GET("/late/:id", api_device.GetLateHistory)
 	r.POST("/checkin", api_device.EventCheckin)
 
 	return r

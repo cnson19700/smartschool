@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/smartschool/api/routers"
+	"github.com/smartschool/database"
 	"os"
 	"os/signal"
 )
@@ -11,6 +12,8 @@ func main() {
 	fmt.Println("=================================")
 	fmt.Println("Start bSmartCheckin Core API......")
 	fmt.Println("=================")
+
+	database.Init()
 
 	//model.Initialize()
 
