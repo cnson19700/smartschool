@@ -4,8 +4,11 @@ import (
 	"fmt"
 
 	"github.com/smartschool/entity"
-	"gorm.io/driver/postgres"
+	"golang.org/x/crypto/bcrypt"
+	_ "gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"time"
 )
 
 var DbInstance *gorm.DB
@@ -45,6 +48,7 @@ func MigrateDatabase() {
 	DbInstance.AutoMigrate(&entity.Scheduler{})
 	DbInstance.AutoMigrate(&entity.Device{})
 	DbInstance.AutoMigrate(&entity.Attendance{})
+	DbInstance.AutoMigrate(&entity.User{})
 
 	errJoin := DbInstance.SetupJoinTable(&entity.Student{}, "Courses", &entity.StudentCourse{})
 

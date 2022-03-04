@@ -10,7 +10,8 @@ import (
 
 func EventCheckin(c *gin.Context) {
 	var requestData dto.DeviceSignal
-	if err := c.ShouldBindJSON(&requestData); err != nil {
+	err := c.ShouldBindJSON(&requestData)
+	if err != nil {
 		return
 	}
 
@@ -30,7 +31,10 @@ func GetLateHistory(c *gin.Context) {
 
 	var historyElement = make([]dto.HistoryElement, 0)
 	for i := 0; i < len(*listHistory); i++ {
-		historyElement = append(historyElement, dto.HistoryElement{CourseName: (*listHistory)[i].Scheduler.Course.CourseID + " - " + (*listHistory)[i].Scheduler.Course.Name, CheckinTime: (*listHistory)[i].CheckInTime, CheckinStatus: (*listHistory)[i].CheckInStatus})
+		historyElement = append(historyElement, dto.HistoryElement{
+			CourseName:    (*listHistory)[i].Scheduler.Course.CourseID + " - " + (*listHistory)[i].Scheduler.Course.Name,
+			CheckinTime:   (*listHistory)[i].CheckInTime,
+			CheckinStatus: (*listHistory)[i].CheckInStatus})
 	}
 	// var stu model.Student
 	// model.DbEntity.Where("id = ?", id).Find(&stu)

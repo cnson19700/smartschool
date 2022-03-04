@@ -18,7 +18,7 @@ func main() {
 	//model.Initialize()
 
 	go func() {
-		r := routers.Initialize()
+		r, _ := routers.Initialize()
 		r.Run(":6969")
 	}()
 
