@@ -2,15 +2,16 @@ package api_mobile
 
 import (
 	"errors"
+	"net/http"
+	"time"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	api_jwt "github.com/smartschool/api/api-jwt"
-	"github.com/smartschool/database"
+	api_students "github.com/smartschool/api/routers/api-mobile/api-students"
 	"github.com/smartschool/entity"
 	"github.com/smartschool/model/dto"
 	"golang.org/x/crypto/bcrypt"
-	"net/http"
-	"time"
 )
 
 func Login(c *gin.Context) {
@@ -21,8 +22,8 @@ func Login(c *gin.Context) {
 	}
 
 	var user entity.User
-	err = database.DbInstance.Where("email = ?", request.Email).First(&user).Error
-	if err != nil {
+	isMailexist := api_students.CheckEmailExist(c, user.Email)
+	if !isMailexist {
 		c.JSON(http.StatusUnauthorized, errors.New("user not found"))
 	}
 

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	api_students "github.com/smartschool/api/routers/api-mobile/api-students"
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/service"
 )
@@ -25,7 +26,7 @@ func EventCheckin(c *gin.Context) {
 func GetLateHistory(c *gin.Context) {
 	id := c.Param("id")
 
-	student := service.GetStudentByID(id)
+	student, _ := api_students.GetStudentByID(c, id)
 
 	listHistory := service.GetStudentHistoryFrom(student.ID, "Late")
 
@@ -36,8 +37,6 @@ func GetLateHistory(c *gin.Context) {
 			CheckinTime:   (*listHistory)[i].CheckInTime,
 			CheckinStatus: (*listHistory)[i].CheckInStatus})
 	}
-	// var stu model.Student
-	// model.DbEntity.Where("id = ?", id).Find(&stu)
 
 	Mess := map[string]interface{}{
 		"id":         student.ID,

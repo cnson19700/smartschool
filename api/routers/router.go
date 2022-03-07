@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	api_jwt "github.com/smartschool/api/api-jwt"
 	api_device "github.com/smartschool/api/routers/api-device"
-	api_mobile "github.com/smartschool/api/routers/api-mobile"
+	api_mobile "github.com/smartschool/api/routers/api-mobile/api-auth"
 )
 
 func Initialize() (*gin.Engine, error) {
