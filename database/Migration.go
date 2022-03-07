@@ -4,11 +4,8 @@ import (
 	"fmt"
 
 	"github.com/smartschool/entity"
-	"golang.org/x/crypto/bcrypt"
-	_ "gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"time"
 )
 
 var DbInstance *gorm.DB
