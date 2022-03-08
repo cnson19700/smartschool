@@ -3,11 +3,12 @@ package entity
 import "gorm.io/gorm"
 
 type Student struct {
-	ID          int            `gorm:"primaryKey autoCreateTime" json:"id"`
-	StudentID   string         `json:"student_id"`
-	Name        string         `json:"name"`
-	Email       string         `json:"email"`
-	PhoneNumber string         `json:"phone_number"`
-	Courses     []*Course      `gorm:"many2many:student_courses;"`
-	DeletedAt   gorm.DeletedAt `gorm:"column:deleted_at"`
+	ID        uint           `gorm:"primaryKey autoIncrement column:id" json:"id"`
+	UserID    uint           `gorm:"column:user_id" json:"user_id"`
+	StudentID string         `gorm:"column:student_id" json:"student_id"`
+	Batch     string         `gorm:"column:batch" json:"batch"`
+	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
+
+	User    *User     `gorm:"foreignKey:ID;references:UserID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Courses []*Course `gorm:"many2many:student_course_enrollments;"`
 }

@@ -3,9 +3,10 @@ package entity
 import "gorm.io/gorm"
 
 type Device struct {
-	ID        int            `gorm:"primaryKey autoCreateTime" json:"id"`
-	DeviceID  string         `json:"device_id"`
-	RoomID    int            `json:"room_id"`
-	Room      Room           `gorm:"foreignKey:ID;references:RoomID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	ID        uint           `gorm:"primaryKey autoIncrement column:id" json:"id"`
+	DeviceID  string         `gorm:"column:device_id" json:"device_id"`
+	RoomID    uint           `gorm:"column:room_id" json:"room_id"`
 	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
+
+	Room *Room `gorm:"foreignKey:ID;references:RoomID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
