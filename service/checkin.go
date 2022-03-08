@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/smartschool/database"
-	"github.com/smartschool/entity"
+	"github.com/smartschool/model/entity"
 	"github.com/smartschool/helper"
 	"github.com/smartschool/model/dto"
 )

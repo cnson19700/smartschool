@@ -2,8 +2,6 @@ module github.com/smartschool
 
 go 1.16
 
-require github.com/jinzhu/gorm v1.9.16
-
 require (
 	github.com/GoAdminGroup/go-admin v1.2.23
 	github.com/GoAdminGroup/themes v0.0.43

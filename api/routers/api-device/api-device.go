@@ -3,6 +3,8 @@ package api_device
 import (
 	//"net/http"
 
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/service"
@@ -22,11 +24,27 @@ func EventCheckin(c *gin.Context) {
 	service.CheckIn(requestData)
 }
 
-
 func GetStudentCheckInLateHistory(c *gin.Context) {
 	id := c.Param("id")
 
-	service.GetCheckInHistoryByStudentIDAndStatus(c, id, "Late")
+	studentFound, checkinHistoryList := service.GetCheckInHistoryBySID(id, "Late")
+
+	if studentFound == nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "Student not found!!!",
+		})
+		return
+	}
+
+	resp := map[string]interface{}{
+		"id":         studentFound.ID,
+		"student_id": studentFound.StudentID,
+		"name":       studentFound.Name,
+		"history":    checkinHistoryList,
+	}
+
+	c.JSON(http.StatusOK, resp)
+
 }
 
 // func GetLateHistory(c *gin.Context) {

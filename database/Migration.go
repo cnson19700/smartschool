@@ -3,7 +3,7 @@ package database
 import (
 	"fmt"
 
-	"github.com/smartschool/entity"
+	"github.com/smartschool/model/entity"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
