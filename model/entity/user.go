@@ -23,4 +23,5 @@ type User struct {
 
 	Role    *Role    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	Faculty *Faculty `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Student *Student `gorm:"foreignKey:ID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }

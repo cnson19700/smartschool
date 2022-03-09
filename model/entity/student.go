@@ -9,6 +9,6 @@ type Student struct {
 	Batch     string         `gorm:"column:batch" json:"batch"`
 	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
 
-	User    *User     `gorm:"foreignKey:ID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	//User    *User     `gorm:"foreignKey:ID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	Courses []*Course `gorm:"many2many:student_course_enrollments; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
