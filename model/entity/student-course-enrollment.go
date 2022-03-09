@@ -8,6 +8,6 @@ type StudentCourseEnrollment struct {
 	CourseID  uint           `gorm:"column:course_id" json:"course_id"`
 	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
 
-	Student *Student `gorm:"foreignKey:ID;references:StudentID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	Course  *Course  `gorm:"foreignKey:ID;references:CourseID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Student *Student `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Course  *Course  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }

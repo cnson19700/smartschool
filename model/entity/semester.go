@@ -15,6 +15,6 @@ type Semester struct {
 	EndTime   time.Time      `gorm:"column:end_time" json:"end_time"`
 	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
 
-	Faculty *Faculty  `gorm:"foreignKey:ID;references:FacultyID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Faculty *Faculty `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	//Courses []*Course `gorm:"foreignKey:SemesterID;references:ID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }

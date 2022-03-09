@@ -8,5 +8,5 @@ type Device struct {
 	RoomID    uint           `gorm:"column:room_id" json:"room_id"`
 	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
 
-	Room *Room `gorm:"foreignKey:ID;references:RoomID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Room *Room `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }

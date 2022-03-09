@@ -16,11 +16,11 @@ type User struct {
 	LastName    string         `gorm:"lastname" json:"lastname"`
 	DateOfBirth time.Time      `gorm:"date_of_birth" json:"date_of_birth"`
 	Gender      bool           `gorm:"gender" json:"gender"`
-	RoldeID     uint           `gorm:"role_id" json:"role_id"`
+	RoleID      uint           `gorm:"role_id" json:"role_id"`
 	FacultyID   uint           `gorm:"faculty_id" json:"faculty_id"`
 	IsActivate  bool           `gorm:"is_activate" json:"is_activate"`
 	DeletedAt   gorm.DeletedAt `gorm:"column:deleted_at"`
 
-	Role    *Role    `gorm:"foreignKey:ID;references:RoldeID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	Faculty *Faculty `gorm:"foreignKey:ID;references:FacultyID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Role    *Role    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Faculty *Faculty `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }

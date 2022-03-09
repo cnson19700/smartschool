@@ -39,7 +39,7 @@ func GetStudentCheckInLateHistory(c *gin.Context) {
 	resp := map[string]interface{}{
 		"id":         studentFound.ID,
 		"student_id": studentFound.StudentID,
-		//"name":       studentFound.Name,
+		"name":       studentFound.Name,
 		"history":    checkinHistoryList,
 	}
 
