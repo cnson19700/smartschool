@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/smartschool/model/dto"
+
 	"github.com/smartschool/service"
 )
 
@@ -47,30 +48,46 @@ func GetStudentCheckInLateHistory(c *gin.Context) {
 
 }
 
-// func GetLateHistory(c *gin.Context) {
-// 	id := c.Param("id")
+func GetCourseByID(c *gin.Context) {
+	id := c.Param("id")
 
-// 	student := service.GetStudentByID(id)
+	course, err := service.GetCourseByCourseID(id)
+	var Response map[string]interface{}
+	if err != nil {
+		Response = map[string]interface{}{
+			"error": "Not Found",
+		}
+		c.JSON(http.StatusNotFound, Response)
+	} else {
 
-// 	listHistory := service.GetStudentHistoryFrom(student.ID, "Late")
+		Response = map[string]interface{}{
+			"id":        course.ID,
+			"course_id": course.CourseID,
+			"name":      course.Name,
+			"error":     nil,
+		}
 
-// 	var historyElement = make([]dto.HistoryElement, 0)
-// 	for i := 0; i < len(*listHistory); i++ {
-// 		historyElement = append(historyElement, dto.HistoryElement{
-// 			CourseName:    (*listHistory)[i].Scheduler.Course.CourseID + " - " + (*listHistory)[i].Scheduler.Course.Name,
-// 			CheckinTime:   (*listHistory)[i].CheckInTime,
-// 			CheckinStatus: (*listHistory)[i].CheckInStatus})
-// 	}
-// 	// var stu model.Student
-// 	// model.DbEntity.Where("id = ?", id).Find(&stu)
+		c.JSON(http.StatusOK, Response)
+	}
 
-// 	Mess := map[string]interface{}{
-// 		"id":         student.ID,
-// 		"student_id": student.StudentID,
-// 		"name":       student.Name,
-// 		"history":    historyElement,
-// 	}
+}
 
-// 	c.JSON(http.StatusOK, Mess)
+func GetCourses(c *gin.Context) {
+	course, err := service.GetCourses()
+	var Response map[string]interface{}
+	if err != nil {
+		Response = map[string]interface{}{
+			"error": "Not Found",
+		}
+		c.JSON(http.StatusNotFound, Response)
+	} else {
 
-// }
+		Response = map[string]interface{}{
+			"courses": course,
+			"error":   nil,
+		}
+
+		c.JSON(http.StatusOK, Response)
+	}
+
+}
