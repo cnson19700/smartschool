@@ -27,15 +27,16 @@ func GetCheckInHistoryBySID(sid string, status string) (*entity.Student, []dto.C
 		return nil, nil
 	}
 
-	listHistory := repo.QueryCheckinHistoryWithSIdAndStatus(student.ID, status)
+	// listHistory := repo.QueryCheckinHistoryWithSIdAndStatus(student.ID, status)
 
-	var historyElements = make([]dto.CheckInHistoryElement, 0)
-	for i := 0; i < len(listHistory); i++ {
-		historyElements = append(historyElements, dto.CheckInHistoryElement{
-			CourseName:    listHistory[i].Scheduler.Course.CourseID + " - " + listHistory[i].Scheduler.Course.Name,
-			CheckinTime:   listHistory[i].CheckInTime,
-			CheckinStatus: listHistory[i].CheckInStatus})
-	}
+	// var historyElements = make([]dto.CheckInHistoryElement, 0)
+	// for i := 0; i < len(listHistory); i++ {
+	// 	historyElements = append(historyElements, dto.CheckInHistoryElement{
+	// 		CourseName:    listHistory[i].Scheduler.Course.CourseID + " - " + listHistory[i].Scheduler.Course.Name,
+	// 		CheckinTime:   listHistory[i].CheckInTime,
+	// 		CheckinStatus: listHistory[i].CheckInStatus})
+	// }
 
-	return student, historyElements
+	// return student, historyElements
+	return nil, nil
 }

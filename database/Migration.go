@@ -12,18 +12,26 @@ var DbInstance *gorm.DB
 
 func Init() {
 	ConnectDatabase()
-	//makeStudentDummy()
+	//DbInstance.AutoMigrate(&entity.Faculty{})
+	//makeFacultyDummy()
 	MigrateDatabase()
 	//createDummy()
 	//readDummy()
 }
 
-func makeStudentDummy() {
-	DummyStudents := []entity.Student{{ID: 3, StudentID: "18220001", Batch: "18"}, {ID: 4, StudentID: "18220002", Batch: "18"}}
-	DbInstance.Create(&DummyStudents)
+// func makeFacultyDummy() {
+// 	DbInstance.Create(&entity.Faculty{Title: "Math"})
 
-	fmt.Print("Make students dummy normal!!!")
-}
+// 	fmt.Print("Make Falculty dummy normal!!!")
+// }
+
+// func makeStudentDummy() {
+// 	DummyStudents := []entity.Student{{ID: 3, StudentID: "18220001", Batch: "18"}, {ID: 4, StudentID: "18220002", Batch: "18"}}
+// 	DbInstance.Create(&DummyStudents)
+
+// 	fmt.Print("Make students dummy normal!!!")
+// }
+
 func Close() {
 	safe, _ := DbInstance.DB()
 
