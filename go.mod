@@ -2,8 +2,6 @@ module github.com/smartschool
 
 go 1.16
 
-require github.com/jinzhu/gorm v1.9.16
-
 require (
 	github.com/GoAdminGroup/go-admin v1.2.23
 	github.com/GoAdminGroup/themes v0.0.43
@@ -17,6 +15,5 @@ require (
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gorm.io/driver/postgres v1.3.1
-	gorm.io/driver/sqlite v1.2.6
 	gorm.io/gorm v1.23.1
 )

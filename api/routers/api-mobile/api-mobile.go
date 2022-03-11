@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	api_jwt "github.com/smartschool/api/api-jwt"
 	"github.com/smartschool/database"
-	"github.com/smartschool/entity"
+	"github.com/smartschool/model/entity"
 	"github.com/smartschool/model/dto"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"

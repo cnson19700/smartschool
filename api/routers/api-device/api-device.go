@@ -1,6 +1,8 @@
 package api_device
 
 import (
+	//"net/http"
+
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -22,30 +24,53 @@ func EventCheckin(c *gin.Context) {
 	service.CheckIn(requestData)
 }
 
-func GetLateHistory(c *gin.Context) {
+func GetStudentCheckInLateHistory(c *gin.Context) {
 	id := c.Param("id")
 
-	student := service.GetStudentByID(id)
+	studentFound, checkinHistoryList := service.GetCheckInHistoryBySID(id, "Late")
 
-	listHistory := service.GetStudentHistoryFrom(student.ID, "Late")
-
-	var historyElement = make([]dto.HistoryElement, 0)
-	for i := 0; i < len(*listHistory); i++ {
-		historyElement = append(historyElement, dto.HistoryElement{
-			CourseName:    (*listHistory)[i].Scheduler.Course.CourseID + " - " + (*listHistory)[i].Scheduler.Course.Name,
-			CheckinTime:   (*listHistory)[i].CheckInTime,
-			CheckinStatus: (*listHistory)[i].CheckInStatus})
-	}
-	// var stu model.Student
-	// model.DbEntity.Where("id = ?", id).Find(&stu)
-
-	Mess := map[string]interface{}{
-		"id":         student.ID,
-		"student_id": student.StudentID,
-		"name":       student.Name,
-		"history":    historyElement,
+	if studentFound == nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "Student not found!!!",
+		})
+		return
 	}
 
-	c.JSON(http.StatusOK, Mess)
+	resp := map[string]interface{}{
+		"id":         studentFound.ID,
+		"student_id": studentFound.StudentID,
+		"history":    checkinHistoryList,
+		//"name":       studentFound.Name,
+	}
+
+	c.JSON(http.StatusOK, resp)
 
 }
+
+// func GetLateHistory(c *gin.Context) {
+// 	id := c.Param("id")
+
+// 	student := service.GetStudentByID(id)
+
+// 	listHistory := service.GetStudentHistoryFrom(student.ID, "Late")
+
+// 	var historyElement = make([]dto.HistoryElement, 0)
+// 	for i := 0; i < len(*listHistory); i++ {
+// 		historyElement = append(historyElement, dto.HistoryElement{
+// 			CourseName:    (*listHistory)[i].Scheduler.Course.CourseID + " - " + (*listHistory)[i].Scheduler.Course.Name,
+// 			CheckinTime:   (*listHistory)[i].CheckInTime,
+// 			CheckinStatus: (*listHistory)[i].CheckInStatus})
+// 	}
+// 	// var stu model.Student
+// 	// model.DbEntity.Where("id = ?", id).Find(&stu)
+
+// 	Mess := map[string]interface{}{
+// 		"id":         student.ID,
+// 		"student_id": student.StudentID,
+// 		"name":       student.Name,
+// 		"history":    historyElement,
+// 	}
+
+// 	c.JSON(http.StatusOK, Mess)
+
+// }
