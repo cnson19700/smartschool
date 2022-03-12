@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/smartschool/model/entity"
 	"gorm.io/driver/postgres"
@@ -18,7 +19,6 @@ func Init() {
 	//createDummy()
 	//readDummy()
 	// Close()
-	// createDummy()
 }
 
 // func makeFacultyDummy() {
@@ -42,10 +42,8 @@ func Close() {
 
 func ConnectDatabase() {
 	//dbURI := "host=13.228.244.196 port=5432 user=busmapdb dbname=phenikaamaas_attendancedb sslmode=disable password=frjsdfhaflpzlcdzgnfvuxkdwiiiiklpojzowxajmendeeoqtbzyrgi"
-	// dbURI := "host=localhost user=postgres dbname=nhan_local_database sslmode=disable password=Postgres port=5432"
+	dbURI := "host=localhost user=postgres dbname=nhan_local_database sslmode=disable password=Postgres port=5432"
 
-	// dbURI := "host=13.228.244.196 port=5432 user=busmapdb dbname=phenikaamaas_attendancedb sslmode=disable password=frjsdfhaflpzlcdzgnfvuxkdwiiiiklpojzowxajmendeeoqtbzyrgi"
-	dbURI := "host=localhost port=5432 user=postgres dbname=local-capstone-db sslmode=disable password=xuanvinh1409"
 	var err error
 	DbInstance, err = gorm.Open(postgres.Open(dbURI), &gorm.Config{})
 
@@ -84,26 +82,33 @@ func MigrateDatabase() {
 	fmt.Println("Migrate DB normal")
 }
 
-// func createDummy() {
-// 	t := time.Now()
-// 	DummyStudents := []entity.Student{{StudentID: "100", Name: "Alice", Email: "abc@mail.com", PhoneNumber: "123456789"}, {StudentID: "101", Name: "Bob", Email: "abc@mail.com", PhoneNumber: "123456789"}, {StudentID: "102", Name: "Carly", Email: "abc@mail.com", PhoneNumber: "123456789"}}
-// 	DummyCourses := []entity.Course{{CourseID: "CS001", Name: "Intro to Internet"}, {CourseID: "MTH001", Name: "Intro to Math"}}
-// 	DummyStudentCourse := []entity.StudentCourse{{StudentID: 1, CourseID: 1}, {StudentID: 1, CourseID: 2}, {StudentID: 2, CourseID: 1}, {StudentID: 3, CourseID: 2}}
-// 	DummyRooms := []entity.Room{{RoomID: "I41", Name: "APCS Room"}, {RoomID: "B52", Name: "CLC lab"}, {RoomID: "E15", Name: "VP Stone room"}}
-// 	DummyScheduler := []entity.Scheduler{{RoomID: 1, CourseID: 1, StartTime: t, EndTime: t.Add(time.Hour * 2)}, {RoomID: 2, CourseID: 2, StartTime: t, EndTime: t.Add(time.Hour * 2)}, {RoomID: 3, CourseID: 1, StartTime: t.Add(time.Hour * 4), EndTime: t.Add(time.Hour * 6)}, {RoomID: 1, CourseID: 2, StartTime: t.Add(time.Hour * 2), EndTime: t.Add(time.Hour * 4)}}
-// 	DummyDevice := []entity.Device{{RoomID: 1, DeviceID: "D1"}, {RoomID: 2, DeviceID: "D2"}, {RoomID: 3, DeviceID: "D3"}}
+func createDummy() {
+	t := time.Now()
+	DummyFaculties := []entity.Faculty{{Title: "Computer Science"}, {Title: "Chemistry"}, {Title: "Physic"}}
+	DummyRoles := []entity.Role{{Title: "Student"}, {Title: "Academic Section"}}
+	DummyUsers := []entity.User{{Username: "Bui Xuan Vinh", Password: "12345", Email: "vinh@capstone.local", PhoneNumber: "0123456789", FirstName: "Bui", LastName: "Vinh", DateOfBirth: t, RoleID: 1, Gender: 0, FacultyID: 1, IsActivate: true}}
+	DummyStudents := []entity.Student{{StudentID: "100", Batch: "18CTT2"}}
+	// DummyCourses := []entity.Course{{CourseID: "CS001", Name: "Intro to Internet", SemesterID: 1}, {CourseID: "MTH001", Name: "Intro to Math", SemesterID: 1}}
+	// DummyStudentCourse := []entity.StudentCourseEnrollment{{StudentID: 1, CourseID: 1}, {StudentID: 1, CourseID: 2}, {StudentID: 2, CourseID: 1}, {StudentID: 3, CourseID: 2}}
+	DummyRooms := []entity.Room{{RoomID: "I41", Name: "APCS Room"}, {RoomID: "B52", Name: "CLC lab"}, {RoomID: "E15", Name: "VP Stone room"}}
+	// DummyScheduler := []entity.Schedule{{RoomID: 1, CourseID: 1, StartTime: t, EndTime: t.Add(time.Hour * 2)}, {RoomID: 2, CourseID: 2, StartTime: t, EndTime: t.Add(time.Hour * 2)}, {RoomID: 3, CourseID: 1, StartTime: t.Add(time.Hour * 4), EndTime: t.Add(time.Hour * 6)}, {RoomID: 1, CourseID: 2, StartTime: t.Add(time.Hour * 2), EndTime: t.Add(time.Hour * 4)}}
+	DummyDevice := []entity.Device{{RoomID: 1, DeviceID: "D1"}, {RoomID: 2, DeviceID: "D2"}, {RoomID: 3, DeviceID: "D3"}}
 
-// 	if DbInstance == nil {
-// 		panic("[ERROR] Nil DB")
-// 	}
+	if DbInstance == nil {
+		panic("[ERROR] Nil DB")
+	}
 
-// 	DbInstance.Create(&DummyStudents)
-// 	DbInstance.Create(&DummyCourses)
-// 	DbInstance.Create(&DummyStudentCourse)
-// 	DbInstance.Create(&DummyRooms)
-// 	DbInstance.Create(&DummyScheduler)
-// 	DbInstance.Create(&DummyDevice)
-// }
+	DbInstance.Create(&DummyFaculties)
+	DbInstance.Create(&DummyRoles)
+	DbInstance.Create(&DummyUsers)
+	DbInstance.Create(&DummyStudents)
+	// DbInstance.Create(&DummyCourses)
+	// DbInstance.Create(&DummyStudentCourse)
+	DbInstance.Create(&DummyRooms)
+	// DbInstance.Create(&DummyScheduler)
+	DbInstance.Create(&DummyDevice)
+
+}
 
 // func readDummy() {
 // 	studentID := "100"
