@@ -10,6 +10,7 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/gobuffalo/packr/v2 v2.8.3 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/jinzhu/gorm v1.9.16
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/onsi/ginkgo v1.10.3 // indirect
 	github.com/onsi/gomega v1.7.1 // indirect

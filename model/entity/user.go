@@ -15,7 +15,7 @@ type User struct {
 	FirstName   string    `gorm:"firstname" json:"firstname"`
 	LastName    string    `gorm:"lastname" json:"lastname"`
 	DateOfBirth time.Time `gorm:"date_of_birth" json:"date_of_birth"`
-	Gender      bool      `gorm:"gender" json:"gender"`
+	Gender      int       `gorm:"gender" json:"gender"`
 	RoleID      uint      `gorm:"role_id" json:"role_id"`
 	FacultyID   uint      `gorm:"faculty_id" json:"faculty_id"`
 	IsActivate  bool      `gorm:"is_activate" json:"is_activate"`

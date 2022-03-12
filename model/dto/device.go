@@ -1,11 +1,9 @@
 package dto
 
-import "time"
-
 type DeviceSignal struct {
-	CardId          string    `json:"cardId"`
-	TimeStamp       time.Time `json:"timeStamp"`
-	CompanyTokenKey string    `json:"companyTokenKey"`
+	CardId          string `json:"cardId"`
+	Timestamp       int64  `json:"timeStamp"`
+	CompanyTokenKey string `json:"companyTokenKey"`
 }
 
 type EventCheckin struct {

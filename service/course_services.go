@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/smartschool/database"
-	"github.com/smartschool/entity"
+	"github.com/smartschool/model/entity"
 )
 
 func GetCourseByCourseID(id string) (*entity.Course, *error) {
