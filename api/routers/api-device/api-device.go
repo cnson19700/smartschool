@@ -18,10 +18,6 @@ func EventCheckin(c *gin.Context) {
 		return
 	}
 
-	// fmt.Println(requestData.StudentId)
-	// fmt.Println(requestData.Location)
-	// fmt.Println(requestData.Timestamp)
-
 	service.CheckIn(requestData)
 }
 
