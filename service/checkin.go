@@ -5,11 +5,11 @@ import (
 	"strings"
 	"time"
 
-	// "github.com/smartschool/database"
 	"github.com/smartschool/database"
 	"github.com/smartschool/helper"
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/model/entity"
+	"github.com/smartschool/repository"
 )
 
 // c *gin.Context, deviceSignal dto.DeviceSignal
@@ -90,40 +90,34 @@ func recordCheckin(studentID string, deviceID string, checkinTime time.Time) {
 func recordCheckinQR(checkinValues string, deviceID string, checkinTime time.Time) {
 	studentID, courseID := parseData(checkinValues)
 
-	var device entity.Device
-	database.DbInstance.Select("room_id").Where("device_id = ?", deviceID).Find(&device)
+	device := repository.QueryDeviceByID(deviceID)
 	if device.RoomID == 0 {
 		fmt.Println("Device does not match any room!!!")
 		return
 	}
 
-	var course entity.Course
-	database.DbInstance.Select("id").Where("course_id = ?", courseID).Find(&course)
+	course := repository.QueryCourseByID(courseID)
 	if course.ID == 0 {
 		fmt.Println("Course not exist!!!")
 		return
 	}
 
-	var schedule entity.Schedule
-	database.DbInstance.Order("end_time").Select("id", "start_time", "end_time").Where("room_id = ? AND end_time >= ? AND course_id = ?", device.RoomID, checkinTime, course.ID).Find(&schedule)
+	schedule := repository.QueryScheduleByRoomTimeCourse(device.Room.RoomID, checkinTime, courseID)
 	if schedule.ID == 0 {
 		fmt.Println("Time slot not in Schedule!!!")
 		return
 	}
 
-	var student entity.Student
-	database.DbInstance.Select("id").Where("student_id = ?", studentID).First(&student)
+	student := repository.QueryStudentBySID(studentID)
 	if student.ID == 0 {
 		fmt.Println("Student not recognize!!!")
 		return
 	}
 
-	var verify entity.StudentCourseEnrollment
-	database.DbInstance.Select("id").Where("student_id = ? AND course_id = ?", student.ID, courseID).Find(&verify)
+	verify := repository.QueryEnrollmentByStudentCourse(studentID, courseID)
 
 	if verify.ID != 0 {
-		var checkAttend entity.Attendance
-		database.DbInstance.Select("id").Where("student_id = ? AND scheduler_id = ?", student.ID, schedule.ID).Find(&checkAttend)
+		checkAttend := repository.QueryAttendanceByStudentSchedule(studentID, schedule.ID)
 
 		if checkAttend.ID == 0 {
 			checkinStatus := "Attend"
