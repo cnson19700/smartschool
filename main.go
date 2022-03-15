@@ -12,7 +12,10 @@ import (
 	_ "github.com/GoAdminGroup/themes/adminlte" // ui theme
 	"github.com/gin-gonic/gin"
 	"github.com/smartschool/database"
+	"github.com/smartschool/service/excel"
 	"github.com/smartschool/tables"
+	"os"
+	"os/signal"
 )
 
 func main() {
@@ -45,9 +48,20 @@ func main() {
 		AddGenerators(tables.Generators).
 		Use(r)
 
+	r.Static("/public", "./public")
+
 	eng.HTML("GET", "/admin", DashboardPage)
 
-	_ = r.Run(":9035")
+	r.GET("/summary", excel.ExportSummary)
+	r.POST("/course", excel.ImportCourse)
+
+	go func() {
+		r.Run(":9035")
+	}()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, os.Kill)
+	<-c
 }
 
 func DashboardPage(ctx *context.Context) (types.Panel, error) {
