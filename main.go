@@ -13,6 +13,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/smartschool/database"
 	"github.com/smartschool/tables"
+	"os"
+	"os/signal"
 )
 
 func main() {
@@ -45,9 +47,17 @@ func main() {
 		AddGenerators(tables.Generators).
 		Use(r)
 
+	r.Static("/public", "./public")
+
 	eng.HTML("GET", "/admin", DashboardPage)
 
-	_ = r.Run(":9035")
+	go func() {
+		r.Run(":6001")
+	}()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, os.Kill)
+	<-c
 }
 
 func DashboardPage(ctx *context.Context) (types.Panel, error) {

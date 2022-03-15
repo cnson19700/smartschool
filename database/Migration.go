@@ -4,8 +4,11 @@ import (
 	"fmt"
 
 	"github.com/smartschool/model/entity"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
+	_ "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"time"
 )
 
 var DbInstance *gorm.DB
@@ -14,7 +17,7 @@ func Init() {
 	ConnectDatabase()
 	//DbInstance.AutoMigrate(&entity.Faculty{})
 	//makeFacultyDummy()
-	MigrateDatabase()
+	//MigrateDatabase()
 	//createDummy()
 	//readDummy()
 }
@@ -39,8 +42,7 @@ func Close() {
 }
 
 func ConnectDatabase() {
-	//dbURI := "host=13.228.244.196 port=5432 user=busmapdb dbname=phenikaamaas_attendancedb sslmode=disable password=frjsdfhaflpzlcdzgnfvuxkdwiiiiklpojzowxajmendeeoqtbzyrgi"
-	dbURI := "host=localhost user=postgres dbname=nhan_local_database sslmode=disable password=Postgres port=5432"
+	dbURI := "host=13.228.244.196 port=5432 user=busmapdb dbname=phenikaamaas_attendancedb sslmode=disable password=frjsdfhaflpzlcdzgnfvuxkdwiiiiklpojzowxajmendeeoqtbzyrgi"
 
 	var err error
 	DbInstance, err = gorm.Open(postgres.Open(dbURI), &gorm.Config{})
