@@ -13,3 +13,14 @@ func QueryAllCourses() ([]*entity.Course, error) {
 	}
 	return courses, nil
 }
+
+func QueryAllCourses() *[]entity.Course {
+	var course []entity.Course
+	result := database.DbInstance.Find(&course)
+	if result.Error != nil {
+		return nil
+
+	}
+
+	return &course
+}

@@ -2,9 +2,11 @@ package service
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/smartschool/database"
 	"github.com/smartschool/helper"
 	"github.com/smartschool/model/dto"
@@ -32,8 +34,7 @@ func CheckIn(deviceSignal dto.DeviceSignal) {
 		fmt.Println("Service checkincalled")
 
 	case "QR":
-		// recordCheckinQR(checkinValue, deviceSignal.CompanyTokenKey, time.Unix(ConvertDeviceTimestampToExact(deviceSignal.Timestamp), 0))
-		fmt.Println("Service checkin QR called")
+		recordCheckinQR(checkinValue, deviceSignal.CompanyTokenKey, time.Unix(ConvertDeviceTimestampToExact(deviceSignal.Timestamp), 0))
 
 	default:
 		return
@@ -89,28 +90,35 @@ func recordCheckin(studentID string, deviceID string, checkinTime time.Time) {
 
 func recordCheckinQR(checkinValues string, deviceID string, checkinTime time.Time) {
 	studentID, courseID := parseData(checkinValues)
+	var c *gin.Context
 
 	device := repository.QueryDeviceByID(deviceID)
 	if device.RoomID == 0 {
-		fmt.Println("Device does not match any room!!!")
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "Device does not match any room!!!",
+		})
 		return
 	}
 
 	course := repository.QueryCourseByID(courseID)
 	if course.ID == 0 {
-		fmt.Println("Course not exist!!!")
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "Course not exist!!!",
+		})
 		return
 	}
 
 	schedule := repository.QueryScheduleByRoomTimeCourse(device.Room.RoomID, checkinTime, courseID)
 	if schedule.ID == 0 {
-		fmt.Println("Time slot not in Schedule!!!")
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "Time slot not in Schedule!!!"})
 		return
 	}
 
 	student := repository.QueryStudentBySID(studentID)
 	if student.ID == 0 {
-		fmt.Println("Student not recognize!!!")
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "Student not recognize!!!"})
 		return
 	}
 
@@ -126,12 +134,15 @@ func recordCheckinQR(checkinValues string, deviceID string, checkinTime time.Tim
 			}
 
 			database.DbInstance.Create(&entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
-			fmt.Println("Checkin Success!!!")
+			c.JSON(http.StatusOK, gin.H{
+				"message": "Checkin Success!!!"})
 		} else {
-			fmt.Println("Checkin exist!!!")
+			c.JSON(http.StatusNotAcceptable, gin.H{
+				"message": "Checkin exist!!!"})
 		}
 	} else {
-		fmt.Println("Student dont take this course!!!")
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "Student dont take this course!!!"})
 	}
 }
 

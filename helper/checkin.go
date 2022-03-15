@@ -2,7 +2,6 @@ package helper
 
 import (
 	"encoding/base64"
-	"fmt"
 	"regexp"
 	"strings"
 )
@@ -24,7 +23,7 @@ func ClassifyCheckinCode(code string) (CheckinType string, Value string) {
 		checkCode = base64.StdEncoding.EncodeToString([]byte(checkCode)) //this is temp
 		rawDecodedText, err := base64.StdEncoding.DecodeString(checkCode)
 		if err != nil {
-			fmt.Println("error:", err)
+			panic(err)
 		}
 
 		return "QR", string(rawDecodedText)
