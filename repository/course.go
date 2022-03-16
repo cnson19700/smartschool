@@ -5,11 +5,21 @@ import (
 	"github.com/smartschool/model/entity"
 )
 
-func QueryAllCourses() ([]*entity.Course, error) {
-	courses := []*entity.Course{}
-	err := database.DbInstance.Find(&courses).Error
+func QueryCourseByID(id string) (*entity.Course, error) {
+	var course entity.Course
+	err := database.DbInstance.Select("id").Where("course_id = ?", id).Find(&course).Error
 	if err != nil {
 		return nil, err
 	}
-	return courses, nil
+	return &course, nil
+}
+
+func QueryAllCourses() (*[]entity.Course, error) {
+	var course []entity.Course
+	err := database.DbInstance.Find(&course).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &course, nil
 }

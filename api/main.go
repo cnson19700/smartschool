@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/smartschool/api/routers"
-	"github.com/smartschool/database"
+
+	// "github.com/smartschool/api/routers"
 	"os"
 	"os/signal"
+
+	"github.com/smartschool/api/routers"
+	"github.com/smartschool/database"
 )
 
 func main() {
