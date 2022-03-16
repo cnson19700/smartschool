@@ -19,11 +19,10 @@ func Initialize() (*gin.Engine, error) {
 	mobileGroup.Use(authMw.GetAuthFunc())
 
 	mobileGroup.GET("/late/:id", api_device.GetStudentCheckInLateHistory)
-	mobileGroup.PUT("/change-password", api_mobile.UpdatePassword)
 
 	r.POST("/checkin", api_device.EventCheckin)
 	r.POST("/login", api_mobile.Login)
-	r.POST("/register", api_mobile.Register)
+	r.POST("/change-password", api_mobile.UpdatePassword)
 
 	return r, nil
 }
