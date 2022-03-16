@@ -54,6 +54,7 @@ func main() {
 
 	r.GET("/summary", excel.ExportSummary)
 	r.POST("/course", excel.ImportCourse)
+	r.POST("/user", excel.ImportUser)
 
 	go func() {
 		r.Run(":6001")

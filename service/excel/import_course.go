@@ -1,55 +1,20 @@
 package excel
 
 import (
-	"fmt"
-	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/gin-gonic/gin"
 	"github.com/smartschool/database"
 	"github.com/smartschool/model/entity"
-	"io/ioutil"
-	"path/filepath"
 	"strconv"
-	"strings"
-	"time"
 )
 
 const COURSE_SHEET_NAME = "Course"
 
 func ImportCourse(c *gin.Context) {
-	currentTime := time.Now().Unix()
-
-	r := c.Request
-	defer r.Body.Close()
 	w := c.Writer
 
-	file, fileHeader, err := r.FormFile("excel-file")
+	excel, err := PreprocessImport(c)
 	if err != nil {
-		w.Write([]byte("Invalid uploaded file"))
-		return
-	}
-
-	fileBytes, err := ioutil.ReadAll(file)
-	if err != nil {
-		w.Write([]byte("Invalid uploaded file"))
-		return
-	}
-
-	fileNameWithExt := fileHeader.Filename
-	fileExt := filepath.Ext(fileNameWithExt)
-	fileNameOnly := strings.TrimSuffix(fileNameWithExt, fileExt)
-	fileNameSaved := fmt.Sprintf("%s_%d%s", fileNameOnly, currentTime, fileExt)
-	filePath := "public/course_import/" + fileNameSaved
-
-	err = ioutil.WriteFile(filePath, fileBytes, 0644)
-	if err != nil {
-		w.Write([]byte("Internal server error"))
-		return
-	}
-
-	excel, err := excelize.OpenFile(filePath)
-	if err != nil {
-		w.Write([]byte("Internal server error"))
-		return
+		w.Write([]byte(err.Error()))
 	}
 
 	rows := excel.GetRows(COURSE_SHEET_NAME)
@@ -61,7 +26,7 @@ func ImportCourse(c *gin.Context) {
 
 		id, err := strconv.Atoi(row[0])
 		if err != nil {
-			w.Write([]byte("Cannot parse file"))
+			w.Write([]byte("ID needs to be a number"))
 			return
 		}
 
