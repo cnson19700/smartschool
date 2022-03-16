@@ -2,6 +2,7 @@ package api_mobile
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -12,10 +13,11 @@ import (
 	"github.com/smartschool/helper"
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/model/entity"
+	"github.com/smartschool/service"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func Registter(c *gin.Context) {
+func Register(c *gin.Context) {
 	var registerReq dto.RegisterRequest
 	err := c.ShouldBindJSON(&registerReq)
 	if err != nil {
@@ -96,4 +98,19 @@ func Login(c *gin.Context) {
 	resp := map[string]interface{}{"token": tokenString}
 
 	c.JSON(http.StatusOK, resp)
+}
+
+func UpdatePassword(c *gin.Context) {
+	var req = service.UpdatePasswordRequest{}
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, errors.New("update passwordrequest fail"))
+	}
+	id, _ := c.Get("user_id")
+	err = service.UpdatePassword(fmt.Sprint(id), req)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, errors.New("password update fail"))
+	}
+
+	c.JSON(http.StatusOK, req)
 }
