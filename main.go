@@ -56,7 +56,7 @@ func main() {
 	r.POST("/course", excel.ImportCourse)
 
 	go func() {
-		r.Run(":9035")
+		r.Run(":6001")
 	}()
 
 	c := make(chan os.Signal, 1)

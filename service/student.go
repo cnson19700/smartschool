@@ -3,7 +3,6 @@ package service
 import (
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/model/entity"
-	repo "github.com/smartschool/repository"
 )
 
 // func getStudentHistoryWithIdAndStatus(id int, status string) *[]entity.Attendance {
@@ -22,10 +21,10 @@ import (
 
 func GetCheckInHistoryBySID(sid string, status string) (*entity.Student, []dto.CheckInHistoryElement) {
 
-	student := repo.QueryStudentBySID(sid)
-	if student == nil {
-		return nil, nil
-	}
+	// student, err := repo.QueryStudentBySID(sid)
+	// if err != nil {
+	// 	return nil, nil
+	// }
 
 	// listHistory := repo.QueryCheckinHistoryWithSIdAndStatus(student.ID, status)
 
