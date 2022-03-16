@@ -15,44 +15,40 @@ import (
 // c *gin.Context, deviceSignal dto.DeviceSignal
 
 func CheckIn(deviceSignal dto.DeviceSignal) {
-
+	var status string
 	checkinType, checkinValue := helper.ClassifyCheckinCode(deviceSignal.CardId)
-	//checkinType := "Card"
+
 	switch checkinType {
 	case "Card":
-		// loc, _ := time.LoadLocation("Asia/Ho_Chi_Minh")
-		fmt.Println("Check in Card called")
-		recordCheckinCard(checkinValue, deviceSignal.CompanyTokenKey, time.Unix(ConvertDeviceTimestampToExact(deviceSignal.Timestamp), 0))
-		fmt.Println("Service checkincalled")
+		status = recordCheckinCard(checkinValue, deviceSignal.CompanyTokenKey, time.Unix(ConvertDeviceTimestampToExact(deviceSignal.Timestamp), 0))
 
 	case "QR":
 		// recordCheckinQR(checkinValue, deviceSignal.CompanyTokenKey, time.Unix(ConvertDeviceTimestampToExact(deviceSignal.Timestamp), 0))
 		fmt.Println("Service checkin QR called")
 
 	default:
-		return
+		status = "Abnormal"
 	}
+
+	repository.LogCheckIn(deviceSignal, status)
 }
 
-func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time) {
+func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time) string {
 	fmt.Println(checkinTime)
 
 	device := repository.QueryDeviceByID(deviceID)
 	if device == nil {
-		fmt.Println("Device does not match any room!!!")
-		return
+		return "Device does not match any room"
 	}
 
 	schedule := repository.QueryScheduleByRoomTime(device.RoomID, checkinTime)
 	if schedule == nil {
-		fmt.Println("Time slot not in Schedule!!!")
-		return
+		return "Time slot not in Schedule"
 	}
 
 	student := repository.QueryStudentBySID(studentID)
 	if student == nil {
-		fmt.Println("Student not recognize!!!")
-		return
+		return "Student not recognize"
 	}
 
 	verify := repository.QueryEnrollmentByStudentCourse(student.ID, schedule.CourseID)
@@ -68,12 +64,12 @@ func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time)
 			}
 
 			database.DbInstance.Create(&entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
-			fmt.Println("Checkin Success!!!")
+			return "Checkin Success"
 		} else {
-			fmt.Println("Checkin exist!!!")
+			return "Checkin exist"
 		}
 	} else {
-		fmt.Println("Student dont take this course!!!")
+		return "Student dont take this course"
 	}
 }
 
