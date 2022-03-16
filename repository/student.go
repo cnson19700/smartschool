@@ -13,7 +13,7 @@ func QueryStudentBySID(sid string) (*entity.Student, error) {
 		return nil, err
 	}
 
-	return student, nil
+	return &student, nil
 }
 
 func QueryAllStudents() ([]*entity.Student, error) {
