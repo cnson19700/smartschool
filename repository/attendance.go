@@ -5,11 +5,11 @@ import (
 	"github.com/smartschool/model/entity"
 )
 
-func QueryAttendanceByStudentSchedule(student_id string, schedule_id uint) *entity.Attendance {
+func QueryAttendanceByStudentSchedule(student_id string, schedule_id uint) (*entity.Attendance, error) {
 	var checkAttend entity.Attendance
-	database.DbInstance.Select("id").Where("student_id = ? AND scheduler_id = ?", student_id, schedule_id).Find(&checkAttend)
-	if checkAttend.ID == 0 {
-		return nil
+	err := database.DbInstance.Select("id").Where("student_id = ? AND scheduler_id = ?", student_id, schedule_id).Find(&checkAttend).Error
+	if err != nil {
+		return nil, err
 	}
-	return &checkAttend
+	return &checkAttend, nil
 }

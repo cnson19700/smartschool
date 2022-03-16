@@ -44,50 +44,6 @@ func GetStudentCheckInLateHistory(c *gin.Context) {
 
 }
 
-func GetCourseByID(c *gin.Context) {
-	id := c.Param("id")
-
-	course, err := service.GetCourseByCourseID(id)
-	var Response map[string]interface{}
-	if err != nil {
-		Response = map[string]interface{}{
-			"error": "Not Found",
-		}
-		c.JSON(http.StatusNotFound, Response)
-	} else {
-
-		Response = map[string]interface{}{
-			"id":        course.ID,
-			"course_id": course.CourseID,
-			"name":      course.Name,
-			"error":     nil,
-		}
-
-		c.JSON(http.StatusOK, Response)
-	}
-
-}
-
-func GetCourses(c *gin.Context) {
-	course, err := service.GetCourses()
-	var Response map[string]interface{}
-	if err != nil {
-		Response = map[string]interface{}{
-			"error": "Not Found",
-		}
-		c.JSON(http.StatusNotFound, Response)
-	} else {
-
-		Response = map[string]interface{}{
-			"courses": course,
-			"error":   nil,
-		}
-
-		c.JSON(http.StatusOK, Response)
-	}
-
-}
-
 // func GetLateHistory(c *gin.Context) {
 // 	id := c.Param("id")
 

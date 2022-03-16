@@ -7,8 +7,8 @@ import (
 )
 
 func QueryStudentBySID(sid string) (*entity.Student, error) {
-	student := &entity.Student{}
-	err := database.DbInstance.Where("student_id = ?", sid).First(student).Error
+	var student entity.Student
+	err := database.DbInstance.Where("student_id = ?", sid).First(&student).Error
 	if err != nil {
 		return nil, err
 	}

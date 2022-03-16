@@ -100,34 +100,34 @@ func recordCheckinQR(checkinValues string, deviceID string, checkinTime time.Tim
 		return
 	}
 
-	course := repository.QueryCourseByID(courseID)
-	if course.ID == 0 {
+	_, err := repository.QueryCourseByID(courseID)
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"message": "Course not exist!!!",
 		})
 		return
 	}
 
-	schedule := repository.QueryScheduleByRoomTimeCourse(device.Room.RoomID, checkinTime, courseID)
-	if schedule.ID == 0 {
+	schedule, err := repository.QueryScheduleByRoomTimeCourse(device.Room.RoomID, checkinTime, courseID)
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"message": "Time slot not in Schedule!!!"})
 		return
 	}
 
-	student := repository.QueryStudentBySID(studentID)
-	if student.ID == 0 {
+	student, err := repository.QueryStudentBySID(studentID)
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"message": "Student not recognize!!!"})
 		return
 	}
 
-	verify := repository.QueryEnrollmentByStudentCourse(studentID, courseID)
+	_, err = repository.QueryEnrollmentByStudentCourse(studentID, courseID)
 
-	if verify.ID != 0 {
-		checkAttend := repository.QueryAttendanceByStudentSchedule(studentID, schedule.ID)
+	if err != nil {
+		_, err := repository.QueryAttendanceByStudentSchedule(studentID, schedule.ID)
 
-		if checkAttend.ID == 0 {
+		if err != nil {
 			checkinStatus := "Attend"
 			if timeDiff := checkinTime.Sub(schedule.StartTime); timeDiff > (time.Minute * 20) {
 				checkinStatus = "Late"
