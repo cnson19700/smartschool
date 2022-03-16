@@ -5,6 +5,6 @@ import (
 	"github.com/smartschool/model/entity"
 )
 
-func LogCheckIn(deviceSignal entity.DeviceSignalLog) {
+func CreateLogCheckIn(deviceSignal entity.DeviceSignalLog) {
 	database.DbInstance.Create(&deviceSignal)
 }

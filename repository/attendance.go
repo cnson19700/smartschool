@@ -13,3 +13,7 @@ func QueryAttendanceByStudentSchedule(student_id uint, schedule_id uint) *entity
 	}
 	return &checkAttend
 }
+
+func CreateAttendance(attendance entity.Attendance) {
+	database.DbInstance.Create(&attendance)
+}

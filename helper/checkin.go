@@ -22,10 +22,11 @@ func ClassifyCheckinCode(code string) (CheckinType string, Value string) {
 
 	if reQR.Match([]byte(code)) {
 		checkCode := code[(strings.Index((code), ":") + 1):(len(code) - 1)]
-		checkCode = base64.StdEncoding.EncodeToString([]byte(checkCode)) //this is temp
+		// checkCode = base64.StdEncoding.EncodeToString([]byte(checkCode)) //this is temp
 		rawDecodedText, err := base64.StdEncoding.DecodeString(checkCode)
 		if err != nil {
 			fmt.Println("error:", err)
+			return "ERROR", ""
 		}
 
 		return "QR", string(rawDecodedText)

@@ -14,8 +14,8 @@ var DbInstance *gorm.DB
 
 func Init() {
 	ConnectDatabase()
-	MigrateDatabase()
-	createDummy()
+	//MigrateDatabase()
+	//createDummy()
 	//readDummy()
 	// Close()
 }

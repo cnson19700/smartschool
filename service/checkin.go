@@ -2,29 +2,24 @@ package service
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
-	"github.com/smartschool/database"
 	"github.com/smartschool/helper"
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/model/entity"
 	"github.com/smartschool/repository"
 )
 
-// c *gin.Context, deviceSignal dto.DeviceSignal
-
 func CheckIn(deviceSignal dto.DeviceSignal) {
 
 	status := ""
 	entryTime := helper.ConvertDeviceTimestampToExact(deviceSignal.Timestamp)
 
-	if !helper.CheckValidDifferentTimeEntry(entryTime, 1*time.Minute) {
-		status = "[Abnormal]: Invalid Checkin time"
-		log := entity.DeviceSignalLog{CardId: deviceSignal.CardId, CompanyTokenKey: deviceSignal.CompanyTokenKey, Status: status, Timestamp: entryTime}
-		repository.LogCheckIn(log)
-		return
-	}
+	// if !helper.CheckValidDifferentTimeEntry(entryTime, 1*time.Minute) {
+	// 	status = "[Abnormal]: Invalid Checkin time"
+	// 	repository.CreateLogCheckIn(entity.DeviceSignalLog{CardId: deviceSignal.CardId, CompanyTokenKey: deviceSignal.CompanyTokenKey, Status: status, Timestamp: entryTime})
+	// 	return
+	// }
 
 	checkinType, checkinValue := helper.ClassifyCheckinCode(deviceSignal.CardId)
 
@@ -33,15 +28,13 @@ func CheckIn(deviceSignal dto.DeviceSignal) {
 		status = recordCheckinCard(checkinValue, deviceSignal.CompanyTokenKey, entryTime)
 
 	case "QR":
-		// recordCheckinQR(checkinValue, deviceSignal.CompanyTokenKey, time.Unix(ConvertDeviceTimestampToExact(deviceSignal.Timestamp), 0))
-		fmt.Println("Service checkin QR called")
+		status = recordCheckinQR(checkinValue, deviceSignal.CompanyTokenKey, entryTime)
 
 	default:
 		status = "[Abnormal]: Invalid format CardID"
 	}
 
-	log := entity.DeviceSignalLog{CardId: deviceSignal.CardId, CompanyTokenKey: deviceSignal.CompanyTokenKey, Status: status, Timestamp: entryTime}
-	repository.LogCheckIn(log)
+	repository.CreateLogCheckIn(entity.DeviceSignalLog{CardId: deviceSignal.CardId, CompanyTokenKey: deviceSignal.CompanyTokenKey, Status: status, Timestamp: entryTime})
 }
 
 func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time) string {
@@ -49,7 +42,7 @@ func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time)
 
 	device := repository.QueryDeviceByID(deviceID)
 	if device == nil {
-		return "[Normal]: Device does not match any room"
+		return "[Abnormal]: Device does not match any room"
 	}
 
 	schedule := repository.QueryScheduleByRoomTime(device.RoomID, checkinTime)
@@ -59,12 +52,12 @@ func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time)
 
 	student := repository.QueryStudentBySID(studentID)
 	if student == nil {
-		return "[Normal]: Student not recognize"
+		return "[Abnormal]: Student not recognize"
 	}
 
-	verify := repository.QueryEnrollmentByStudentCourse(student.ID, schedule.CourseID)
+	enrollment := repository.QueryEnrollmentByStudentCourse(student.ID, schedule.CourseID)
 
-	if verify != nil {
+	if enrollment != nil {
 
 		checkAttend := repository.QueryAttendanceByStudentSchedule(student.ID, schedule.ID)
 
@@ -74,7 +67,8 @@ func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time)
 				checkinStatus = "Late"
 			}
 
-			database.DbInstance.Create(&entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
+			//database.DbInstance.Create(&entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
+			repository.CreateAttendance(entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
 			return "[Normal]: Checkin Success"
 		} else {
 			return "[Normal]: Checkin exist"
@@ -84,66 +78,47 @@ func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time)
 	}
 }
 
-/*
-func recordCheckinQR(checkinValues string, deviceID string, checkinTime time.Time) {
-	studentID, courseID := parseData(checkinValues)
+func recordCheckinQR(checkinValues string, deviceID string, checkinTime time.Time) string {
+	studentID, courseID := helper.ParseData(checkinValues)
 
 	device := repository.QueryDeviceByID(deviceID)
-	if device.RoomID == 0 {
-		fmt.Println("Device does not match any room!!!")
-		return
+	if device == nil {
+		return "[Abnormal]: Device does not match any room"
 	}
 
 	course := repository.QueryCourseByID(courseID)
-	if course.ID == 0 {
-		fmt.Println("Course not exist!!!")
-		return
+	if course == nil {
+		return "[Abnormal]: Course not exist"
 	}
 
-	schedule := repository.QueryScheduleByRoomTimeCourse(device.Room.RoomID, checkinTime, courseID)
-	if schedule.ID == 0 {
-		fmt.Println("Time slot not in Schedule!!!")
-		return
+	schedule := repository.QueryScheduleByRoomTimeCourse(device.RoomID, checkinTime, course.ID)
+	if schedule == nil {
+		return "[Normal]: Time slot not in Schedule"
 	}
 
 	student := repository.QueryStudentBySID(studentID)
-	if student.ID == 0 {
-		fmt.Println("Student not recognize!!!")
-		return
+	if student == nil {
+		return "[Abnormal]: Student not recognize"
 	}
 
-	verify := repository.QueryEnrollmentByStudentCourse(studentID, courseID)
+	enrollment := repository.QueryEnrollmentByStudentCourse(student.ID, course.ID)
 
-	if verify.ID != 0 {
-		checkAttend := repository.QueryAttendanceByStudentSchedule(studentID, schedule.ID)
+	if enrollment != nil {
+		checkAttend := repository.QueryAttendanceByStudentSchedule(student.ID, schedule.ID)
 
-		if checkAttend.ID == 0 {
+		if checkAttend == nil {
 			checkinStatus := "Attend"
 			if timeDiff := checkinTime.Sub(schedule.StartTime); timeDiff > (time.Minute * 20) {
 				checkinStatus = "Late"
 			}
 
-			database.DbInstance.Create(&entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
-			fmt.Println("Checkin Success!!!")
+			//database.DbInstance.Create(&entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
+			repository.CreateAttendance(entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
+			return "[Normal]: Checkin Success"
 		} else {
-			fmt.Println("Checkin exist!!!")
+			return "[Normal]: Checkin exist"
 		}
 	} else {
-		fmt.Println("Student dont take this course!!!")
+		return "[Normal]: Student dont take this course"
 	}
-}
-*/
-
-func ConvertDeviceTimestampToExact(timestamp int64) int64 {
-	tempTime := time.Unix(timestamp, 0)
-	tempTime = tempTime.Add((-1) * time.Hour * 7)
-	// if tempTime.Unix() > time.Now().Unix() {
-	// 	tempTime = time.Now()
-	// }
-	return tempTime.Unix()
-}
-
-func parseData(checkinValues string) (string, string) {
-	res := strings.Split(checkinValues, "-")
-	return res[0], res[1]
 }
