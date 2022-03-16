@@ -24,22 +24,21 @@ func Register(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, errors.New("register request is invalid"))
 		return
 	}
-	isMail, email := helper.CheckFormatValue("email", registerReq.Email)
+	isMail, email := helper.CheckMailFormat(registerReq.Email)
 	if !isMail {
 		c.JSON(http.StatusBadRequest, errors.New("wrong email request"))
 		return
 	}
 
 	//password format error
-	isPass, password := helper.CheckFormatValue("password", registerReq.Password)
-	if !isPass {
-		c.JSON(http.StatusBadRequest, errors.New("password request is not valid"))
-		return
+	if len(registerReq.Password) < 8 {
+		c.JSON(http.StatusBadRequest, errors.New("password must have at least 8 characters"))
 	}
 
-	passwordHash, err := helper.HashPassword(password)
+	passwordHash, err := helper.HashPassword(registerReq.Password)
 	if err != nil {
-		errors.New("password hash fail")
+		c.JSON(http.StatusBadRequest, errors.New("password hash fail"))
+		return
 	}
 
 	user := entity.User{
@@ -101,12 +100,15 @@ func Login(c *gin.Context) {
 }
 
 func UpdatePassword(c *gin.Context) {
-	var req = service.UpdatePasswordRequest{}
+	var req = dto.UpdatePasswordRequest{}
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, errors.New("update passwordrequest fail"))
 	}
-	id, _ := c.Get("user_id")
+	id, isGet := c.Get("user_id")
+	if !isGet {
+		c.JSON(http.StatusBadRequest, errors.New("Cannot get userID"))
+	}
 	err = service.UpdatePassword(fmt.Sprint(id), req)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, errors.New("password update fail"))

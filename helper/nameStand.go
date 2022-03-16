@@ -1,8 +1,8 @@
 package helper
 
 import (
+	"errors"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"regexp"
 	"strings"
@@ -12,19 +12,19 @@ func Check(str string) string {
 	re1, err := regexp.Compile(`[^a-zA-Z\s]+`)
 
 	if err != nil {
-		log.Fatal(err)
+		return err.Error()
 	}
 
 	re2, err := regexp.Compile(`\s\s+`)
 
 	if err != nil {
-		log.Fatal(err)
+		return err.Error()
 	}
 
 	re3, err := regexp.Compile(`^ | $`)
 
 	if err != nil {
-		log.Fatal(err)
+		return err.Error()
 	}
 
 	match := re1.ReplaceAllString(str, "")     // remove all digit and non-word
@@ -47,7 +47,7 @@ func RemoveDoubleSpace(str string) string {
 	re2, err := regexp.Compile(`\s\s+`)
 
 	if err != nil {
-		log.Fatal(err)
+		return err.Error()
 	}
 
 	str = re2.ReplaceAllString(str, " ") // remove double space
@@ -70,13 +70,13 @@ func FormatText(str string, isHaveNumber bool, isLowerCase bool) string {
 	re1, err := regexp.Compile(regexStr)
 
 	if err != nil {
-		log.Fatal(err)
+		return err.Error()
 	}
 
 	re3, err := regexp.Compile(`^ | $`)
 
 	if err != nil {
-		log.Fatal(err)
+		return err.Error()
 	}
 
 	match := re1.ReplaceAllString(str, "")    // remove non-word
@@ -95,7 +95,7 @@ func IsDate(str string) string {
 	re1, err := regexp.Compile(regexStr)
 
 	if err != nil {
-		log.Fatal(err)
+		return err.Error()
 	}
 
 	match := re1.FindString(str) // remove non-word
@@ -113,7 +113,7 @@ func IsContainBadWord(str string) bool {
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		log.Fatalln(err)
+		return errors.As(err, errors.New("Fail to read all"))
 	}
 	bodyStr := string(body)
 

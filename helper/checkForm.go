@@ -3,40 +3,31 @@ package helper
 import (
 	"errors"
 	"strconv"
-	"strings"
 )
 
-func CheckFormatValue(formAtributeName string, value string) (bool, string) {
-	value = RemoveDoubleSpace(value)
-	if value == "" {
-		return false, errors.New("auth request is not invalid").Error()
-	}
-	switch formAtributeName {
-	case "email":
-		if !ValidEmail(value) {
-			return false, errors.New("email format is not invalid").Error()
-		}
-		return true, value
-	case "age":
-		age, err := strconv.Atoi(value)
-		minAge := 0
-		maxAge := 112
+func CheckAgeFormat(age int) (bool, string) {
+	minAge := 0
+	maxAge := 112
 
-		if err != nil || age < minAge || age > maxAge {
-			return false, errors.New("age is not invalid").Error()
-		}
-
-		return true, value
-	case "password":
-		str := FormatText(value, true, true)
-		if str == "" || strings.Contains(str, " ") {
-			return false, formAtributeName + errors.New("password format is not invalid").Error()
-		}
-		// } else if len(str) <= 8 {
-		// 	return false, appErr.AuthMsg.Min8Character
-		// }
-		return true, str
-	default:
-		return true, value
+	if age < minAge || age > maxAge {
+		return false, errors.New("age is not invalid").Error()
 	}
+	return true, strconv.Itoa(age)
+}
+
+func CheckMailFormat(email string) (bool, string) {
+	if !ValidEmail(email) {
+		return false, errors.New("email format is not invalid").Error()
+	}
+	return true, email
+}
+
+func ComparePassword(oldPass, newPass string) error {
+	if len(newPass) < 8 {
+		return errors.New("password must have 8 characters")
+	}
+	if oldPass != newPass {
+		return errors.New("2 password not matches")
+	}
+	return nil
 }

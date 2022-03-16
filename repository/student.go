@@ -6,14 +6,14 @@ import (
 	"github.com/smartschool/model/entity"
 )
 
-func QueryStudentBySID(sid string) *entity.Student {
-	var student entity.Student
-	database.DbInstance.Where("student_id = ?", sid).First(&student)
-	if student.ID == 0 {
-		return nil
+func QueryStudentBySID(sid string) (*entity.Student, error) {
+	student := &entity.Student{}
+	err := database.DbInstance.Where("student_id = ?", sid).First(student).Error
+	if err != nil {
+		return nil, err
 	}
 
-	return &student
+	return student, nil
 }
 
 func QueryAllStudents() ([]*entity.Student, error) {
