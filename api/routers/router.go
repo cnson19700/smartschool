@@ -22,6 +22,7 @@ func Initialize() (*gin.Engine, error) {
 
 	r.POST("/checkin", api_device.EventCheckin)
 	r.POST("/login", api_mobile.Login)
+	r.POST("/change-password", api_mobile.UpdatePassword)
 
 	return r, nil
 }
