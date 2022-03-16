@@ -6,10 +6,9 @@ import (
 	"os/signal"
 
 	// "github.com/smartschool/api/routers"
+
 	"github.com/smartschool/api/routers"
 	"github.com/smartschool/database"
-	// "os"
-	// "os/signal"
 )
 
 func main() {
@@ -19,7 +18,7 @@ func main() {
 
 	database.Init()
 
-	//model.Initialize()
+	defer database.Close()
 
 	go func() {
 		r, _ := routers.Initialize()

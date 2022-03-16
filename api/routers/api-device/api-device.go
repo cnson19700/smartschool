@@ -15,7 +15,7 @@ func EventCheckin(c *gin.Context) {
 	var requestData dto.DeviceSignal
 	err := c.ShouldBindJSON(&requestData)
 	if err != nil {
-		return
+		panic(err)
 	}
 
 	service.CheckIn(requestData)
