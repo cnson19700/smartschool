@@ -1,16 +1,52 @@
 package api_mobile
 
 import (
+	"errors"
+	"net/http"
+	"time"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	api_jwt "github.com/smartschool/api/api-jwt"
 	"github.com/smartschool/database"
+	"github.com/smartschool/helper"
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/model/entity"
 	"golang.org/x/crypto/bcrypt"
-	"net/http"
-	"time"
 )
+
+func Registter(c *gin.Context) {
+	var registerReq dto.RegisterRequest
+	err := c.ShouldBindJSON(&registerReq)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, errors.New("register request is invalid"))
+		return
+	}
+	isMail, email := helper.CheckFormatValue("email", registerReq.Email)
+	if !isMail {
+		c.JSON(http.StatusBadRequest, errors.New("wrong email request"))
+		return
+	}
+
+	//password format error
+	isPass, password := helper.CheckFormatValue("password", registerReq.Password)
+	if !isPass {
+		c.JSON(http.StatusBadRequest, errors.New("password request is not valid"))
+		return
+	}
+
+	passwordHash, err := helper.HashPassword(password)
+	if err != nil {
+		errors.New("password hash fail")
+	}
+
+	user := entity.User{
+		Email:    email,
+		Password: passwordHash,
+	}
+	database.DbInstance.Create(&user)
+	c.JSON(http.StatusOK, "Register success")
+}
 
 func Login(c *gin.Context) {
 	var request dto.LoginRequest
