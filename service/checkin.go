@@ -15,22 +15,33 @@ import (
 // c *gin.Context, deviceSignal dto.DeviceSignal
 
 func CheckIn(deviceSignal dto.DeviceSignal) {
-	var status string
+
+	status := ""
+	entryTime := helper.ConvertDeviceTimestampToExact(deviceSignal.Timestamp)
+
+	if !helper.CheckValidDifferentTimeEntry(entryTime, 1*time.Minute) {
+		status = "[Abnormal]: Invalid Checkin time"
+		log := entity.DeviceSignalLog{CardId: deviceSignal.CardId, CompanyTokenKey: deviceSignal.CompanyTokenKey, Status: status, Timestamp: entryTime}
+		repository.LogCheckIn(log)
+		return
+	}
+
 	checkinType, checkinValue := helper.ClassifyCheckinCode(deviceSignal.CardId)
 
 	switch checkinType {
 	case "Card":
-		status = recordCheckinCard(checkinValue, deviceSignal.CompanyTokenKey, time.Unix(ConvertDeviceTimestampToExact(deviceSignal.Timestamp), 0))
+		status = recordCheckinCard(checkinValue, deviceSignal.CompanyTokenKey, entryTime)
 
 	case "QR":
 		// recordCheckinQR(checkinValue, deviceSignal.CompanyTokenKey, time.Unix(ConvertDeviceTimestampToExact(deviceSignal.Timestamp), 0))
 		fmt.Println("Service checkin QR called")
 
 	default:
-		status = "Abnormal"
+		status = "[Abnormal]: Invalid format CardID"
 	}
 
-	repository.LogCheckIn(deviceSignal, status)
+	log := entity.DeviceSignalLog{CardId: deviceSignal.CardId, CompanyTokenKey: deviceSignal.CompanyTokenKey, Status: status, Timestamp: entryTime}
+	repository.LogCheckIn(log)
 }
 
 func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time) string {
@@ -38,17 +49,17 @@ func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time)
 
 	device := repository.QueryDeviceByID(deviceID)
 	if device == nil {
-		return "Device does not match any room"
+		return "[Normal]: Device does not match any room"
 	}
 
 	schedule := repository.QueryScheduleByRoomTime(device.RoomID, checkinTime)
 	if schedule == nil {
-		return "Time slot not in Schedule"
+		return "[Normal]: Time slot not in Schedule"
 	}
 
 	student := repository.QueryStudentBySID(studentID)
 	if student == nil {
-		return "Student not recognize"
+		return "[Normal]: Student not recognize"
 	}
 
 	verify := repository.QueryEnrollmentByStudentCourse(student.ID, schedule.CourseID)
@@ -64,12 +75,12 @@ func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time)
 			}
 
 			database.DbInstance.Create(&entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
-			return "Checkin Success"
+			return "[Normal]: Checkin Success"
 		} else {
-			return "Checkin exist"
+			return "[Normal]: Checkin exist"
 		}
 	} else {
-		return "Student dont take this course"
+		return "[Normal]: Student dont take this course"
 	}
 }
 

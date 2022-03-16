@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 )
 
 func ClassifyCheckinCode(code string) (CheckinType string, Value string) {
@@ -34,4 +35,23 @@ func ClassifyCheckinCode(code string) (CheckinType string, Value string) {
 	}
 
 	return "", ""
+}
+
+func ConvertDeviceTimestampToExact(timestamp int64) time.Time {
+	tempTime := time.Unix(timestamp, 0)
+	tempTime = tempTime.Add((-1) * time.Hour * 7)
+	return tempTime
+}
+
+func ParseData(checkinValues string) (string, string) {
+	res := strings.Split(checkinValues, "-")
+	return res[0], res[1]
+}
+
+func CheckValidDifferentTimeEntry(timeEntry time.Time, acceptDuration time.Duration) bool {
+	if diff := time.Since(timeEntry); diff >= 0 && diff < acceptDuration {
+		return true
+	}
+
+	return false
 }
