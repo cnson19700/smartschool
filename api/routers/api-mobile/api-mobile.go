@@ -1,7 +1,6 @@
 package api_mobile
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -102,15 +101,20 @@ func UpdatePassword(c *gin.Context) {
 	var req = dto.UpdatePasswordRequest{}
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, errors.New("update passwordrequest fail"))
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"messgae": "Update Password request is invalid",
+		})
+		return
 	}
-	id, isGet := c.Get("user_id")
+	id, isGet := c.Get("userId")
 	if !isGet {
-		c.JSON(http.StatusBadRequest, errors.New("Cannot get userID"))
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot get userID"})
+		return
 	}
 	err = service.UpdatePassword(fmt.Sprint(id), req)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, errors.New("password update fail"))
+		c.JSON(http.StatusBadRequest, gin.H{"message": "2 password not matches"})
+		return
 	}
 
 	c.JSON(http.StatusOK, req)
