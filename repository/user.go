@@ -8,7 +8,7 @@ import (
 
 func QueryUserBySID(sid string) *entity.User {
 	var user entity.User
-	database.DbInstance.Where("user_id = ?", sid).First(&user)
+	database.DbInstance.Where("id = ?", sid).First(&user)
 	if user.ID == 0 {
 		return nil
 	}
@@ -38,10 +38,5 @@ func CheckEmailExist(email string) bool {
 	user := &entity.User{}
 
 	err := database.DbInstance.Where("email= ?", email).Find(&user).Error
-
-	if err != nil {
-		return false
-	}
-
-	return true
+	return err == nil
 }

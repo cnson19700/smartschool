@@ -1,36 +1,36 @@
 package service
 
 import (
-	"errors"
-
 	"github.com/smartschool/helper"
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/repository"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func UpdatePassword(id string, req dto.UpdatePasswordRequest) error {
-	err := helper.ComparePassword(req.Password, req.NewPass)
+	user := repository.QueryUserBySID(id) // get ID from above
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
-		return errors.New("Fail to compare password")
+		return err
 	}
 
-	user := repository.QueryUserBySID(id) // get ID from above
-	isPassTrue := helper.VerifyPassword(req.Password, user.Password)
-	if !isPassTrue {
-		return errors.New("Wrong password!!")
+	err = helper.ComparePassword(req.NewPass, req.ReNewPass)
+	if err != nil {
+		return err
 	}
 
 	newPassHash, err := helper.HashPassword(req.NewPass)
 
 	if err != nil {
-		return errors.New("Password hash failed")
+		return err
 	}
 
 	user.Password = newPassHash
 
 	_, err = repository.Update(user)
+
 	if err != nil {
-		return errors.New("Fail to update password")
+		return err
 	}
 
 	return nil
