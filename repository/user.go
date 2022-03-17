@@ -38,10 +38,5 @@ func CheckEmailExist(email string) bool {
 	user := &entity.User{}
 
 	err := database.DbInstance.Where("email= ?", email).Find(&user).Error
-
-	if err != nil {
-		return false
-	}
-
-	return true
+	return err == nil
 }
