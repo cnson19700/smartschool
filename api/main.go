@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-
-	// "github.com/smartschool/api/routers"
-
 	"github.com/smartschool/api/routers"
 	"github.com/smartschool/database"
 )
@@ -21,8 +18,12 @@ func main() {
 	defer database.Close()
 
 	go func() {
-		r, _ := routers.Initialize()
-		r.Run(":6969")
+		r, err := routers.Initialize()
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			r.Run(":6002")
+		}
 	}()
 
 	c := make(chan os.Signal, 1)

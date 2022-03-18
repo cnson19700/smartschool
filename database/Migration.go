@@ -7,7 +7,9 @@ import (
 	"github.com/smartschool/model/entity"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
+	_ "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"time"
 )
 
 var DbInstance *gorm.DB
@@ -27,8 +29,7 @@ func Close() {
 }
 
 func ConnectDatabase() {
-	//dbURI := "host=13.228.244.196 port=5432 user=busmapdb dbname=phenikaamaas_attendancedb sslmode=disable password=frjsdfhaflpzlcdzgnfvuxkdwiiiiklpojzowxajmendeeoqtbzyrgi"
-	dbURI := "host=localhost user=postgres dbname=nhan_local_database sslmode=disable password=Postgres port=5432"
+	dbURI := "host=13.228.244.196 port=5432 user=busmapdb dbname=phenikaamaas_attendancedb sslmode=disable password=frjsdfhaflpzlcdzgnfvuxkdwiiiiklpojzowxajmendeeoqtbzyrgi"
 
 	var err error
 	DbInstance, err = gorm.Open(postgres.Open(dbURI), &gorm.Config{})
@@ -77,7 +78,7 @@ func MigrateDatabase() {
 	fmt.Println("Migrate DB normal")
 }
 
-func createDummy() {
+func createDummy2() {
 
 	DummyFaculties := []entity.Faculty{
 		{ID: 1, Title: "Computer Science"},
@@ -175,6 +176,33 @@ func createDummy() {
 	DbInstance.Create(&DummyDevice)
 
 	fmt.Println("Create DB dummies normal")
+}
+
+func createDummy() {
+	t := time.Now()
+	DummyFaculties := []entity.Faculty{{Title: "Computer Science"}, {Title: "Chemistry"}, {Title: "Physic"}}
+	DummyRoles := []entity.Role{{Title: "Student"}, {Title: "Academic Section"}}
+	DummyUsers := []entity.User{{Username: "Bui Xuan Vinh", Password: "12345", Email: "vinh@capstone.local", PhoneNumber: "0123456789", FirstName: "Bui", LastName: "Vinh", DateOfBirth: t, RoleID: 1, Gender: 0, FacultyID: 1, IsActivate: true}}
+	DummyStudents := []entity.Student{{StudentID: "100", Batch: "18CTT2"}}
+	// DummyCourses := []entity.Course{{CourseID: "CS001", Name: "Intro to Internet", SemesterID: 1}, {CourseID: "MTH001", Name: "Intro to Math", SemesterID: 1}}
+	// DummyStudentCourse := []entity.StudentCourseEnrollment{{StudentID: 1, CourseID: 1}, {StudentID: 1, CourseID: 2}, {StudentID: 2, CourseID: 1}, {StudentID: 3, CourseID: 2}}
+	DummyRooms := []entity.Room{{RoomID: "I41", Name: "APCS Room"}, {RoomID: "B52", Name: "CLC lab"}, {RoomID: "E15", Name: "VP Stone room"}}
+	// DummyScheduler := []entity.Schedule{{RoomID: 1, CourseID: 1, StartTime: t, EndTime: t.Add(time.Hour * 2)}, {RoomID: 2, CourseID: 2, StartTime: t, EndTime: t.Add(time.Hour * 2)}, {RoomID: 3, CourseID: 1, StartTime: t.Add(time.Hour * 4), EndTime: t.Add(time.Hour * 6)}, {RoomID: 1, CourseID: 2, StartTime: t.Add(time.Hour * 2), EndTime: t.Add(time.Hour * 4)}}
+	DummyDevice := []entity.Device{{RoomID: 1, DeviceID: "D1"}, {RoomID: 2, DeviceID: "D2"}, {RoomID: 3, DeviceID: "D3"}}
+
+	if DbInstance == nil {
+		panic("[ERROR] Nil DB")
+	}
+
+	DbInstance.Create(&DummyFaculties)
+	DbInstance.Create(&DummyRoles)
+	DbInstance.Create(&DummyUsers)
+	DbInstance.Create(&DummyStudents)
+	// DbInstance.Create(&DummyCourses)
+	// DbInstance.Create(&DummyStudentCourse)
+	DbInstance.Create(&DummyRooms)
+	// DbInstance.Create(&DummyScheduler)
+	DbInstance.Create(&DummyDevice)
 }
 
 // func readDummy() {
