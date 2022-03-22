@@ -8,10 +8,8 @@ import (
 func QueryCourseByID(id string) (*entity.Course, error) {
 	var course entity.Course
 	err := database.DbInstance.Select("id").Where("course_id = ?", id).Find(&course).Error
-	if err != nil {
-		return nil, err
-	}
-	return &course, nil
+
+	return &course, err
 }
 
 func QueryAllCourses() (*[]entity.Course, error) {

@@ -1,10 +1,8 @@
 package service
 
 import (
-	"fmt"
-	"net/http"
-	"strings"
 	"time"
+
 	"github.com/smartschool/helper"
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/model/entity"
@@ -39,30 +37,29 @@ func CheckIn(deviceSignal dto.DeviceSignal) {
 }
 
 func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time) string {
-	fmt.Println(checkinTime)
 
-	device := repository.QueryDeviceByID(deviceID)
-	if device == nil {
+	device, err := repository.QueryDeviceByID(deviceID)
+	if err != nil || device.RoomID == 0 {
 		return "[Abnormal]: Device does not match any room"
 	}
 
-	schedule := repository.QueryScheduleByRoomTime(device.RoomID, checkinTime)
-	if schedule == nil {
+	schedule, err := repository.QueryScheduleByRoomTime(device.RoomID, checkinTime)
+	if err != nil || schedule.ID == 0 {
 		return "[Normal]: Time slot not in Schedule"
 	}
 
-	student := repository.QueryStudentBySID(studentID)
-	if student == nil {
+	student, err := repository.QueryStudentBySID(studentID)
+	if err != nil || student.ID == 0 {
 		return "[Abnormal]: Student not recognize"
 	}
 
-	enrollment := repository.QueryEnrollmentByStudentCourse(student.ID, schedule.CourseID)
+	enrollment, _ := repository.QueryEnrollmentByStudentCourse(student.ID, schedule.CourseID)
 
-	if enrollment != nil {
+	if enrollment.ID != 0 {
 
-		checkAttend := repository.QueryAttendanceByStudentSchedule(student.ID, schedule.ID)
+		checkAttend, _ := repository.QueryAttendanceByStudentSchedule(student.ID, schedule.ID)
 
-		if checkAttend == nil {
+		if checkAttend.ID == 0 {
 			checkinStatus := "Attend"
 			if timeDiff := checkinTime.Sub(schedule.StartTime); timeDiff > (time.Minute * 20) {
 				checkinStatus = "Late"
@@ -82,32 +79,32 @@ func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time)
 func recordCheckinQR(checkinValues string, deviceID string, checkinTime time.Time) string {
 	studentID, courseID := helper.ParseData(checkinValues)
 
-	device := repository.QueryDeviceByID(deviceID)
-	if device == nil {
+	device, err := repository.QueryDeviceByID(deviceID)
+	if err != nil || device.RoomID == 0 {
 		return "[Abnormal]: Device does not match any room"
 	}
 
-	course := repository.QueryCourseByID(courseID)
-	if course == nil {
+	course, err := repository.QueryCourseByID(courseID)
+	if err != nil || course.ID == 0 {
 		return "[Abnormal]: Course not exist"
 	}
 
-	schedule := repository.QueryScheduleByRoomTimeCourse(device.RoomID, checkinTime, course.ID)
-	if schedule == nil {
+	schedule, err := repository.QueryScheduleByRoomTimeCourse(device.RoomID, checkinTime, course.ID)
+	if err != nil || schedule.ID == 0 {
 		return "[Normal]: Time slot not in Schedule"
 	}
 
-	student := repository.QueryStudentBySID(studentID)
-	if student == nil {
+	student, err := repository.QueryStudentBySID(studentID)
+	if err != nil || student.ID == 0 {
 		return "[Abnormal]: Student not recognize"
 	}
 
-	enrollment := repository.QueryEnrollmentByStudentCourse(student.ID, course.ID)
+	enrollment, _ := repository.QueryEnrollmentByStudentCourse(student.ID, course.ID)
 
-	if enrollment != nil {
-		checkAttend := repository.QueryAttendanceByStudentSchedule(student.ID, schedule.ID)
+	if enrollment.ID != 0 {
+		checkAttend, _ := repository.QueryAttendanceByStudentSchedule(student.ID, schedule.ID)
 
-		if checkAttend == nil {
+		if checkAttend.ID == 0 {
 			checkinStatus := "Attend"
 			if timeDiff := checkinTime.Sub(schedule.StartTime); timeDiff > (time.Minute * 20) {
 				checkinStatus = "Late"

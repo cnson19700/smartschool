@@ -3,21 +3,22 @@ package database
 import (
 	"fmt"
 
+	"time"
+
 	"github.com/smartschool/helper"
 	"github.com/smartschool/model/entity"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
 	_ "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"time"
 )
 
 var DbInstance *gorm.DB
 
 func Init() {
 	ConnectDatabase()
-	//MigrateDatabase()
-	//createDummy()
+	// MigrateDatabase()
+	// createDummy2()
 	//readDummy()
 	// Close()
 }
@@ -29,7 +30,8 @@ func Close() {
 }
 
 func ConnectDatabase() {
-	dbURI := "host=13.228.244.196 port=5432 user=busmapdb dbname=phenikaamaas_attendancedb sslmode=disable password=frjsdfhaflpzlcdzgnfvuxkdwiiiiklpojzowxajmendeeoqtbzyrgi"
+	//dbURI := "host=13.228.244.196 port=5432 user=busmapdb dbname=phenikaamaas_attendancedb sslmode=disable password=frjsdfhaflpzlcdzgnfvuxkdwiiiiklpojzowxajmendeeoqtbzyrgi"
+	dbURI := "host=localhost user=postgres dbname=nhan_local_database sslmode=disable password=Postgres port=5432"
 
 	var err error
 	DbInstance, err = gorm.Open(postgres.Open(dbURI), &gorm.Config{})
@@ -204,49 +206,3 @@ func createDummy() {
 	// DbInstance.Create(&DummyScheduler)
 	DbInstance.Create(&DummyDevice)
 }
-
-// func readDummy() {
-// 	studentID := "100"
-// 	deviceID := "D1"
-// 	t0 := "2022-02-16T9:59:00Z"
-
-// 	t, err := time.Parse(time.RFC3339, t0)
-
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-
-// 	loc, _ := time.LoadLocation("Asia/Ho_Chi_Minh")
-
-// 	fmt.Println(t.In(loc))
-// 	x := t.In(loc).UTC()
-// 	fmt.Print(x)
-
-// 	var device entity.Device
-// 	DbInstance.Select("room_id").Where("device_id = ?", deviceID).Find(&device)
-
-// 	var result entity.Scheduler
-// 	DbInstance.Select("course_id", "end_time").Where("room_id = ? AND start_time <= ? AND end_time > ?", device.RoomID, t, t).Preload("Course").Find(&result)
-
-// 	fmt.Print(result.Course.CourseID)
-
-// 	var student entity.Student
-// 	DbInstance.Select("id").Where("student_id = ?", studentID).First(&student)
-// 	fmt.Println(student.ID)
-
-// 	var verify entity.StudentCourse
-// 	DbInstance.Where("student_id = ? AND course_id = ?", student.ID, result.CourseID).Find(&verify)
-
-// 	if verify.ID != 0 {
-// 		var checkAttend entity.Attendance
-// 		DbInstance.Select("id").Where("student_id = ? AND course_id = ? AND room_id = ? AND end_time > ?", verify.StudentID, verify.CourseID, device.RoomID, t.In(loc)).Find(&checkAttend)
-
-// 		if checkAttend.ID == 0 {
-// 			DbInstance.Create(&entity.Attendance{StudentID: verify.StudentID, CourseID: verify.CourseID, RoomID: device.RoomID, CheckInTime: t.In(loc), EndTime: result.EndTime, CheckInStatus: "Late"})
-// 		} else {
-// 			fmt.Println("Checkin exist!!!")
-// 		}
-// 	} else {
-// 		fmt.Println("Record not found")
-// 	}
-// }

@@ -5,11 +5,8 @@ import (
 	"github.com/smartschool/model/entity"
 )
 
-func QueryDeviceByID(id string) *entity.Device {
+func QueryDeviceByID(id string) (*entity.Device, error) {
 	var device entity.Device
-	database.DbInstance.Select("room_id").Where("device_id = ?", id).Find(&device)
-	if device.RoomID == 0 {
-		return nil
-	}
-	return &device
+	err := database.DbInstance.Select("room_id").Where("device_id = ?", id).Find(&device).Error
+	return &device, err
 }
