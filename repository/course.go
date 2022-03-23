@@ -5,11 +5,11 @@ import (
 	"github.com/smartschool/model/entity"
 )
 
-func QueryCourseByID(id string) (*entity.Course, error) {
+func QueryCourseByID(id string) (bool, *entity.Course, error) {
 	var course entity.Course
-	err := database.DbInstance.Select("id").Where("course_id = ?", id).Find(&course).Error
+	result := database.DbInstance.Select("id").Where("course_id = ?", id).Find(&course)
 
-	return &course, err
+	return result.RowsAffected == 0, &course, result.Error
 }
 
 func QueryAllCourses() (*[]entity.Course, error) {

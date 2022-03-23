@@ -9,9 +9,10 @@ import (
 	"github.com/smartschool/repository"
 )
 
-func CheckIn(deviceSignal dto.DeviceSignal) {
+func CheckIn(deviceSignal dto.DeviceSignal) error {
 
-	status := ""
+	var status string = ""
+	var err error = nil
 	entryTime := helper.ConvertDeviceTimestampToExact(deviceSignal.Timestamp)
 
 	// if !helper.CheckValidDifferentTimeEntry(entryTime, 1*time.Minute) {
@@ -20,11 +21,11 @@ func CheckIn(deviceSignal dto.DeviceSignal) {
 	// 	return
 	// }
 
-	checkinType, checkinValue := helper.ClassifyCheckinCode(deviceSignal.CardId)
+	checkinType, checkinValue, err := helper.ClassifyCheckinCode(deviceSignal.CardId)
 
 	switch checkinType {
 	case "Card":
-		status = recordCheckinCard(checkinValue, deviceSignal.CompanyTokenKey, entryTime)
+		status, err = recordCheckinCard(checkinValue, deviceSignal.CompanyTokenKey, entryTime)
 
 	case "QR":
 		status = recordCheckinQR(checkinValue, deviceSignal.CompanyTokenKey, entryTime)
@@ -34,89 +35,112 @@ func CheckIn(deviceSignal dto.DeviceSignal) {
 	}
 
 	repository.CreateLogCheckIn(entity.DeviceSignalLog{CardId: deviceSignal.CardId, CompanyTokenKey: deviceSignal.CompanyTokenKey, Status: status, Timestamp: entryTime})
+
+	return err
 }
 
-func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time) string {
+func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time) (string, error) {
 
-	device, err := repository.QueryDeviceByID(deviceID)
-	if err != nil || device.RoomID == 0 {
-		return "[Abnormal]: Device does not match any room"
+	notFound, device, err := repository.QueryDeviceByID(deviceID)
+	if err != nil {
+		return "[Abnormal]: Error when query Device", err
+	}
+	if notFound {
+		return "[Abnormal]: Device does not match any room", nil
 	}
 
-	schedule, err := repository.QueryScheduleByRoomTime(device.RoomID, checkinTime)
-	if err != nil || schedule.ID == 0 {
-		return "[Normal]: Time slot not in Schedule"
+	notFound, student, err := repository.QueryStudentBySID(studentID)
+	if err != nil {
+		return "[Abnormal]: Error when query Student by SID", err
+	}
+	if notFound {
+		return "[Abnormal]: Student not recognize", nil
 	}
 
-	student, err := repository.QueryStudentBySID(studentID)
-	if err != nil || student.ID == 0 {
-		return "[Abnormal]: Student not recognize"
+	notFound, schedule, err := repository.QueryScheduleByRoomTime(device.RoomID, checkinTime)
+	if err != nil {
+		return "[Abnormal]: Error when query Schedule", err
+	}
+	if notFound {
+		return "[Normal]: Time slot not in any Schedule", nil
 	}
 
-	enrollment, _ := repository.QueryEnrollmentByStudentCourse(student.ID, schedule.CourseID)
+	notFound, _, err = repository.QueryEnrollmentByStudentCourse(student.ID, schedule.CourseID)
 
-	if enrollment.ID != 0 {
+	if err != nil {
+		return "[Abnormal]: Error when query Student Course Enrollment", err
+	}
 
-		checkAttend, _ := repository.QueryAttendanceByStudentSchedule(student.ID, schedule.ID)
+	if !notFound {
+		notFound, _, err = repository.QueryAttendanceByStudentSchedule(student.ID, schedule.ID)
+		if err != nil {
+			return "[Abnormal]: Error when query Attendance", err
+		}
 
-		if checkAttend.ID == 0 {
+		if notFound {
 			checkinStatus := "Attend"
 			if timeDiff := checkinTime.Sub(schedule.StartTime); timeDiff > (time.Minute * 20) {
 				checkinStatus = "Late"
 			}
 
 			//database.DbInstance.Create(&entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
-			repository.CreateAttendance(entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
-			return "[Normal]: Checkin Success"
+			err = repository.CreateAttendance(entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
+			if err != nil {
+				return "[Abnormal]: Error when create ttendance", err
+			}
+
+			return "[Normal]: Checkin Success", nil
 		} else {
-			return "[Normal]: Checkin exist"
+			return "[Normal]: Checkin exist", nil
 		}
 	} else {
-		return "[Normal]: Student dont take this course"
+		return "[Normal]: Student dont take this course", nil
 	}
 }
 
 func recordCheckinQR(checkinValues string, deviceID string, checkinTime time.Time) string {
-	studentID, courseID := helper.ParseData(checkinValues)
+	// studentID, courseID := helper.ParseData(checkinValues)
 
-	device, err := repository.QueryDeviceByID(deviceID)
-	if err != nil || device.RoomID == 0 {
-		return "[Abnormal]: Device does not match any room"
-	}
+	// device, err := repository.QueryDeviceByID(deviceID)
+	// if err != nil || device.RoomID == 0 {
+	// 	return "[Abnormal]: Device does not match any room"
+	// }
 
-	course, err := repository.QueryCourseByID(courseID)
-	if err != nil || course.ID == 0 {
-		return "[Abnormal]: Course not exist"
-	}
+	// course, err := repository.QueryCourseByID(courseID)
+	// if err != nil || course.ID == 0 {
+	// 	return "[Abnormal]: Course not exist"
+	// }
 
-	schedule, err := repository.QueryScheduleByRoomTimeCourse(device.RoomID, checkinTime, course.ID)
-	if err != nil || schedule.ID == 0 {
-		return "[Normal]: Time slot not in Schedule"
-	}
+	// schedule, err := repository.QueryScheduleByRoomTimeCourse(device.RoomID, checkinTime, course.ID)
+	// if err != nil || schedule.ID == 0 {
+	// 	return "[Normal]: Time slot not in Schedule"
+	// }
 
-	student, err := repository.QueryStudentBySID(studentID)
-	if err != nil || student.ID == 0 {
-		return "[Abnormal]: Student not recognize"
-	}
+	// student, err := repository.QueryStudentBySID(studentID)
+	// if err != nil || student.ID == 0 {
+	// 	return "[Abnormal]: Student not recognize"
+	// }
 
-	enrollment, _ := repository.QueryEnrollmentByStudentCourse(student.ID, course.ID)
+	// enrollment, _ := repository.QueryEnrollmentByStudentCourse(student.ID, course.ID)
 
-	if enrollment.ID != 0 {
-		checkAttend, _ := repository.QueryAttendanceByStudentSchedule(student.ID, schedule.ID)
+	// if enrollment.ID != 0 {
+	// 	checkAttend, _ := repository.QueryAttendanceByStudentSchedule(student.ID, schedule.ID)
 
-		if checkAttend.ID == 0 {
-			checkinStatus := "Attend"
-			if timeDiff := checkinTime.Sub(schedule.StartTime); timeDiff > (time.Minute * 20) {
-				checkinStatus = "Late"
-			}
+	// 	if checkAttend.ID == 0 {
+	// 		checkinStatus := "Attend"
+	// 		if timeDiff := checkinTime.Sub(schedule.StartTime); timeDiff > (time.Minute * 20) {
+	// 			checkinStatus = "Late"
+	// 		}
 
-			//database.DbInstance.Create(&entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
-			repository.CreateAttendance(entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
-			return "[Normal]: Checkin Success"
-		} else {
-			return "[Normal]: Checkin exist"
-		}
-	} else {
-		return "[Normal]: Student dont take this course"
-	}
+	// 		//database.DbInstance.Create(&entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
+	// 		repository.CreateAttendance(entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
+	// 		return "[Normal]: Checkin Success"
+	// 	} else {
+	// 		return "[Normal]: Checkin exist"
+	// 	}
+	// } else {
+	// 	return "[Normal]: Student dont take this course"
+	// }
+
+	return "Under maintainance"
 }

@@ -5,9 +5,9 @@ import (
 	"github.com/smartschool/model/entity"
 )
 
-func QueryEnrollmentByStudentCourse(student_id uint, course_id uint) (*entity.StudentCourseEnrollment, error) {
+func QueryEnrollmentByStudentCourse(student_id uint, course_id uint) (bool, *entity.StudentCourseEnrollment, error) {
 	var verify entity.StudentCourseEnrollment
-	err := database.DbInstance.Select("id").Where("student_id = ? AND course_id = ?", student_id, course_id).Find(&verify).Error
+	result := database.DbInstance.Select("id").Where("student_id = ? AND course_id = ?", student_id, course_id).Find(&verify)
 
-	return &verify, err
+	return result.RowsAffected == 0, &verify, result.Error
 }

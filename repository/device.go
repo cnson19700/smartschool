@@ -5,8 +5,9 @@ import (
 	"github.com/smartschool/model/entity"
 )
 
-func QueryDeviceByID(id string) (*entity.Device, error) {
+func QueryDeviceByID(id string) (bool, *entity.Device, error) {
 	var device entity.Device
-	err := database.DbInstance.Select("room_id").Where("device_id = ?", id).Find(&device).Error
-	return &device, err
+	result := database.DbInstance.Select("room_id").Where("device_id = ?", id).Find(&device)
+
+	return result.RowsAffected == 0, &device, result.Error
 }

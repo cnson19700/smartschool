@@ -2,40 +2,39 @@ package helper
 
 import (
 	"encoding/base64"
-	"fmt"
 	"regexp"
 	"strings"
 	"time"
 )
 
-func ClassifyCheckinCode(code string) (CheckinType string, Value string) {
-	reQR, errMatchQR := regexp.Compile(`^[a-zA-Z0-9]+:\S+\=$`) //format: <Prefix>:<encodeString>=
-	reCard, errMatchCard := regexp.Compile("^[a-zA-Z0-9]+$")
-
-	if errMatchQR != nil {
-		panic(errMatchQR)
+func ClassifyCheckinCode(code string) (CheckinType string, Value string, err error) {
+	reQR, err := regexp.Compile(`^[a-zA-Z0-9]+:\S+\=$`) //format: <Prefix>:<encodeString>=
+	if err != nil {
+		return "ERROR", "", err
 	}
-
-	if errMatchCard != nil {
-		panic(errMatchCard)
+	
+	reCard, err := regexp.Compile("^[a-zA-Z0-9]+$")
+	if err != nil {
+		return "ERROR", "", err
 	}
 
 	if reQR.Match([]byte(code)) {
 		checkCode := code[(strings.Index((code), ":") + 1):(len(code) - 1)]
 		// checkCode = base64.StdEncoding.EncodeToString([]byte(checkCode)) //this is temp
 		rawDecodedText, err := base64.StdEncoding.DecodeString(checkCode)
+
 		if err != nil {
-			fmt.Println("error:", err)
-			return "ERROR", ""
+			return "ERROR", "", err
 		}
+		return "QR", string(rawDecodedText), nil
 
-		return "QR", string(rawDecodedText)
-
-	} else if reCard.Match([]byte(code)) {
-		return "Card", code
 	}
 
-	return "", ""
+	if reCard.Match([]byte(code)) {
+		return "Card", code, nil
+	}
+
+	return "ERROR", "", nil
 }
 
 func ConvertDeviceTimestampToExact(timestamp int64) time.Time {
