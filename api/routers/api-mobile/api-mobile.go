@@ -108,7 +108,7 @@ func UpdatePassword(c *gin.Context) {
 	}
 	id, isGet := c.Get("userId")
 	if !isGet {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot get userID"})
+		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
 		return
 	}
 	err = service.UpdatePassword(fmt.Sprint(id), req)
@@ -118,4 +118,18 @@ func UpdatePassword(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, req)
+}
+
+func GetMe(c *gin.Context) {
+	id, isGet := c.Get("userId")
+	if !isGet {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
+		return
+	}
+	res, err := service.GetMe(fmt.Sprint(id))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot get student profile"})
+		return
+	}
+	c.JSON(http.StatusOK, res)
 }
