@@ -9,6 +9,10 @@ import (
 	"github.com/smartschool/repository"
 )
 
+
+const AcceptLate int = 20
+const AcceptEarly int = 20
+
 func CheckIn(deviceSignal dto.DeviceSignal) error {
 
 	var status string = ""
@@ -41,7 +45,7 @@ func CheckIn(deviceSignal dto.DeviceSignal) error {
 
 func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time) (string, error) {
 
-	notFound, device, err := repository.QueryDeviceByID(deviceID)
+	device, notFound, err := repository.QueryDeviceByID(deviceID)
 	if err != nil {
 		return "[Abnormal]: Error when query Device", err
 	}
@@ -49,7 +53,7 @@ func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time)
 		return "[Abnormal]: Device does not match any room", nil
 	}
 
-	notFound, student, err := repository.QueryStudentBySID(studentID)
+	student, notFound, err := repository.QueryStudentBySID(studentID)
 	if err != nil {
 		return "[Abnormal]: Error when query Student by SID", err
 	}
@@ -57,7 +61,7 @@ func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time)
 		return "[Abnormal]: Student not recognize", nil
 	}
 
-	notFound, schedule, err := repository.QueryScheduleByRoomTime(device.RoomID, checkinTime)
+	schedule, notFound, err := repository.QueryScheduleByRoomTime(device.RoomID, checkinTime)
 	if err != nil {
 		return "[Abnormal]: Error when query Schedule", err
 	}
@@ -65,21 +69,20 @@ func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time)
 		return "[Normal]: Time slot not in any Schedule", nil
 	}
 
-	notFound, _, err = repository.QueryEnrollmentByStudentCourse(student.ID, schedule.CourseID)
-
+	_, notFound, err = repository.QueryEnrollmentByStudentCourse(student.ID, schedule.CourseID)
 	if err != nil {
 		return "[Abnormal]: Error when query Student Course Enrollment", err
 	}
 
 	if !notFound {
-		notFound, _, err = repository.QueryAttendanceByStudentSchedule(student.ID, schedule.ID)
+		_, notFound, err = repository.QueryAttendanceByStudentSchedule(student.ID, schedule.ID)
 		if err != nil {
 			return "[Abnormal]: Error when query Attendance", err
 		}
 
 		if notFound {
 			checkinStatus := "Attend"
-			if timeDiff := checkinTime.Sub(schedule.StartTime); timeDiff > (time.Minute * 20) {
+			if timeDiff := checkinTime.Sub(schedule.StartTime); timeDiff > (time.Minute * time.Duration(AcceptLate)) {
 				checkinStatus = "Late"
 			}
 
