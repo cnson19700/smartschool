@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/model/entity"
+	"github.com/smartschool/repository"
 )
 
 // func getStudentHistoryWithIdAndStatus(id int, status string) *[]entity.Attendance {
@@ -38,4 +39,28 @@ func GetCheckInHistoryBySID(sid string, status string) (*entity.Student, []dto.C
 
 	// return student, historyElements
 	return nil, nil
+}
+
+func GetMe(id string) (*dto.StudentProfile, error) {
+	student, err := repository.QueryStudentByID(id)
+	user := repository.QueryUserBySID(id)
+	if err != nil {
+		return &dto.StudentProfile{}, err
+	}
+	var genderStudent string
+	if user.Gender == 0 {
+		genderStudent = "male"
+	} else if user.Gender == 1 {
+		genderStudent = "female"
+	}
+
+	StudentProfile := dto.StudentProfile{
+		StudentID:   student.StudentID,
+		Name:        user.Username,
+		Class:       student.Batch,
+		Email:       user.Email,
+		Gender:      genderStudent,
+		PhoneNumber: user.PhoneNumber,
+	}
+	return &StudentProfile, nil
 }

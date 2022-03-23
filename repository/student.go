@@ -16,6 +16,16 @@ func QueryStudentBySID(sid string) (*entity.Student, error) {
 	return &student, nil
 }
 
+func QueryStudentByID(id string) (*entity.Student, error) {
+	var student entity.Student
+	err := database.DbInstance.Where("id = ?", id).First(&student).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &student, nil
+}
+
 func QueryAllStudents() ([]*entity.Student, error) {
 	students := []*entity.Student{}
 	err := database.DbInstance.Find(&students).Error
