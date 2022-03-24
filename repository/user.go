@@ -6,10 +6,10 @@ import (
 	"github.com/smartschool/model/entity"
 )
 
-func QueryUserBySID(sid string) *entity.User {
+func QueryUserBySID(sid string) (*entity.User) {
 	var user entity.User
-	database.DbInstance.Where("id = ?", sid).First(&user)
-	if user.ID == 0 {
+	err := database.DbInstance.Where("id = ?", sid).First(&user).Error
+	if err != nil {
 		return nil
 	}
 

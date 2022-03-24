@@ -6,14 +6,11 @@ import (
 	"github.com/smartschool/model/entity"
 )
 
-func QueryStudentBySID(sid string) (*entity.Student, error) {
+func QueryStudentBySID(sid string) (*entity.Student, bool, error) {
 	var student entity.Student
-	err := database.DbInstance.Where("student_id = ?", sid).First(&student).Error
-	if err != nil {
-		return nil, err
-	}
+	result := database.DbInstance.Where("student_id = ?", sid).First(&student)
 
-	return &student, nil
+	return &student, result.RowsAffected == 0,  result.Error
 }
 
 func QueryStudentByID(id string) (*entity.Student, error) {
@@ -32,20 +29,20 @@ func QueryAllStudents() ([]*entity.Student, error) {
 	if err != nil {
 		return nil, err
 	}
-	return students, nil
+	return students, err
 }
 
-func QueryCheckinHistoryWithSIdAndStatus(id int, status string) []entity.Attendance {
+func QueryCheckinHistoryWithSIdAndStatus(id int, status string) ([]entity.Attendance, error) {
 	var stat []entity.Attendance
-	database.DbInstance.Where("student_id = ? AND check_in_status = ?", id, status).Preload("Scheduler").Preload("Scheduler.Course").Find(&stat)
+	err := database.DbInstance.Where("student_id = ? AND check_in_status = ?", id, status).Preload("Scheduler").Preload("Scheduler.Course").Find(&stat).Error
 
-	if len(stat) == 0 {
-		return nil
+	if err != nil {
+		return nil, err
 	}
 
 	result := append([]entity.Attendance{}, stat...)
 
-	return result
+	return result, nil
 }
 
 func QueryStudentByEmail(email string) (*entity.User, error) {

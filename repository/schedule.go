@@ -7,11 +7,17 @@ import (
 	"github.com/smartschool/model/entity"
 )
 
-func QueryScheduleByRoomTimeCourse(room_id string, time time.Time, course_id string) (*entity.Schedule, error) {
+func QueryScheduleByRoomTime(room_id uint, checkinTime time.Time) (*entity.Schedule, bool, error) {
 	var schedule entity.Schedule
-	err := database.DbInstance.Order("end_time").Select("id", "start_time", "end_time").Where("room_id = ? AND end_time >= ? AND course_id = ?", room_id, time, course_id).Find(&schedule).Error
-	if err != nil {
-		return nil, err
-	}
-	return &schedule, err
+	result := database.DbInstance.Order("end_time").Select("id", "course_id", "start_time", "end_time").Where("room_id = ? AND end_time >= ?", room_id, checkinTime).Find(&schedule)
+
+	return &schedule, result.RowsAffected == 0, result.Error
+}
+
+func QueryScheduleByRoomTimeCourse(room_id uint, time time.Time, course_id uint) (*entity.Schedule, bool, error) {
+	var schedule entity.Schedule
+	result := database.DbInstance.Order("end_time").Select("id", "start_time", "end_time").Where("room_id = ? AND end_time >= ? AND course_id = ?", room_id, time, course_id).Find(&schedule)
+
+	return &schedule, result.RowsAffected == 0, result.Error
+
 }

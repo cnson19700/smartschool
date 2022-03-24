@@ -11,6 +11,7 @@ import (
 	"github.com/GoAdminGroup/go-admin/template/types"
 	_ "github.com/GoAdminGroup/themes/adminlte" // ui theme
 	"github.com/gin-gonic/gin"
+	"github.com/smartschool/api/routers"
 	"github.com/smartschool/database"
 	"github.com/smartschool/service/excel"
 	"github.com/smartschool/tables"
@@ -66,6 +67,8 @@ func main() {
 }
 
 func DashboardPage(ctx *context.Context) (types.Panel, error) {
+	r, _ := routers.Initialize()
+	r.Run(":6969")
 	return types.Panel{
 		Content:     "hello world",
 		Title:       "Dashboard",
