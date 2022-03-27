@@ -17,8 +17,8 @@ type Attendance struct {
 	gorm.Model
 
 	User     *User     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Schedule *Schedule `gorm:"foreignKey:ID;references:ScheduleID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	Course   *Course   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	Schedule *Schedule `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 type AttendanceFilter struct {

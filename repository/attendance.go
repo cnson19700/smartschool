@@ -20,6 +20,15 @@ func QueryAttendanceByTeacherCourse(teacherID string, courseId string) ([]*entit
 	return attendance, nil
 }
 
+func QueryAttendanceByTeacherCourse(teacherID string, courseId string) ([]*entity.Attendance, error) {
+	attendance := []*entity.Attendance{}
+	err := database.DbInstance.Where("teacher_id = ? AND course_id =?", teacherID, courseId).Find(&attendance).Error
+	if err != nil {
+		return nil, err
+	}
+	return attendance, nil
+}
+
 func QueryAttendanceByCourseID(courseId string) ([]*entity.Attendance, error) {
 	attendance := []*entity.Attendance{}
 	err := database.DbInstance.Where("course_id =?", courseId).Find(&attendance).Error
