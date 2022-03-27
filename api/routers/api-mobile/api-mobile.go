@@ -12,6 +12,7 @@ import (
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/model/entity"
 	"github.com/smartschool/service"
+	mailservice "github.com/smartschool/service/mail_service"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -132,4 +133,30 @@ func GetMe(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, res)
+}
+
+func ForgetPassword(c *gin.Context) {
+	var req = dto.RequestMail{}
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"message": "Login request is invalid",
+		})
+		return
+	}
+
+	var user entity.User
+	err = database.DbInstance.Where("email = ?", req.To).First(&user).Error
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"message": "User not found",
+		})
+		return
+	}
+	//to id student.email
+	mailservice.Initialize()
+	requestMail := mailservice.NewRequest("vinhbui268@gmail.com", "Forget Password", "This is the Forget Password Body")
+
+	mailservice.SendEmail(requestMail)
+	c.JSON(http.StatusOK, req)
 }

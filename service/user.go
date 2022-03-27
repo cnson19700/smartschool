@@ -36,3 +36,7 @@ func UpdatePassword(id string, req dto.UpdatePasswordRequest) error {
 	return nil
 
 }
+
+func ForgotPassword(stu_id string, requestMail *dto.RequestMail) { //return error
+	// Error.err
+}

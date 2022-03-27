@@ -20,6 +20,7 @@ func Initialize() (*gin.Engine, error) {
 
 	mobileGroup.GET("/late/:id", api_device.GetStudentCheckInLateHistory)
 	mobileGroup.PUT("/change-password", api_mobile.UpdatePassword)
+	mobileGroup.POST("/forgot-password", api_mobile.ForgetPassword)
 
 	mobileUser := r.Group("/user")
 	mobileUser.Use(authMw.GetAuthFunc())
