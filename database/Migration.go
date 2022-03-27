@@ -14,8 +14,10 @@ var DbInstance *gorm.DB
 
 func Init() {
 	ConnectDatabase()
-	// MigrateDatabase()
-	// createDummy2()
+	//DbInstance.AutoMigrate(&entity.Faculty{})
+	//makeFacultyDummy()
+	MigrateDatabase()
+	//createDummy()
 	//readDummy()
 	// Close()
 }
@@ -27,7 +29,8 @@ func Close() {
 }
 
 func ConnectDatabase() {
-	dbURI := "host=13.228.244.196 port=5432 user=busmapdb dbname=phenikaamaas_attendancedb sslmode=disable password=frjsdfhaflpzlcdzgnfvuxkdwiiiiklpojzowxajmendeeoqtbzyrgi"
+	//dbURI := "host=13.228.244.196 port=5432 user=busmapdb dbname=phenikaamaas_attendancedb sslmode=disable password=frjsdfhaflpzlcdzgnfvuxkdwiiiiklpojzowxajmendeeoqtbzyrgi"
+	dbURI := "host=localhost port=5432 user=postgres dbname=smartschool_local sslmode=disable password=12345678"
 
 	var err error
 	DbInstance, err = gorm.Open(postgres.Open(dbURI), &gorm.Config{})
