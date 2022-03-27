@@ -2,12 +2,13 @@ package database
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/smartschool/helper"
 	"github.com/smartschool/model/entity"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"time"
 )
 
 var DbInstance *gorm.DB
