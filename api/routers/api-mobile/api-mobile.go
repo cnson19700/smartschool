@@ -133,3 +133,26 @@ func GetMe(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, res)
 }
+
+func GetCourseAttendanceOfOneUser(c *gin.Context) {
+	request := struct {
+		CourseID uint `json:"course_id"`
+		UserID   uint `json:"user_id"`
+	}{}
+
+	err := c.ShouldBindJSON(&request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"messgae": "Cannot capture request",
+		})
+		return
+	}
+
+	res, err := service.GetAttendanceInCourseOneUser(request.CourseID, request.UserID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot get course attendance for user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, res)
+}
