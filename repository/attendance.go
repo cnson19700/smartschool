@@ -24,9 +24,9 @@ func QueryListAttendanceByUserSchedule(user_id uint, schedule_id_list []uint) ([
 	var queryList []entity.Attendance
 	result := database.DbInstance.Where("user_id = ? AND schedule_id IN ?", user_id, schedule_id_list).Find(&queryList)
 
-	attendanceList := append([]entity.Attendance{}, queryList...)
+	//attendanceList := append([]entity.Attendance{}, queryList...)
 
-	return attendanceList, result.RowsAffected == 0, result.Error
+	return queryList, result.RowsAffected == 0, result.Error
 }
 
 func QueryListAttendanceInDayByUser(user_id uint, start time.Time, end time.Time) ([]entity.Attendance, bool, error) {

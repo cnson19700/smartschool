@@ -26,7 +26,7 @@ func QueryListScheduleByCourse(course_id uint) ([]entity.Schedule, bool, error) 
 	var queryList []entity.Schedule
 	result := database.DbInstance.Where("course_id = ?", course_id).Preload("Room").Find(&queryList)
 
-	scheduleList := append([]entity.Schedule{}, queryList...)
+	//scheduleList := append([]entity.Schedule{}, queryList...)
 
-	return scheduleList, result.RowsAffected == 0, result.Error
+	return queryList, result.RowsAffected == 0, result.Error
 }
