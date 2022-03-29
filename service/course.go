@@ -9,11 +9,8 @@ import (
 func GetAttendanceInCourseOneUser(courseID uint, userID uint) ([]dto.AttendanceListElement, error) {
 	scheduleList, notFound, err := repository.QueryListScheduleByCourse(courseID)
 
-	if err != nil {
+	if err != nil || notFound {
 		return nil, err
-	}
-	if notFound {
-		return nil, nil
 	}
 	
 	var scheduleIDList []uint
@@ -24,11 +21,8 @@ func GetAttendanceInCourseOneUser(courseID uint, userID uint) ([]dto.AttendanceL
 	}
 
 	attendList, notFound, err := repository.QueryListAttendanceByUserSchedule(userID, scheduleIDList)
-	if err != nil {
+	if err != nil || notFound {
 		return nil, err
-	}
-	if notFound {
-		return nil, nil
 	}
 
 	resultList := make([]dto.AttendanceListElement, 0)
@@ -43,4 +37,13 @@ func GetAttendanceInCourseOneUser(courseID uint, userID uint) ([]dto.AttendanceL
 	}
 
 	return resultList, nil
+}
+
+func GetCourseInfoByID(id uint) (*entity.Course, error) {
+	course, notFound, err := repository.QueryCourseInfoByID(id)
+	if err != nil || notFound {
+		return nil, err
+	}
+
+	return course, nil
 }

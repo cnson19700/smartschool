@@ -21,3 +21,10 @@ func QueryAllCourses() (*[]entity.Course, error) {
 
 	return &course, nil
 }
+
+func QueryCourseInfoByID(id uint) (*entity.Course, bool, error) {
+	var course entity.Course
+	result := database.DbInstance.Where("id = ?", id).Find(&course)
+
+	return &course, result.RowsAffected == 0, result.Error
+}

@@ -148,11 +148,47 @@ func GetCourseAttendanceOfOneUser(c *gin.Context) {
 		return
 	}
 
+	course, err := service.GetCourseInfoByID(request.CourseID)
+	if err != nil || course == nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"messgae": "Cannot verified course",
+		})
+		return
+	}
+
 	res, err := service.GetAttendanceInCourseOneUser(request.CourseID, request.UserID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot get course attendance for user"})
 		return
 	}
 
-	c.JSON(http.StatusOK, res)
+	c.JSON(http.StatusOK, gin.H{
+		"course":          course.CourseID,
+		"attendance_list": res,
+	})
+}
+
+func GetInDayAttendance(c *gin.Context) {
+	request := struct {
+		UserID         uint `json:"user_id"`
+		TimezoneOffset uint `json:"time_offset"`
+	}{}
+
+	err := c.ShouldBindJSON(&request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"messgae": "Cannot capture request",
+		})
+		return
+	}
+
+	res, err := service.GetCheckInHistoryInDay(request.UserID, int(request.TimezoneOffset))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot get attendance history for user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"checkin_list": res,
+	})
 }
