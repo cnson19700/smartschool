@@ -195,8 +195,7 @@ func GetInDayAttendance(c *gin.Context) {
 	if !isGet {
 		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
 		return
-	}    "user_id": 5 
-
+	}
 	userId, canConvert := id.(float64)
 	if !canConvert {
 		c.JSON(http.StatusNotFound, gin.H{"message": "Authenticate fail"})
