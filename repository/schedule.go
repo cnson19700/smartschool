@@ -21,3 +21,10 @@ func QueryScheduleByRoomTimeCourse(room_id uint, time time.Time, course_id uint)
 	return &schedule, result.RowsAffected == 0, result.Error
 
 }
+
+func QueryScheduleByCourseID(courseID uint) (*entity.Schedule, error) {
+	var schedule entity.Schedule
+	result := database.DbInstance.Where("course_id = ?", courseID).Find(&schedule)
+
+	return &schedule, result.Error
+}
