@@ -137,7 +137,6 @@ func GetMe(c *gin.Context) {
 func GetCourseAttendanceOfOneUser(c *gin.Context) {
 	request := struct {
 		CourseID uint `json:"course_id"`
-		UserID   uint `json:"user_id"`
 	}{}
 
 	err := c.ShouldBindJSON(&request)
@@ -145,6 +144,17 @@ func GetCourseAttendanceOfOneUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"messgae": "Cannot capture request",
 		})
+		return
+	}
+
+	id, isGet := c.Get("userId")
+	if !isGet {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
+		return
+	}
+	userId, canConvert := id.(float64)
+	if !canConvert {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Authenticate fail"})
 		return
 	}
 
@@ -156,7 +166,7 @@ func GetCourseAttendanceOfOneUser(c *gin.Context) {
 		return
 	}
 
-	res, err := service.GetAttendanceInCourseOneUser(request.CourseID, request.UserID)
+	res, err := service.GetAttendanceInCourseOneUser(request.CourseID, uint(userId))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot get course attendance for user"})
 		return
@@ -170,8 +180,7 @@ func GetCourseAttendanceOfOneUser(c *gin.Context) {
 
 func GetInDayAttendance(c *gin.Context) {
 	request := struct {
-		UserID         uint `json:"user_id"`
-		TimezoneOffset uint `json:"time_offset"`
+		TimezoneOffset int `json:"time_offset"`
 	}{}
 
 	err := c.ShouldBindJSON(&request)
@@ -182,7 +191,19 @@ func GetInDayAttendance(c *gin.Context) {
 		return
 	}
 
-	res, err := service.GetCheckInHistoryInDay(request.UserID, int(request.TimezoneOffset))
+	id, isGet := c.Get("userId")
+	if !isGet {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
+		return
+	}    "user_id": 5 
+
+	userId, canConvert := id.(float64)
+	if !canConvert {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Authenticate fail"})
+		return
+	}
+
+	res, err := service.GetCheckInHistoryInDay(uint(userId), request.TimezoneOffset)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot get attendance history for user"})
 		return

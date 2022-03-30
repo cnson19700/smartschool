@@ -24,13 +24,13 @@ func Initialize() (*gin.Engine, error) {
 	mobileUser := r.Group("/user")
 	mobileUser.Use(authMw.GetAuthFunc())
 	mobileUser.GET("/me", api_mobile.GetMe)
+	mobileUser.POST("/course-attendance", api_mobile.GetCourseAttendanceOfOneUser)
+	mobileUser.POST("/inday-attendance", api_mobile.GetInDayAttendance)
 
 	r.POST("/checkin", api_device.EventCheckin)
 	r.POST("/login", api_mobile.Login)
 	//r.GET("/courses/:id", api_device.GetCourseByID)
 	//r.GET("/courses", api_device.GetCourses)
-	r.POST("/CourseAttendance", api_mobile.GetCourseAttendanceOfOneUser)
-	r.POST("/InDayAttendance", api_mobile.GetInDayAttendance)
 
 	return r, nil
 }
