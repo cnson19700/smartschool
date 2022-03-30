@@ -93,7 +93,7 @@ func createDummy2() {
 		{ID: 2, Title: "Academic Section"},
 	}
 
-	dummyDOB := helper.StringToTimeUTC("2021-12-28T18:08:00+07:00")
+	dummyDOB, _ := helper.StringToTimeUTC("2021-12-28T18:08:00+07:00")
 	hashedPasswordByte, bcryptError := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
 	if bcryptError != nil {
 		panic(bcryptError)
@@ -116,7 +116,8 @@ func createDummy2() {
 		{ID: 6, StudentID: "17120001", Batch: "17CTT1"},
 	}
 
-	startSem, endSem := helper.StringToTimeUTC("2022-01-11T00:00:00+07:00"), helper.StringToTimeUTC("2022-04-11T00:00:00+07:00")
+	startSem, _ := helper.StringToTimeUTC("2022-01-11T00:00:00+07:00")
+	endSem, _ := helper.StringToTimeUTC("2022-04-11T00:00:00+07:00")
 	DummySemester := []entity.Semester{{ID: 1, Title: "HK1", Year: "2022", FacultyID: 1, StartTime: startSem, EndTime: endSem}}
 
 	DummyCourses := []entity.Course{
@@ -146,10 +147,14 @@ func createDummy2() {
 		{ID: 3, RoomID: "A12", Name: "Math lecture room"},
 	}
 
-	startCS, endCS := helper.StringToTimeUTC("2022-01-11T07:30:00+07:00"), helper.StringToTimeUTC("2022-01-11T09:10:00+07:00")
-	startPH, endPH := helper.StringToTimeUTC("2022-01-11T09:30:00+07:00"), helper.StringToTimeUTC("2022-01-11T11:10:00+07:00")
-	startCSLab, endCSLab := helper.StringToTimeUTC("2022-01-12T07:30:00+07:00"), helper.StringToTimeUTC("2022-01-12T09:30:00+07:00")
-	startMTH, endMTH := helper.StringToTimeUTC("2022-01-12T09:30:00+07:00"), helper.StringToTimeUTC("2022-01-12T11:10:00+07:00")
+	startCS, _ := helper.StringToTimeUTC("2022-01-11T07:30:00+07:00")
+	endCS, _ := helper.StringToTimeUTC("2022-01-11T09:10:00+07:00")
+	startPH, _ := helper.StringToTimeUTC("2022-01-11T09:30:00+07:00")
+	endPH, _ := helper.StringToTimeUTC("2022-01-11T11:10:00+07:00")
+	startCSLab, _ := helper.StringToTimeUTC("2022-01-12T07:30:00+07:00")
+	endCSLab, _ := helper.StringToTimeUTC("2022-01-12T09:30:00+07:00")
+	startMTH, _ := helper.StringToTimeUTC("2022-01-12T09:30:00+07:00")
+	endMTH, _ := helper.StringToTimeUTC("2022-01-12T11:10:00+07:00")
 	DummySchedule := []entity.Schedule{
 		{ID: 1, RoomID: 1, CourseID: 1, StartTime: startCS, EndTime: endCS},
 		{ID: 2, RoomID: 2, CourseID: 3, StartTime: startPH, EndTime: endPH},

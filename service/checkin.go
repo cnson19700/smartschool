@@ -1,16 +1,21 @@
 package service
 
 import (
+	"encoding/base64"
+	"fmt"
 	"time"
 
 	"github.com/smartschool/helper"
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/model/entity"
 	"github.com/smartschool/repository"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const AcceptLate int = 20
 const AcceptEarly int = 20
+const Prefix string = "11"
+const SecretKey string = "Keep read as your greed's lead, Each greed thing is a good news, Did you see the news of yourself, You are now cursed by the hell! - KEDY"
 
 func CheckIn(deviceSignal dto.DeviceSignal) error {
 
@@ -31,13 +36,20 @@ func CheckIn(deviceSignal dto.DeviceSignal) error {
 		status, err = recordCheckinCard(checkinValue, deviceSignal.CompanyTokenKey, entryTime)
 
 	case "QR":
+		userInfo, isFormatCorrect, errParse := helper.ParseQR(checkinValue)
+		if !isFormatCorrect || errParse != nil {
+			status = "[Abnormal]: Invalid format QR or Expired QR"
+		} else {
+			checkinValue = userInfo
+			status, err = recordCheckinCard(userInfo, deviceSignal.CompanyTokenKey, entryTime)
+		}
+
 		//status = recordCheckinQR(checkinValue, deviceSignal.CompanyTokenKey, entryTime)
-		status = "Check-in QR: Under maintainance"
 	default:
 		status = "[Abnormal]: Invalid format CardID"
 	}
 
-	repository.CreateLogCheckIn(entity.DeviceSignalLog{CardId: deviceSignal.CardId, CompanyTokenKey: deviceSignal.CompanyTokenKey, Status: status, Timestamp: entryTime})
+	repository.CreateLogCheckIn(entity.DeviceSignalLog{CardId: checkinValue, CompanyTokenKey: deviceSignal.CompanyTokenKey, Status: status, Timestamp: entryTime})
 
 	return err
 }
@@ -75,11 +87,11 @@ func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time)
 			if err != nil {
 				return "[Abnormal]: Error when query Schedule", err
 			}
-			if schedule.ID == temp.ID {
-				return "[Normal]: Time slot not in any Schedule", nil
-			}
 			if notFound {
 				return "[Normal]: Forseen time slot not in any Schedule", nil
+			}
+			if schedule.ID == temp.ID {
+				return "[Normal]: Spam check-in", nil
 			}
 		}
 
@@ -186,4 +198,26 @@ func recordCheckinQR(checkinValues string, deviceID string, checkinTime time.Tim
 	} else {
 		return "[Normal]: Student dont take this course", nil
 	}
+}
+
+func GenerateQREncodeString(userId uint) (string, error) {
+	currentDateTime, _ := time.Now().UTC().MarshalText()
+
+	hashedSecretKeyByte, bcryptError := bcrypt.GenerateFromPassword([]byte(SecretKey), bcrypt.DefaultCost)
+	if bcryptError != nil {
+		return "", bcryptError
+	}
+
+	student, err := repository.QueryStudentByID(fmt.Sprint(userId))
+	if err != nil {
+		return "", err
+	}
+
+	rawString := student.StudentID + "|" + string(currentDateTime) + "|" + string(hashedSecretKeyByte)
+
+	encodeString := base64.StdEncoding.EncodeToString([]byte(rawString))
+
+	QRString := Prefix + ":" + encodeString + "="
+
+	return QRString, nil
 }

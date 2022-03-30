@@ -212,3 +212,26 @@ func GetInDayAttendance(c *gin.Context) {
 		"checkin_list": res,
 	})
 }
+
+func GetQREncodeString(c * gin.Context) {
+	id, isGet := c.Get("userId")
+	if !isGet {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
+		return
+	}
+	userId, canConvert := id.(float64)
+	if !canConvert {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Authenticate fail"})
+		return
+	}
+
+	res, err := service.GenerateQREncodeString(uint(userId))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot provide QR"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"qr_string": res,
+	})
+}

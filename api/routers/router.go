@@ -26,6 +26,7 @@ func Initialize() (*gin.Engine, error) {
 	mobileUser.GET("/me", api_mobile.GetMe)
 	mobileUser.POST("/course-attendance", api_mobile.GetCourseAttendanceOfOneUser)
 	mobileUser.POST("/inday-attendance", api_mobile.GetInDayAttendance)
+	mobileUser.GET("/get-qr", api_mobile.GetQREncodeString)
 
 	r.POST("/checkin", api_device.EventCheckin)
 	r.POST("/login", api_mobile.Login)

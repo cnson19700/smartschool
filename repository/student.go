@@ -8,7 +8,7 @@ import (
 
 func QueryStudentBySID(sid string) (*entity.Student, bool, error) {
 	var student entity.Student
-	result := database.DbInstance.Where("student_id = ?", sid).First(&student)
+	result := database.DbInstance.Where("student_id = ?", sid).Limit(1).Find(&student)
 
 	return &student, result.RowsAffected == 0,  result.Error
 }
