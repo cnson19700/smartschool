@@ -6,16 +6,12 @@ import (
 	"time"
 
 	"github.com/smartschool/helper"
+	"github.com/smartschool/lib/constant"
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/model/entity"
 	"github.com/smartschool/repository"
 	"golang.org/x/crypto/bcrypt"
 )
-
-const AcceptLate int = 20
-const AcceptEarly int = 20
-const Prefix string = "11"
-const SecretKey string = "Keep read as your greed's lead, Each greed thing is a good news, Did you see the news of yourself, You are now cursed by the hell! - KEDY"
 
 func CheckIn(deviceSignal dto.DeviceSignal) error {
 
@@ -82,7 +78,7 @@ func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time)
 	for !isScheduleForeseen {
 		if needCheckNextSchedule {
 			temp := schedule
-			schedule, notFound, err = repository.QueryScheduleByRoomTime(device.RoomID, checkinTime.Add(time.Minute*time.Duration(AcceptEarly)))
+			schedule, notFound, err = repository.QueryScheduleByRoomTime(device.RoomID, checkinTime.Add(constant.AcceptEarlyMinute))
 			isScheduleForeseen = true
 			if err != nil {
 				return "[Abnormal]: Error when query Schedule", err
@@ -108,7 +104,7 @@ func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time)
 
 			if notFound {
 				checkinStatus := "Attend"
-				if timeDiff := checkinTime.Sub(schedule.StartTime); timeDiff > (time.Minute * time.Duration(AcceptLate)) {
+				if timeDiff := checkinTime.Sub(schedule.StartTime); timeDiff > constant.AcceptLateMinute {
 					checkinStatus = "Late"
 				}
 
@@ -203,7 +199,7 @@ func recordCheckinQR(checkinValues string, deviceID string, checkinTime time.Tim
 func GenerateQREncodeString(userId uint) (string, error) {
 	currentDateTime, _ := time.Now().UTC().MarshalText()
 
-	hashedSecretKeyByte, bcryptError := bcrypt.GenerateFromPassword([]byte(SecretKey), bcrypt.DefaultCost)
+	hashedSecretKeyByte, bcryptError := bcrypt.GenerateFromPassword([]byte(constant.QRSecretKey), bcrypt.DefaultCost)
 	if bcryptError != nil {
 		return "", bcryptError
 	}
@@ -217,7 +213,7 @@ func GenerateQREncodeString(userId uint) (string, error) {
 
 	encodeString := base64.StdEncoding.EncodeToString([]byte(rawString))
 
-	QRString := Prefix + ":" + encodeString + "="
+	QRString := constant.QRPrefix + ":" + encodeString + "="
 
 	return QRString, nil
 }

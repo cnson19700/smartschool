@@ -198,7 +198,7 @@ func GetInDayAttendance(c *gin.Context) {
 	}
 	userId, canConvert := id.(float64)
 	if !canConvert {
-		c.JSON(http.StatusNotFound, gin.H{"message": "Authenticate fail"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Authenticate fail"})
 		return
 	}
 
@@ -221,7 +221,7 @@ func GetQREncodeString(c * gin.Context) {
 	}
 	userId, canConvert := id.(float64)
 	if !canConvert {
-		c.JSON(http.StatusNotFound, gin.H{"message": "Authenticate fail"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Authenticate fail"})
 		return
 	}
 

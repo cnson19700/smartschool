@@ -6,12 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/smartschool/lib/constant"
 	"golang.org/x/crypto/bcrypt"
 )
-
-const Prefix string = "11"
-const SecretKey string = "Keep read as your greed's lead, Each greed thing is a good news, Did you see the news of yourself, You are now cursed by the hell! - KEDY"
-const AcceptRefreshQRSecond uint = 30
 
 func ClassifyCheckinCode(code string) (CheckinType string, Value string, err error) {
 	reQR, err := regexp.Compile(`^[a-zA-Z0-9]+:\S+\=$`) //format: <Prefix>:<encodeString>=
@@ -66,7 +63,7 @@ func ParseQR(code string) (string, bool, error) {
 		return "", false, nil
 	}
 
-	if checkCodeValues[0] != Prefix {
+	if checkCodeValues[0] != constant.QRPrefix {
 		return "", false, nil
 	}
 
@@ -86,12 +83,12 @@ func ParseQR(code string) (string, bool, error) {
 		return "", false, err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(secret), []byte(SecretKey))
+	err = bcrypt.CompareHashAndPassword([]byte(secret), []byte(constant.QRSecretKey))
 	if err != nil {
 		return "", false, nil
 	}
 
-	if diff := time.Since(requestDateTime); diff > (time.Second*time.Duration(AcceptRefreshQRSecond)) || diff < 0 {
+	if diff := time.Since(requestDateTime); diff > constant.AcceptRefreshQRSecond || diff < 0 {
 		return "", false, nil
 	}
 
