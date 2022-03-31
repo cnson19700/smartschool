@@ -136,10 +136,10 @@ func GetMe(c *gin.Context) {
 
 func GetCourseAttendanceOfOneUser(c *gin.Context) {
 	request := struct {
-		CourseID uint `json:"course_id"`
+		CourseID uint `form:"course_id" binding:"required"`
 	}{}
 
-	err := c.ShouldBindJSON(&request)
+	err := c.ShouldBind(&request)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"messgae": "Cannot capture request",
@@ -180,10 +180,10 @@ func GetCourseAttendanceOfOneUser(c *gin.Context) {
 
 func GetInDayAttendance(c *gin.Context) {
 	request := struct {
-		TimezoneOffset int `json:"time_offset"`
+		TimezoneOffset int `form:"time_offset" binding:"required"`
 	}{}
 
-	err := c.ShouldBindJSON(&request)
+	err := c.ShouldBind(&request)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"messgae": "Cannot capture request",
@@ -213,7 +213,7 @@ func GetInDayAttendance(c *gin.Context) {
 	})
 }
 
-func GetQREncodeString(c * gin.Context) {
+func GetQREncodeString(c *gin.Context) {
 	id, isGet := c.Get("userId")
 	if !isGet {
 		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
