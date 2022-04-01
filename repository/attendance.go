@@ -11,14 +11,43 @@ import (
 	"github.com/smartschool/model/entity"
 )
 
-func QueryAttendanceByTeacherCourse(teacherID string, courseId string) ([]*entity.Attendance, error) {
-	attendance := []*entity.Attendance{}
-	err := database.DbInstance.Where("teacher_id = ? AND course_id =?", teacherID, courseId).Find(&attendance).Error
+func QueryAttendanceByTeacherCourse(teacherID string, courseId string) ([]*entity.AttendanceResult, error) {
+	attendances := []*entity.Attendance{}
+	scheduleIDs := []uint{}
+	attendance_results := []*entity.AttendanceResult{}
+
+	database.DbInstance.Table("schedules").Select("id").Where("course_id = ?", courseId).Scan(&scheduleIDs)
+
+	err := database.DbInstance.Where("teacher_id = ? AND schedule_id IN ?", teacherID, scheduleIDs).Find(&attendances).Error
 	if err != nil {
 		return nil, err
 	}
-	return attendance, nil
+
+	for _, attendance := range attendances {
+		student, _ := QueryStudentByID(fmt.Sprint(attendance.UserID))
+		user := QueryUserBySID(fmt.Sprint(attendance.UserID))
+		attendance_result := &entity.AttendanceResult{
+			ID:            attendance.ID,
+			TeacherID:     attendance.TeacherID,
+			StudentID:     student.StudentID,
+			StudentName:   user.FirstName + " " + user.LastName,
+			ScheduleID:    attendance.ScheduleID,
+			CheckinStatus: attendance.CheckInStatus,
+		}
+		attendance_results = append(attendance_results, attendance_result)
+	}
+
+	return attendance_results, nil
 }
+
+// func QueryAttendanceByTeacherCourse(teacherID string, courseId string) ([]*entity.Attendance, error) {
+// 	attendance := []*entity.Attendance{}
+// 	err := database.DbInstance.Where("teacher_id = ? AND course_id =?", teacherID, courseId).Find(&attendance).Error
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return attendance, nil
+// }
 
 func QueryAttendanceByCourseID(courseId string) ([]*entity.Attendance, error) {
 	attendance := []*entity.Attendance{}

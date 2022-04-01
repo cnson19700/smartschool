@@ -17,10 +17,10 @@ var DbInstance *gorm.DB
 
 func Init() {
 	ConnectDatabase()
-	//DbInstance.AutoMigrate(&entity.Faculty{})
-	//makeFacultyDummy()
-	MigrateDatabase()
-	//createDummy()
+	// DropAllTables()
+	// MigrateDatabase()
+	// AttendanceData()
+	// createDummy2()
 	//readDummy()
 	// Close()
 }
@@ -52,10 +52,12 @@ func MigrateDatabase() {
 	DbInstance.AutoMigrate(&entity.User{})
 	DbInstance.AutoMigrate(&entity.Student{})
 	DbInstance.AutoMigrate(&entity.Course{})
+	DbInstance.AutoMigrate(&entity.Teacher{})
 	DbInstance.AutoMigrate(&entity.Room{})
 	DbInstance.AutoMigrate(&entity.Device{})
 	DbInstance.AutoMigrate(&entity.StudentCourseEnrollment{})
 	DbInstance.AutoMigrate(&entity.Schedule{})
+	DbInstance.AutoMigrate(&entity.TeacherCourse{})
 	DbInstance.AutoMigrate(&entity.Attendance{})
 	DbInstance.AutoMigrate(&entity.DeviceSignalLog{})
 
@@ -79,6 +81,12 @@ func MigrateDatabase() {
 		panic(errJoin)
 	}
 
+	errJoin = DbInstance.SetupJoinTable(&entity.Teacher{}, "Courses", &entity.TeacherCourse{})
+
+	if errJoin != nil {
+		panic(errJoin)
+	}
+
 	fmt.Println("Migrate DB normal")
 }
 
@@ -93,6 +101,7 @@ func createDummy2() {
 	DummyRoles := []entity.Role{
 		{ID: 1, Title: "Student"},
 		{ID: 2, Title: "Academic Section"},
+		{ID: 3, Title: "Professor"},
 	}
 
 	dummyDOB, _ := helper.StringToTimeUTC("2021-12-28T18:08:00+07:00")
@@ -107,6 +116,9 @@ func createDummy2() {
 		{ID: 4, Username: "18120004", Password: string(hashedPasswordByte), DateOfBirth: dummyDOB, RoleID: 1, Gender: 0, FacultyID: 1, IsActivate: false, PhoneNumber: "0123456789", Email: "vinh@email.com", FirstName: "Vinh", LastName: "Bui Xuan"},
 		{ID: 5, Username: "18120005", Password: string(hashedPasswordByte), DateOfBirth: dummyDOB, RoleID: 1, Gender: 0, FacultyID: 1, IsActivate: false, PhoneNumber: "0123456789", Email: "nhan@email.com", FirstName: "Nhan", LastName: "Le Hoang"},
 		{ID: 6, Username: "17120001", Password: string(hashedPasswordByte), DateOfBirth: dummyDOB, RoleID: 1, Gender: 0, FacultyID: 1, IsActivate: false, PhoneNumber: "0123456789", Email: "tri@email.com", FirstName: "Tri", LastName: "Ho Minh"},
+		{ID: 7, Username: "Dinh Ba Tien", Password: string(hashedPasswordByte), Email: "dbtien@capstone.local", PhoneNumber: "0123456789", FirstName: "Dinh", LastName: "Tien", DateOfBirth: dummyDOB, RoleID: 3, Gender: 0, FacultyID: 1, IsActivate: true, Teacher: &entity.Teacher{TeacherID: "10001"}},
+		{ID: 8, Username: "Nhat Hoa", Password: string(hashedPasswordByte), Email: "nhoa@capstone.local", PhoneNumber: "0123456789", FirstName: "Nhat", LastName: "Hoa", DateOfBirth: dummyDOB, RoleID: 3, Gender: 1, FacultyID: 3, IsActivate: true, Teacher: &entity.Teacher{TeacherID: "20010"}},
+		{ID: 9, Username: "Ngoc Hue", Password: string(hashedPasswordByte), Email: "nghue@capstone.local", PhoneNumber: "0123456789", FirstName: "Ngoc", LastName: "Hue", DateOfBirth: dummyDOB, RoleID: 3, Gender: 1, FacultyID: 2, IsActivate: true, Teacher: &entity.Teacher{TeacherID: "30011"}},
 	}
 
 	DummyStudents := []entity.Student{
@@ -123,9 +135,9 @@ func createDummy2() {
 	DummySemester := []entity.Semester{{ID: 1, Title: "HK1", Year: "2022", FacultyID: 1, StartTime: startSem, EndTime: endSem}}
 
 	DummyCourses := []entity.Course{
-		{ID: 1, SemesterID: 1, NumberOfStudent: 40, CourseID: "CS001", Name: "Intro to Computer Science"},
-		{ID: 2, SemesterID: 1, NumberOfStudent: 39, CourseID: "MTH001", Name: "Calculus I"},
-		{ID: 3, SemesterID: 1, NumberOfStudent: 42, CourseID: "PH001", Name: "Physics"},
+		{ID: 1, SemesterID: 1, NumberOfStudent: 40, CourseID: "CS001", Name: "Intro to Computer Science", TeacherID: "10001", TeacherRole: "Professor"},
+		{ID: 2, SemesterID: 1, NumberOfStudent: 39, CourseID: "MTH001", Name: "Calculus I", TeacherID: "20010", TeacherRole: "Professor"},
+		{ID: 3, SemesterID: 1, NumberOfStudent: 42, CourseID: "PH001", Name: "Physics", TeacherID: "30011", TeacherRole: "Professor"},
 	}
 
 	DummyStudentCourseEnrollment := []entity.StudentCourseEnrollment{
@@ -173,6 +185,8 @@ func createDummy2() {
 		panic("[ERROR] Nil DB")
 	}
 
+	DummyTeacherCourses := []entity.TeacherCourse{{TeacherID: 7, CourseID: 1}, {TeacherID: 8, CourseID: 3}}
+
 	DbInstance.Create(&DummyFaculties)
 	DbInstance.Create(&DummySemester)
 	DbInstance.Create(&DummyRoles)
@@ -183,33 +197,62 @@ func createDummy2() {
 	DbInstance.Create(&DummyStudentCourseEnrollment)
 	DbInstance.Create(&DummySchedule)
 	DbInstance.Create(&DummyDevice)
+	DbInstance.Create(&DummyTeacherCourses)
 
 	fmt.Println("Create DB dummies normal")
 }
 
 func createDummy() {
 	t := time.Now()
-	DummyFaculties := []entity.Faculty{{Title: "Computer Science"}, {Title: "Chemistry"}, {Title: "Physic"}}
-	DummyRoles := []entity.Role{{Title: "Student"}, {Title: "Academic Section"}}
-	DummyUsers := []entity.User{{Username: "Bui Xuan Vinh", Password: "12345", Email: "vinh@capstone.local", PhoneNumber: "0123456789", FirstName: "Bui", LastName: "Vinh", DateOfBirth: t, RoleID: 1, Gender: 0, FacultyID: 1, IsActivate: true}}
-	DummyStudents := []entity.Student{{StudentID: "100", Batch: "18CTT2"}}
-	// DummyCourses := []entity.Course{{CourseID: "CS001", Name: "Intro to Internet", SemesterID: 1}, {CourseID: "MTH001", Name: "Intro to Math", SemesterID: 1}}
-	// DummyStudentCourse := []entity.StudentCourseEnrollment{{StudentID: 1, CourseID: 1}, {StudentID: 1, CourseID: 2}, {StudentID: 2, CourseID: 1}, {StudentID: 3, CourseID: 2}}
+	DummyFaculties := []entity.Faculty{{Title: "Computer Science"}, {Title: "Chemistry"}}
+	DummySemesters := []entity.Semester{{Title: "HK1-2018", Year: "2018", StartTime: time.Now(), EndTime: time.Now().Add(20), FacultyID: 1}}
+	DummyRoles := []entity.Role{{Title: "Student"}, {Title: "Academic Section"}, {Title: "Teacher"}}
+	DummyUsers := []entity.User{
+		{Username: "Bui Xuan Vinh", Password: "12345", Email: "vinh@capstone.local", PhoneNumber: "0123456789", FirstName: "Bui", LastName: "Vinh", DateOfBirth: t, RoleID: 1, Gender: 0, FacultyID: 1, IsActivate: true, Student: &entity.Student{StudentID: "100", Batch: "18CTT2"}},
+		{Username: "Dinh Ba Tien", Password: "12345", Email: "dbtien@capstone.local", PhoneNumber: "0123456789", FirstName: "Dinh", LastName: "Ba", DateOfBirth: t, RoleID: 3, Gender: 0, FacultyID: 1, IsActivate: true, Teacher: &entity.Teacher{TeacherID: "10001"}},
+	}
+	DummyCourses := []entity.Course{{CourseID: "CS001", Name: "Intro to Internet", SemesterID: 2}, {CourseID: "MTH001", Name: "Intro to Math", SemesterID: 2}}
 	DummyRooms := []entity.Room{{RoomID: "I41", Name: "APCS Room"}, {RoomID: "B52", Name: "CLC lab"}, {RoomID: "E15", Name: "VP Stone room"}}
-	// DummyScheduler := []entity.Schedule{{RoomID: 1, CourseID: 1, StartTime: t, EndTime: t.Add(time.Hour * 2)}, {RoomID: 2, CourseID: 2, StartTime: t, EndTime: t.Add(time.Hour * 2)}, {RoomID: 3, CourseID: 1, StartTime: t.Add(time.Hour * 4), EndTime: t.Add(time.Hour * 6)}, {RoomID: 1, CourseID: 2, StartTime: t.Add(time.Hour * 2), EndTime: t.Add(time.Hour * 4)}}
 	DummyDevice := []entity.Device{{RoomID: 1, DeviceID: "D1"}, {RoomID: 2, DeviceID: "D2"}, {RoomID: 3, DeviceID: "D3"}}
-
+	DummyTeacherCourses := []entity.TeacherCourse{{TeacherID: 2, CourseID: 9}}
 	if DbInstance == nil {
 		panic("[ERROR] Nil DB")
 	}
 
 	DbInstance.Create(&DummyFaculties)
+	DbInstance.Create(&DummySemesters)
 	DbInstance.Create(&DummyRoles)
 	DbInstance.Create(&DummyUsers)
-	DbInstance.Create(&DummyStudents)
-	// DbInstance.Create(&DummyCourses)
-	// DbInstance.Create(&DummyStudentCourse)
+	DbInstance.Create(&DummyCourses)
 	DbInstance.Create(&DummyRooms)
-	// DbInstance.Create(&DummyScheduler)
 	DbInstance.Create(&DummyDevice)
+	DbInstance.Create(&DummyTeacherCourses)
+
+}
+
+func DropAllTables() {
+	DbInstance.Migrator().DropTable(&entity.Faculty{})
+	DbInstance.Migrator().DropTable(&entity.Semester{})
+	DbInstance.Migrator().DropTable(&entity.Role{})
+	DbInstance.Migrator().DropTable(&entity.User{})
+	DbInstance.Migrator().DropTable(&entity.Student{})
+	DbInstance.Migrator().DropTable(&entity.Course{})
+	DbInstance.Migrator().DropTable(&entity.Teacher{})
+	DbInstance.Migrator().DropTable(&entity.Room{})
+	DbInstance.Migrator().DropTable(&entity.Device{})
+	DbInstance.Migrator().DropTable(&entity.StudentCourseEnrollment{})
+	DbInstance.Migrator().DropTable(&entity.Schedule{})
+	DbInstance.Migrator().DropTable(&entity.Attendance{})
+	DbInstance.Migrator().DropTable(&entity.DeviceSignalLog{})
+	DbInstance.Migrator().DropTable(&entity.TeacherCourse{})
+}
+
+func AttendanceData() {
+	DummyAttendances := []entity.Attendance{
+		{ID: 1, UserID: 1, TeacherID: 10001, ScheduleID: 1, CheckInTime: time.Now(), CheckInStatus: "Attend"},
+		{ID: 2, UserID: 2, TeacherID: 10001, ScheduleID: 1, CheckInTime: time.Now().Add(1000), CheckInStatus: "Late"},
+		{ID: 3, UserID: 5, TeacherID: 10001, ScheduleID: 1, CheckInTime: time.Now().Add(3000), CheckInStatus: "Late"},
+	}
+
+	DbInstance.Create(&DummyAttendances)
 }
