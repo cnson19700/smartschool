@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"strings"
+
 	"github.com/pkg/errors"
 	"github.com/smartschool/database"
 	"github.com/smartschool/model/entity"
@@ -10,7 +12,7 @@ func QueryStudentBySID(sid string) (*entity.Student, bool, error) {
 	var student entity.Student
 	result := database.DbInstance.Where("student_id = ?", sid).Limit(1).Find(&student)
 
-	return &student, result.RowsAffected == 0,  result.Error
+	return &student, result.RowsAffected == 0, result.Error
 }
 
 func QueryStudentByID(id string) (*entity.Student, error) {
@@ -56,4 +58,19 @@ func QueryStudentByEmail(email string) (*entity.User, error) {
 	}
 
 	return user, nil
+}
+
+func QueryStudentsByName(student_name string) ([]uint, error) {
+	student_ids := []uint{}
+	student_name = strings.ToLower(student_name)
+
+	err := database.DbInstance.Table("students").
+		Select("students.id").
+		Joins("JOIN users ON users.id = students.id").
+		Where("LOWER(CONCAT(users.first_name,users.last_name)) LIKE ?", "%"+student_name+"%").
+		Scan(&student_ids).Error
+	if err != nil {
+		return nil, errors.Wrap(err, "get user by name")
+	}
+	return student_ids, nil
 }

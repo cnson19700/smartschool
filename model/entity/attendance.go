@@ -22,14 +22,22 @@ type Attendance struct {
 }
 
 type AttendanceFilter struct {
-	TeacherID     string `json:"teacher_id"`
+	StudentName   string `json:"student_name"`
 	StudentID     string `json:"student_id"`
-	CourseID      string `json:"course_id"`
-	CheckinStatus string `json:"status"`
-	Keyword       string `json:"search"`
+	CheckinStatus string `json:"checkin_status"`
+	CheckinDay    string `json:"checkin_day"`
 }
 
 type AttendanceResult struct {
-	Data []Attendance `json:"data"`
+	ID            uint   `json:"id"`
+	TeacherID     uint   `json:"teacher_id"`
+	StudentID     string `json:"student_id"`
+	StudentName   string `json:"student_name"`
+	ScheduleID    uint   `json:"schedule_id"`
+	CheckinStatus string `json:"status"`
+}
+
+type AttendanceResultWithPage struct {
+	Data Attendance `json:"data"`
 	Paginator
 }
