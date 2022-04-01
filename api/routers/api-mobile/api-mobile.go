@@ -2,6 +2,7 @@ package api_mobile
 
 import (
 	"fmt"
+	"github.com/smartschool/service/fireapp"
 	"net/http"
 	"time"
 
@@ -234,4 +235,48 @@ func GetQREncodeString(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"qr_string": res,
 	})
+}
+
+func UpdateNotificationToken(c *gin.Context) {
+	id, _ := c.Get("userId")
+	userId, _ := id.(float64)
+
+	var request dto.UpdateNotificationTokenRequest
+	err := c.ShouldBindJSON(&request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Notification token update request is invalid",
+		})
+		return
+	}
+
+	var userNotificationToken entity.UserNotificationToken
+	database.DbInstance.First(&userNotificationToken, "token = ?", request.NotificationToken)
+
+	if userNotificationToken.ID == 0 {
+		newUserNotificationToken := entity.UserNotificationToken{
+			UserID: uint(userId),
+			Token:  request.NotificationToken,
+		}
+
+		err = database.DbInstance.Create(&newUserNotificationToken).Error
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "Internal server error",
+			})
+			return
+		}
+	}
+}
+
+func TestNotification(c *gin.Context) {
+	id, _ := c.Get("userId")
+	userId, _ := id.(float64)
+
+	data := map[string]string{
+		"message": "Hello world",
+	}
+
+	err := fireapp.SendNotification(uint(userId), data)
+	_ = err
 }

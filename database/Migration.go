@@ -2,15 +2,12 @@ package database
 
 import (
 	"fmt"
-
-	"time"
-
 	"github.com/smartschool/helper"
 	"github.com/smartschool/model/entity"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
-	_ "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"time"
 )
 
 var DbInstance *gorm.DB
@@ -55,6 +52,7 @@ func MigrateDatabase() {
 	DbInstance.AutoMigrate(&entity.Schedule{})
 	DbInstance.AutoMigrate(&entity.Attendance{})
 	DbInstance.AutoMigrate(&entity.DeviceSignalLog{})
+	DbInstance.AutoMigrate(&entity.UserNotificationToken{})
 
 	errJoin := DbInstance.SetupJoinTable(&entity.Student{}, "Courses", &entity.StudentCourseEnrollment{})
 	if errJoin != nil {

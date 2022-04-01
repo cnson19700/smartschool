@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"os/signal"
 	"github.com/smartschool/api/routers"
 	"github.com/smartschool/database"
+	"github.com/smartschool/service/fireapp"
+	"os"
+	"os/signal"
 )
 
 func main() {
@@ -16,6 +17,12 @@ func main() {
 	database.Init()
 
 	defer database.Close()
+
+	err := fireapp.Init()
+	if err != nil {
+		fmt.Println("Firebase error: " + err.Error())
+		return
+	}
 
 	go func() {
 		r, err := routers.Initialize()
