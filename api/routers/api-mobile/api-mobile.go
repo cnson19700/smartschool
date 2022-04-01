@@ -133,3 +133,105 @@ func GetMe(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, res)
 }
+
+func GetCourseAttendanceOfOneUser(c *gin.Context) {
+	request := struct {
+		CourseID uint `form:"course_id" binding:"required"`
+	}{}
+
+	err := c.ShouldBind(&request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"messgae": "Cannot capture request",
+		})
+		return
+	}
+
+	id, isGet := c.Get("userId")
+	if !isGet {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
+		return
+	}
+	userId, canConvert := id.(float64)
+	if !canConvert {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Authenticate fail"})
+		return
+	}
+
+	course, err := service.GetCourseInfoByID(request.CourseID)
+	if err != nil || course == nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"messgae": "Cannot verified course",
+		})
+		return
+	}
+
+	res, err := service.GetAttendanceInCourseOneUser(request.CourseID, uint(userId))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot get course attendance for user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"course":          course.CourseID,
+		"attendance_list": res,
+	})
+}
+
+func GetInDayAttendance(c *gin.Context) {
+	request := struct {
+		TimezoneOffset int `form:"time_offset" binding:"required"`
+	}{}
+
+	err := c.ShouldBind(&request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"messgae": "Cannot capture request",
+		})
+		return
+	}
+
+	id, isGet := c.Get("userId")
+	if !isGet {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
+		return
+	}
+	userId, canConvert := id.(float64)
+	if !canConvert {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Authenticate fail"})
+		return
+	}
+
+	res, err := service.GetCheckInHistoryInDay(uint(userId), request.TimezoneOffset)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot get attendance history for user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"checkin_list": res,
+	})
+}
+
+func GetQREncodeString(c *gin.Context) {
+	id, isGet := c.Get("userId")
+	if !isGet {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
+		return
+	}
+	userId, canConvert := id.(float64)
+	if !canConvert {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Authenticate fail"})
+		return
+	}
+
+	res, err := service.GenerateQREncodeString(uint(userId))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot provide QR"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"qr_string": res,
+	})
+}

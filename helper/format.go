@@ -2,13 +2,9 @@ package helper
 
 import "time"
 
-func StringToTimeUTC(stringTime string) time.Time {
+func StringToTimeUTC(stringTime string) (time.Time, error) {
 
 	t, err := time.Parse(time.RFC3339, stringTime)
 
-	if err != nil {
-		panic(err)
-	}
-
-	return t.UTC()
+	return t.UTC(), err
 }

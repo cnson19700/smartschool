@@ -24,6 +24,9 @@ func Initialize() (*gin.Engine, error) {
 	mobileUser := r.Group("/user")
 	mobileUser.Use(authMw.GetAuthFunc())
 	mobileUser.GET("/me", api_mobile.GetMe)
+	mobileUser.GET("/course-attendance", api_mobile.GetCourseAttendanceOfOneUser)
+	mobileUser.GET("/inday-attendance", api_mobile.GetInDayAttendance)
+	mobileUser.GET("/get-qr", api_mobile.GetQREncodeString)
 
 	r.POST("/checkin", api_device.EventCheckin)
 	r.POST("/login", api_mobile.Login)
