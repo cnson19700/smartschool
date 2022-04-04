@@ -120,19 +120,3 @@ func SearchAttendance(params url.Values) ([]*entity.AttendanceResult, error) {
 
 	return attendance_results, nil
 }
-
-func SearchAttendance(pagnitor *entity.Paginator, filter *entity.AttendanceFilter,
-	orders []string) ([]*entity.Attendance, error) {
-	query := database.DbInstance.Model(&entity.Attendance{})
-
-	//Order
-	for _, order := range orders {
-		query.Order(order)
-	}
-
-	fmt.Println(filter)
-
-	if filter.Keyword != "" { //search   checkin_time filter select?
-		query.Where("title LIKE ?", "%"+filter.Keyword+"%") //user_name, schedule_id, user_id, checkin_status
-	}
-}
