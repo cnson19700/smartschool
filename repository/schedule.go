@@ -30,3 +30,10 @@ func QueryListScheduleByCourse(course_id uint) ([]entity.Schedule, bool, error) 
 
 	return queryList, result.RowsAffected == 0, result.Error
 }
+
+func QueryListScheduleByListCourseTime(course_id_list []uint, start time.Time, end time.Time) ([]entity.Schedule, bool, error) {
+	var queryList []entity.Schedule
+	result := database.DbInstance.Where("course_id IN ? AND start_time >= ? AND end_time <= ?", course_id_list, start, end).Preload("Room").Preload("Course").Find(&queryList)
+
+	return queryList, result.RowsAffected == 0, result.Error
+}

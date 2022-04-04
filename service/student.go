@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/smartschool/model/dto"
@@ -72,8 +73,8 @@ func GetCheckInHistoryInDay(userID uint, timezoneOffset int) ([]dto.CheckInHisto
 		return nil, nil
 	}
 
-	currentDateTime := time.Now().Add(time.Hour * time.Duration(timezoneOffset))
-	//currentDateTime := time.Date(2022, 1, 12, 15, 0, 0, 0, time.UTC).Add(time.Hour * time.Duration(timezoneOffset))
+	// currentDateTime := time.Now().Add(time.Hour * time.Duration(timezoneOffset))
+	currentDateTime := time.Date(2022, 1, 12, 15, 0, 0, 0, time.UTC).Add(time.Hour * time.Duration(timezoneOffset))
 	year, month, day := currentDateTime.Date()
 
 	startDateTime := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
@@ -81,20 +82,61 @@ func GetCheckInHistoryInDay(userID uint, timezoneOffset int) ([]dto.CheckInHisto
 	startDateTime = startDateTime.Add(time.Hour * time.Duration(timezoneOffset) * -1)
 	endDateTime := startDateTime.Add(time.Hour * 24)
 
-	attendList, notFound, err := repository.QueryListAttendanceInDayByUser(userID, startDateTime, endDateTime)
+	user := repository.QueryUserBySID(fmt.Sprint(userID))
+	if user == nil {
+		return nil, nil
+	}
+
+	semester, notFound, err := repository.QuerySemesterByFacultyTime(user.FacultyID, startDateTime)
 	if err != nil || notFound {
 		return nil, err
 	}
 
+	student, notFound, err := repository.QueryStudentCourseBySemester(userID, semester.ID)
+	if err != nil || notFound {
+		return nil, err
+	}
+
+	var courseIDList []uint
+	for i := 0; i < len(student.Courses); i++ {
+		courseIDList = append(courseIDList, student.Courses[i].ID)
+	}
+
+	scheduleList, notFound, err := repository.QueryListScheduleByListCourseTime(courseIDList, startDateTime, endDateTime)
+	if err != nil || notFound {
+		return nil, err
+	}
+
+	var scheduleIDList []uint
+	for i := 0; i < len(scheduleList); i++ {
+		scheduleIDList = append(scheduleIDList, scheduleList[i].ID)
+	}
+
+	attendList, _, err := repository.QueryListAttendanceByUserSchedule(userID, scheduleIDList)
+	if err != nil {
+		return nil, err
+	}
+
+	var checkinTime time.Time
+	var checkinStatus string
 	resultList := make([]dto.CheckInHistoryListElement, 0)
-	for i := 0; i < len(attendList); i++ {
+	for i := 0; i < len(scheduleList); i++ {
+
+		checkinStatus = ""
+		for j := 0; j < len(attendList); j++ {
+			if scheduleList[i].ID == attendList[j].ScheduleID {
+				checkinTime = attendList[j].CheckInTime
+				checkinStatus = attendList[j].CheckInStatus
+			}
+		}
+
 		resultList = append(resultList, dto.CheckInHistoryListElement{
-			Course:        attendList[i].Schedule.Course.CourseID,
-			StartTime:     attendList[i].Schedule.StartTime,
-			EndTime:       attendList[i].Schedule.EndTime,
-			CheckinTime:   attendList[i].CheckInTime,
-			Room:          attendList[i].Schedule.Room.RoomID,
-			CheckinStatus: attendList[i].CheckInStatus,
+			Course:        scheduleList[i].Course.CourseID,
+			StartTime:     scheduleList[i].StartTime,
+			EndTime:       scheduleList[i].EndTime,
+			Room:          scheduleList[i].Room.RoomID,
+			CheckinTime:   checkinTime,
+			CheckinStatus: checkinStatus,
 		})
 	}
 
