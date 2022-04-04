@@ -18,3 +18,13 @@ type Course struct {
 	Teacher  []*Teacher `gorm:"many2many:teachers_course; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	Rooms    []*Room    `gorm:"many2many:schedules; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
+
+type CourseByTeacher struct {
+	ID              uint   `json:"id"`
+	CourseID        string `json:"course_id"`
+	TeacherID       string `json:"teacher_id"`
+	TeacherRole     string `json:"teacher_role"`
+	Name            string `json:"course_name"`
+	SemesterID      uint   `json:"semester_id"`
+	NumberOfStudent int    `json:"number_of_students"`
+}

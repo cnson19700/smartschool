@@ -1,9 +1,11 @@
 package entity
-
+import (
+	"gorm.io/gorm"
+)
 type TeacherCourse struct {
-	ID        int64 `gorm:"column:id;primary_key"  json:"id"`
-	TeacherID int64 `gorm:"column:teacher_id"  json:"teacher_id"`
-	CourseID  int64 `gorm:"column:course_id"  json:"course_id"`
+	TeacherID uint `gorm:"primaryKey;column:teacher_id"  json:"teacher_id"` //index of record
+	CourseID  uint `gorm:"primaryKey;column:course_id"  json:"course_id"`	//index of record
+	gorm.Model
 
 	Teacher *Teacher `gorm:"foreignKey:ID;references:TeacherID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	Course  *Course  `gorm:"foreignKey:ID;references:CourseID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
