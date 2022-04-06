@@ -22,7 +22,7 @@ func QueryScheduleByRoomTimeCourse(room_id uint, time time.Time, course_id uint)
 
 }
 
-func QueryListScheduleByCourse(course_id uint) ([]entity.Schedule, bool, error) {
+func QueryFullListScheduleByCourse(course_id uint) ([]entity.Schedule, bool, error) {
 	var queryList []entity.Schedule
 	result := database.DbInstance.Where("course_id = ?", course_id).Preload("Room").Find(&queryList)
 
@@ -34,6 +34,27 @@ func QueryListScheduleByCourse(course_id uint) ([]entity.Schedule, bool, error) 
 func QueryListScheduleByListCourseTime(course_id_list []uint, start time.Time, end time.Time) ([]entity.Schedule, bool, error) {
 	var queryList []entity.Schedule
 	result := database.DbInstance.Where("course_id IN ? AND start_time >= ? AND end_time <= ?", course_id_list, start, end).Preload("Room").Preload("Course").Find(&queryList)
+
+	return queryList, result.RowsAffected == 0, result.Error
+}
+
+func CountScheduleOfFullCourse(course_id uint) (int64, error) {
+	var c int64
+	result := database.DbInstance.Table("schedules").Select("id").Where("course_id = ?", course_id).Count(&c)
+
+	return c, result.Error
+}
+
+func QueryCurrentScheduleIDOfCourse(course_id uint, current time.Time) ([]uint, bool, error) {
+	var queryList []uint
+	result := database.DbInstance.Table("schedules").Select("id").Where("course_id = ? AND end_time <= ?", course_id, current).Find(&queryList)
+
+	return queryList, result.RowsAffected == 0, result.Error
+}
+
+func QueryListScheduleByCourse(course_id uint, current time.Time) ([]entity.Schedule, bool, error) {
+	var queryList []entity.Schedule
+	result := database.DbInstance.Where("course_id = ?  AND end_time <= ?", course_id, current).Preload("Room").Find(&queryList)
 
 	return queryList, result.RowsAffected == 0, result.Error
 }

@@ -35,3 +35,10 @@ func QueryListAttendanceInDayByUser(user_id uint, start time.Time, end time.Time
 
 	return queryList, result.RowsAffected == 0, result.Error
 }
+
+func CountAttendanceOfSchedule(user_id uint, schedule_id_list []uint) (int64, error) {
+	var c int64
+	result := database.DbInstance.Table("attendances").Select("id").Where("user_id = ? AND schedule_id IN ?", user_id, schedule_id_list).Count(&c)
+
+	return c, result.Error
+}

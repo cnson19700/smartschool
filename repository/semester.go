@@ -4,12 +4,19 @@ import (
 	"time"
 
 	"github.com/smartschool/database"
-	"github.com/smartschool/model/entity"
+	"github.com/smartschool/model/dto"
 )
 
-func QuerySemesterByFacultyTime(faculty_id uint, checkTime time.Time) (*entity.Semester, bool, error) {
-	var Semester entity.Semester
-	result := database.DbInstance.Select("id").Where("faculty_id = ? AND end_time > ? AND start_time <= ?", faculty_id, checkTime, checkTime).Limit(1).Find(&Semester)
+func QuerySemesterByFacultyTime(faculty_id uint, checkTime time.Time) (uint, bool, error) {
+	var SemesterID uint
+	result := database.DbInstance.Table("semesters").Select("id").Where("faculty_id = ? AND end_time > ? AND start_time <= ?", faculty_id, checkTime, checkTime).Limit(1).Find(&SemesterID)
 
-	return &Semester, result.RowsAffected == 0,  result.Error
+	return SemesterID, result.RowsAffected == 0, result.Error
+}
+
+func QuerySemesterByFaculty(faculty_id uint) ([]dto.SemesterListElement, bool, error) {
+	var queryList []dto.SemesterListElement
+	result := database.DbInstance.Table("semesters").Where("faculty_id = ?", faculty_id).Find(&queryList)
+
+	return queryList, result.RowsAffected == 0, result.Error
 }

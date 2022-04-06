@@ -1,11 +1,9 @@
 package service
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/smartschool/model/dto"
-	"github.com/smartschool/model/entity"
 	"github.com/smartschool/repository"
 )
 
@@ -23,26 +21,26 @@ import (
 // 	return &result
 // }
 
-func GetCheckInHistoryBySID(sid string, status string) (*entity.Student, []dto.CheckInHistoryElement) {
+// func GetCheckInHistoryBySID(sid string, status string) (*entity.Student, []dto.CheckInHistoryElement) {
 
-	// student, err := repo.QueryStudentBySID(sid)
-	// if err != nil {
-	// 	return nil, nil
-	// }
+// 	student, err := repo.QueryStudentBySID(sid)
+// 	if err != nil {
+// 		return nil, nil
+// 	}
 
-	// listHistory := repo.QueryCheckinHistoryWithSIdAndStatus(student.ID, status)
+// 	listHistory := repo.QueryCheckinHistoryWithSIdAndStatus(student.ID, status)
 
-	// var historyElements = make([]dto.CheckInHistoryElement, 0)
-	// for i := 0; i < len(listHistory); i++ {
-	// 	historyElements = append(historyElements, dto.CheckInHistoryElement{
-	// 		CourseName:    listHistory[i].Scheduler.Course.CourseID + " - " + listHistory[i].Scheduler.Course.Name,
-	// 		CheckinTime:   listHistory[i].CheckInTime,
-	// 		CheckinStatus: listHistory[i].CheckInStatus})
-	// }
+// 	var historyElements = make([]dto.CheckInHistoryElement, 0)
+// 	for i := 0; i < len(listHistory); i++ {
+// 		historyElements = append(historyElements, dto.CheckInHistoryElement{
+// 			CourseName:    listHistory[i].Scheduler.Course.CourseID + " - " + listHistory[i].Scheduler.Course.Name,
+// 			CheckinTime:   listHistory[i].CheckInTime,
+// 			CheckinStatus: listHistory[i].CheckInStatus})
+// 	}
 
-	// return student, historyElements
-	return nil, nil
-}
+// 	return student, historyElements
+// 	return nil, nil
+// }
 
 func GetMe(id string) (*dto.StudentProfile, error) {
 	student, err := repository.QueryStudentByID(id)
@@ -68,12 +66,12 @@ func GetMe(id string) (*dto.StudentProfile, error) {
 	return &StudentProfile, nil
 }
 
-func GetCheckInHistoryInDay(userID uint, timezoneOffset int) ([]dto.CheckInHistoryListElement, error) {
+func GetCheckInHistoryInDay(userID uint, facultyID uint, timezoneOffset int) ([]dto.CheckInHistoryListElement, error) {
 	if timezoneOffset > 14 || timezoneOffset < -12 {
 		return nil, nil
 	}
 
-	// currentDateTime := time.Now().Add(time.Hour * time.Duration(timezoneOffset))
+	//currentDateTime := time.Now().UTC().Add(time.Hour * time.Duration(timezoneOffset))
 	currentDateTime := time.Date(2022, 1, 12, 15, 0, 0, 0, time.UTC).Add(time.Hour * time.Duration(timezoneOffset))
 	year, month, day := currentDateTime.Date()
 
@@ -82,24 +80,19 @@ func GetCheckInHistoryInDay(userID uint, timezoneOffset int) ([]dto.CheckInHisto
 	startDateTime = startDateTime.Add(time.Hour * time.Duration(timezoneOffset) * -1)
 	endDateTime := startDateTime.Add(time.Hour * 24)
 
-	user := repository.QueryUserBySID(fmt.Sprint(userID))
-	if user == nil {
-		return nil, nil
-	}
-
-	semester, notFound, err := repository.QuerySemesterByFacultyTime(user.FacultyID, startDateTime)
+	semesterID, notFound, err := repository.QuerySemesterByFacultyTime(facultyID, startDateTime)
 	if err != nil || notFound {
 		return nil, err
 	}
 
-	student, notFound, err := repository.QueryStudentCourseBySemester(userID, semester.ID)
+	courseIDInSemseterList, notFound, err := repository.QueryListCourseIDBySemester(semesterID)
 	if err != nil || notFound {
 		return nil, err
 	}
 
-	var courseIDList []uint
-	for i := 0; i < len(student.Courses); i++ {
-		courseIDList = append(courseIDList, student.Courses[i].ID)
+	courseIDList, notFound, err := repository.QueryEnrollmentByListCourse(userID, courseIDInSemseterList)
+	if err != nil || notFound {
+		return nil, err
 	}
 
 	scheduleList, notFound, err := repository.QueryListScheduleByListCourseTime(courseIDList, startDateTime, endDateTime)
@@ -117,15 +110,16 @@ func GetCheckInHistoryInDay(userID uint, timezoneOffset int) ([]dto.CheckInHisto
 		return nil, err
 	}
 
-	var checkinTime time.Time
+	var checkinTime *time.Time
 	var checkinStatus string
 	resultList := make([]dto.CheckInHistoryListElement, 0)
 	for i := 0; i < len(scheduleList); i++ {
 
+		checkinTime = nil
 		checkinStatus = ""
 		for j := 0; j < len(attendList); j++ {
 			if scheduleList[i].ID == attendList[j].ScheduleID {
-				checkinTime = attendList[j].CheckInTime
+				checkinTime = &attendList[j].CheckInTime
 				checkinStatus = attendList[j].CheckInStatus
 			}
 		}

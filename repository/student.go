@@ -57,10 +57,3 @@ func QueryStudentByEmail(email string) (*entity.User, error) {
 
 	return user, nil
 }
-
-func QueryStudentCourseBySemester(user_id uint, sem_id uint) (*entity.Student, bool, error) {
-	var student entity.Student
-	result := database.DbInstance.Select("id").Where("id = ?", user_id).Preload("Courses", "semester_id = ?", sem_id).Find(&student)
-
-	return &student, result.RowsAffected == 0, result.Error
-}
