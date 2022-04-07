@@ -56,7 +56,7 @@ func CheckValidDifferentTimeEntry(timeEntry time.Time, acceptDuration time.Durat
 	return false
 }
 
-func ParseQR(code string) (string, bool, error) {
+func ParseQR(code string, timeEntry time.Time) (string, bool, error) {
 	code = code[:(len(code) - 1)]
 	checkCodeValues := strings.Split(code, ":")
 	if len(checkCodeValues) != 2 {
@@ -83,12 +83,15 @@ func ParseQR(code string) (string, bool, error) {
 		return "", false, err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(secret), []byte(constant.QRSecretKey))
+	err = bcrypt.CompareHashAndPassword([]byte(secret), []byte(constant.QRSecretKey+contentValues[1]))
 	if err != nil {
 		return "", false, nil
 	}
 
-	if diff := time.Since(requestDateTime); diff > constant.AcceptRefreshQRSecond || diff < 0 {
+	// if diff := time.Since(requestDateTime); diff > constant.AcceptRefreshQRSecond || diff < 0 {
+	// 	return "", false, nil
+	// }
+	if diff := timeEntry.Sub(requestDateTime); diff > constant.AcceptRefreshQRSecond || diff < 0 {
 		return "", false, nil
 	}
 

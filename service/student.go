@@ -71,8 +71,8 @@ func GetCheckInHistoryInDay(userID uint, facultyID uint, timezoneOffset int) ([]
 		return nil, nil
 	}
 
-	//currentDateTime := time.Now().UTC().Add(time.Hour * time.Duration(timezoneOffset))
-	currentDateTime := time.Date(2022, 1, 12, 15, 0, 0, 0, time.UTC).Add(time.Hour * time.Duration(timezoneOffset))
+	currentDateTime := time.Now().UTC().Add(time.Hour * time.Duration(timezoneOffset))
+	//currentDateTime := time.Date(2022, 1, 12, 15, 0, 0, 0, time.UTC).Add(time.Hour * time.Duration(timezoneOffset))
 	year, month, day := currentDateTime.Date()
 
 	startDateTime := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)

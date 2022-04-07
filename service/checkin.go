@@ -32,7 +32,7 @@ func CheckIn(deviceSignal dto.DeviceSignal) error {
 		status, err = recordCheckinCard(checkinValue, deviceSignal.CompanyTokenKey, entryTime)
 
 	case "QR":
-		userInfo, isFormatCorrect, errParse := helper.ParseQR(checkinValue)
+		userInfo, isFormatCorrect, errParse := helper.ParseQR(checkinValue, entryTime)
 		if !isFormatCorrect || errParse != nil {
 			status = "[Abnormal]: Invalid format QR or Expired QR"
 		} else {
@@ -199,7 +199,7 @@ func recordCheckinQR(checkinValues string, deviceID string, checkinTime time.Tim
 func GenerateQREncodeString(userId uint) (string, error) {
 	currentDateTime, _ := time.Now().UTC().MarshalText()
 
-	hashedSecretKeyByte, bcryptError := bcrypt.GenerateFromPassword([]byte(constant.QRSecretKey), bcrypt.DefaultCost)
+	hashedSecretKeyByte, bcryptError := bcrypt.GenerateFromPassword([]byte(constant.QRSecretKey + string(currentDateTime)), bcrypt.DefaultCost)
 	if bcryptError != nil {
 		return "", bcryptError
 	}
