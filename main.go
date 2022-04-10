@@ -1,6 +1,9 @@
 package main
 
 import (
+	"os"
+	"os/signal"
+
 	_ "github.com/GoAdminGroup/go-admin/adapter/gin" // web framework adapter
 	"github.com/GoAdminGroup/go-admin/context"
 	"github.com/GoAdminGroup/go-admin/engine"
@@ -15,8 +18,6 @@ import (
 	"github.com/smartschool/database"
 	"github.com/smartschool/service/excel"
 	"github.com/smartschool/tables"
-	"os"
-	"os/signal"
 )
 
 func main() {

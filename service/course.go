@@ -12,7 +12,7 @@ func GetAttendanceInCourseOneUser(courseID uint, userID uint) ([]dto.AttendanceL
 	if err != nil || notFound {
 		return nil, err
 	}
-	
+
 	var scheduleIDList []uint
 	scheduleMap := make(map[uint]entity.Schedule)
 	for i := 0; i < len(scheduleList); i++ {
@@ -26,12 +26,12 @@ func GetAttendanceInCourseOneUser(courseID uint, userID uint) ([]dto.AttendanceL
 	}
 
 	resultList := make([]dto.AttendanceListElement, 0)
-	for i:=0; i<len(attendList); i++ {
+	for i := 0; i < len(attendList); i++ {
 		resultList = append(resultList, dto.AttendanceListElement{
-			StartTime: scheduleMap[attendList[i].ScheduleID].StartTime,
-			EndTime: scheduleMap[attendList[i].ScheduleID].EndTime,
-			CheckinTime: attendList[i].CheckInTime,
-			Room: scheduleMap[attendList[i].ScheduleID].Room.RoomID,
+			StartTime:     scheduleMap[attendList[i].ScheduleID].StartTime,
+			EndTime:       scheduleMap[attendList[i].ScheduleID].EndTime,
+			CheckinTime:   attendList[i].CheckInTime,
+			Room:          scheduleMap[attendList[i].ScheduleID].Room.RoomID,
 			CheckinStatus: attendList[i].CheckInStatus,
 		})
 	}

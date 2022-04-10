@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/smartschool/model/dto"
+	"github.com/smartschool/repository"
 
 	"github.com/smartschool/service"
 )
@@ -68,22 +69,22 @@ func GetStudentCheckInLateHistory(c *gin.Context) {
 
 // }
 
-// func GetCourses(c *gin.Context) {
-// 	course, err := service.GetCourses()
-// 	var Response map[string]interface{}
-// 	if err != nil {
-// 		Response = map[string]interface{}{
-// 			"error": "Not Found",
-// 		}
-// 		c.JSON(http.StatusNotFound, Response)
-// 	} else {
+func GetAllCourses(c *gin.Context) {
+	course, err := repository.QueryAllCourses()
+	var Response map[string]interface{}
+	if err != nil {
+		Response = map[string]interface{}{
+			"error": "Not Found",
+		}
+		c.JSON(http.StatusNotFound, Response)
+	} else {
 
-// 		Response = map[string]interface{}{
-// 			"courses": course,
-// 			"error":   nil,
-// 		}
+		Response = map[string]interface{}{
+			"courses": course,
+			"error":   nil,
+		}
 
-// 		c.JSON(http.StatusOK, Response)
-// 	}
+		c.JSON(http.StatusOK, Response)
+	}
 
-// }
+}

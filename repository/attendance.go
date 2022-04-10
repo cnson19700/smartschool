@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/smartschool/database"
 	"github.com/smartschool/model/entity"
 )
@@ -96,7 +95,6 @@ func SearchAttendance(params url.Values) ([]*entity.AttendanceResult, error) {
 		CheckinDay:    params.Get("checkin_day"),
 	}
 
-	spew.Dump(filter)
 	orders := strings.Split(params.Get("orders"), ",")
 	query := database.DbInstance.Model(&entity.Attendance{})
 	attendances := []*entity.Attendance{}
@@ -111,7 +109,6 @@ func SearchAttendance(params url.Values) ([]*entity.AttendanceResult, error) {
 		if len(student_ids) > 1 {
 			query.Where("user_id IN ? ", student_ids)
 		} else {
-			fmt.Printf("%v\n", len(student_ids))
 			query.Where("user_id = ?", student_ids[0])
 		}
 	}
