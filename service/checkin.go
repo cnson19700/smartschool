@@ -97,7 +97,7 @@ func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time)
 		}
 
 		if !notFound {
-			_, notFound, err := repository.QueryAttendanceByStudentSchedule(student.ID, schedule.ID)
+			_, err := repository.QueryAttendanceByStudentSchedule(fmt.Sprint(student.ID), schedule.ID)
 			if err != nil {
 				return "[Abnormal]: Error when query Attendance", err
 			}
@@ -170,7 +170,7 @@ func recordCheckinQR(checkinValues string, deviceID string, checkinTime time.Tim
 	}
 
 	if !notFound {
-		_, notFound, err = repository.QueryAttendanceByStudentSchedule(student.ID, schedule.ID)
+		_, err = repository.QueryAttendanceByStudentSchedule(fmt.Sprint(student.ID), schedule.ID)
 		if err != nil {
 			return "[Abnormal]: Error when query Attendance", err
 		}

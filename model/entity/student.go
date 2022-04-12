@@ -6,7 +6,6 @@ type Student struct {
 	ID        uint   `gorm:"primaryKey; column:id" json:"id"`
 	StudentID string `gorm:"index; column:student_id" json:"student_id"`
 	Batch     string `gorm:"column:batch" json:"batch"`
-	//DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
 	gorm.Model
 
 	//User    *User     `gorm:"foreignKey:ID; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`

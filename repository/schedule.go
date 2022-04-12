@@ -58,3 +58,10 @@ func QueryListScheduleByCourse(course_id uint, current time.Time) ([]entity.Sche
 
 	return queryList, result.RowsAffected == 0, result.Error
 }
+
+func QueryScheduleByCourseID(courseID uint) (*entity.Schedule, error) {
+	var schedule entity.Schedule
+	result := database.DbInstance.Where("course_id = ?", courseID).Find(&schedule)
+
+	return &schedule, result.Error
+}
