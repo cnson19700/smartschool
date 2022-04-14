@@ -17,7 +17,7 @@ type Attendance struct {
 	gorm.Model
 
 	User     *User     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	Course   *Course   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	//Course   *Course   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	Schedule *Schedule `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 

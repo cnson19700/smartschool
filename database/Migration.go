@@ -30,8 +30,7 @@ func Close() {
 }
 
 func ConnectDatabase() {
-	//dbURI := "host=13.228.244.196 port=5432 user=busmapdb dbname=phenikaamaas_attendancedb sslmode=disable password=frjsdfhaflpzlcdzgnfvuxkdwiiiiklpojzowxajmendeeoqtbzyrgi"
-	dbURI := "host=localhost port=5432 user=postgres dbname=smartschool_local sslmode=disable password=12345678"
+	dbURI := "host=13.228.244.196 port=5432 user=busmapdb dbname=phenikaamaas_attendancedb sslmode=disable password=frjsdfhaflpzlcdzgnfvuxkdwiiiiklpojzowxajmendeeoqtbzyrgi"
 
 	var err error
 	DbInstance, err = gorm.Open(postgres.Open(dbURI), &gorm.Config{})
@@ -88,7 +87,6 @@ func MigrateDatabase() {
 
 	fmt.Println("Migrate DB normal")
 }
-
 
 func addScheduleDummy() {
 	startSem, _ := helper.StringToTimeUTC("2022-04-11T00:00:00+07:00")
