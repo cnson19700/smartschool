@@ -21,10 +21,11 @@ type Attendance struct {
 }
 
 type AttendanceFilter struct {
-	StudentName   string `json:"student_name"`
-	StudentID     string `json:"student_id"`
-	CheckinStatus string `json:"checkin_status"`
-	CheckinDay    string `json:"checkin_day"`
+	StudentName     string `json:"student_name"`
+	StudentID       string `json:"student_id"`
+	CheckinStatus   string `json:"checkin_status"`
+	CheckinDayStart string `json:"checkin_day_start"`
+	CheckinDayTo    string `json:"checkin_day_to"`
 }
 
 type AttendanceResult struct {

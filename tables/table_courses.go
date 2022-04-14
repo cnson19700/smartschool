@@ -32,17 +32,6 @@ func GetCourses(ctx *context.Context) table.Table {
 	info.AddField("Teacher", "teacher_name", db.Varchar)
 	info.AddField("Teacher Role", "teacher_role", db.Varchar)
 	info.AddField("Semester", "semester_name", db.Varchar)
-	info.AddField("Attendances", "attendance", db.Varchar).FieldDisplay(func(value types.FieldModel) interface{} {
-		teacher_id, _ := value.Row["teacher_id"].(string)
-		course_id, _ := value.Row["id"].(int)
-		return template.Default().
-			Link().
-			SetURL("/admin/info/attendances?teacher_id=" + teacher_id + "&course_id=" + fmt.Sprint(course_id)).
-			SetContent(template.HTML("Attendance Details")).
-			OpenInNewTab().
-			SetTabTitle(template.HTML("Attendance Detail")).
-			GetContent()
-	})
 
 	info.SetGetDataFn(func(param parameter.Parameters) ([]map[string]interface{}, int) {
 		return GetAllCoursesData()
@@ -159,6 +148,7 @@ func GetCourses(ctx *context.Context) table.Table {
 		}
 		return nil
 	})
+
 	detail := tableCourses.GetDetail()
 	detail.AddField("Course", "course_id", db.Varchar)
 	detail.AddField("Name", "name", db.Varchar)
@@ -178,9 +168,40 @@ func GetCourses(ctx *context.Context) table.Table {
 			GetContent()
 	})
 
+	detail.SetGetDataFn(func(param parameter.Parameters) ([]map[string]interface{}, int) {
+		return GetCourseData(param.GetFieldValue(parameter.PrimaryKey))
+	})
+
 	return tableCourses
 }
 
+func GetCourseData(param string) ([]map[string]interface{}, int) {
+	query := `
+			select c.id , concat(u.first_name, ' ', u.last_name) as teacher_name, c.teacher_id, c.number_of_student, c.name as course_name, c.course_id as course_id, s.title as semester_name, s.id as semester_id, c.teacher_role as teacher_role
+				from courses c, (select us.id, us.first_name as first_name, us.last_name as last_name
+					from users us, courses c, teachers t
+					where c.id = ` + param + ` and c.teacher_id = t.teacher_id and us.id = t.id) u, semesters s
+				where c.id = ` + param + ` limit 1;`
+	var currentResult courseResult
+	database.DbInstance.Raw(query).Scan(&currentResult)
+	tableResult := make([]map[string]interface{}, 1)
+	tempResult := make(map[string]interface{})
+
+	tempResult["id"] = currentResult.ID
+	tempResult["teacher_name"] = currentResult.TeacherName
+	tempResult["teacher_id"] = currentResult.TeacherID
+	tempResult["course_id"] = currentResult.CourseID
+	tempResult["name"] = currentResult.CourseName
+	tempResult["semester_name"] = currentResult.SemesterName
+	tempResult["number_of_student"] = currentResult.NumberOfStudent
+	tempResult["semester_id"] = currentResult.SemesterID
+	tempResult["teacher_role"] = currentResult.TeacherRole
+
+	tableResult[0] = tempResult
+
+	return tableResult, 1
+
+}
 func GetAllCoursesData() ([]map[string]interface{}, int) {
 	query := `
 			select c.id as id, concat(u.first_name, ' ', u.last_name) as teacher_name, c.teacher_id as teacher_id, c.number_of_student, c.name as course_name, c.course_id as course_id, s.title as semester_name, s.id as semester_id, c.teacher_role as teacher_role
@@ -188,7 +209,8 @@ func GetAllCoursesData() ([]map[string]interface{}, int) {
 					from users
 					left join teachers
 					on users.id = teachers.id) u, semesters s
-				where c.teacher_id = u.teacher_id and c.semester_id = s.id;
+				where c.teacher_id = u.teacher_id and c.semester_id = s.id 
+				ORDER BY c.id desc;
 			`
 
 	var courseResults []courseResult
