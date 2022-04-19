@@ -58,11 +58,11 @@ func QueryAttendanceByCourseID(courseId string) ([]*entity.Attendance, error) {
 	return attendance, nil
 }
 
-func QueryAttendanceByStudentSchedule(student_id string, schedule_id uint) (*entity.Attendance, error) {
+func QueryAttendanceByStudentSchedule(student_id string, schedule_id uint) (bool, error) {
 	var checkAttend entity.Attendance
 	result := database.DbInstance.Select("id").Where("user_id = ? AND schedule_id = ?", student_id, schedule_id).Find(&checkAttend)
 
-	return &checkAttend, result.Error
+	return result.RowsAffected == 0, result.Error
 }
 
 func CreateAttendance(attendance entity.Attendance) error {
