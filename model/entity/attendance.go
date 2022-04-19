@@ -16,16 +16,16 @@ type Attendance struct {
 	//DeletedAt     gorm.DeletedAt `gorm:"column:deleted_at"`
 	gorm.Model
 
-	User *User `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	//Course   *Course   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	User     *User     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	Schedule *Schedule `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 type AttendanceFilter struct {
-	StudentName   string `json:"student_name"`
-	StudentID     string `json:"student_id"`
-	CheckinStatus string `json:"checkin_status"`
-	CheckinDay    string `json:"checkin_day"`
+	StudentName     string `json:"student_name"`
+	StudentID       string `json:"student_id"`
+	CheckinStatus   string `json:"checkin_status"`
+	CheckinDayStart string `json:"checkin_day_start"`
+	CheckinDayTo    string `json:"checkin_day_to"`
 }
 
 type AttendanceResult struct {

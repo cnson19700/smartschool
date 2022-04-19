@@ -74,3 +74,13 @@ func QueryStudentsByName(student_name string) ([]uint, error) {
 	}
 	return student_ids, nil
 }
+
+func QueryAllStudentIDs() (*[]string, error) {
+	studentIDs := []string{}
+
+	err := database.DbInstance.Table("students").Select("students.student_id").Scan(&studentIDs).Error
+	if err != nil {
+		return nil, err
+	}
+	return &studentIDs, nil
+}
