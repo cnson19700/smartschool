@@ -66,8 +66,6 @@ github.com/GoAdminGroup/html v0.0.1 h1:SdWNWl4OKPsvDk2GDp5ZKD6ceWoN8n4Pj6cUYxavU
 github.com/GoAdminGroup/html v0.0.1/go.mod h1:A1laTJaOx8sQ64p2dE8IqtstDeCNBHEazrEp7hR5VvM=
 github.com/GoAdminGroup/themes v0.0.43 h1:XQ4940TEiHS/s5qHqhrKGrsZtQdAt+IPrPNnbOBjK9I=
 github.com/GoAdminGroup/themes v0.0.43/go.mod h1:ABCOeBeibfg9DxAsGVa1NzYK9/nIbHT/BuFrCRIKo8A=
-github.com/HongJaison/go-admin v1.2.12 h1:MoGHAdi182YHYl0zJn0q1odBJ6JphlacQVcthUqXdKY=
-github.com/HongJaison/go-admin v1.2.12/go.mod h1:CTmmxt9ZqEl/7tNityCknCz/L00FOtFVOa1din6HRc0=
 github.com/Masterminds/semver/v3 v3.1.1 h1:hLg3sBzpNErnxhQtUy/mmLR2I9foDujNK030IGemrRc=
 github.com/Masterminds/semver/v3 v3.1.1/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0cBrbBpGY/8hQs=
 github.com/NebulousLabs/fastrand v0.0.0-20181203155948-6fb6489aac4e h1:n+DcnTNkQnHlwpsrHoQtkrJIO7CBx029fw6oR4vIob4=
