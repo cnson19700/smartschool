@@ -1,0 +1,37 @@
+name: Deploy
+on: [workflow_dispatch]
+jobs:
+  Deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install OpenVPN
+        run: |
+          sudo apt-get update
+          sudo apt-get --assume-yes install openvpn
+
+      - name: Setup VPN config
+        run: echo "${{ secrets.VPN_FILE }}" > BusMap_DEV.ovpn
+
+      - name: Connect VPN
+        run: sudo openvpn --config BusMap_DEV.ovpn --daemon
+
+      - name: Wait for a VPN connection
+        timeout-minutes: 1
+        run: until nc -z -w5 13.228.244.196 22; do sleep 2; done
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          cat >> ~/.ssh/config << END
+          StrictHostKeyChecking no
+          END
+
+      - name: Script local
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          ./build-api.sh
+
+      - name: Script remote
+        run: ssh ubuntu@13.228.244.196 "./build-api.sh"
