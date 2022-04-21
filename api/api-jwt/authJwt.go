@@ -100,6 +100,7 @@ func (mw *GinJWTMiddleware) authImpl(c *gin.Context) {
 
 		id := claims["id"]
 		c.Set("userId", id)
+		c.Set("facultyId", claims["faculty_id"])
 	}
 
 	c.Next()

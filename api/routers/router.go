@@ -18,7 +18,7 @@ func Initialize() (*gin.Engine, error) {
 	mobileGroup := r.Group("/mobile")
 	mobileGroup.Use(authMw.GetAuthFunc())
 
-	mobileGroup.GET("/late/:id", api_device.GetStudentCheckInLateHistory)
+	//mobileGroup.GET("/late/:id", api_device.GetStudentCheckInLateHistory)
 	mobileGroup.PUT("/change-password", api_mobile.UpdatePassword)
 
 	mobileUser := r.Group("/user")
@@ -29,7 +29,9 @@ func Initialize() (*gin.Engine, error) {
 	mobileUser.GET("/get-qr", api_mobile.GetQREncodeString)
 	mobileUser.POST("/update-notification-token", api_mobile.UpdateNotificationToken)
 	mobileUser.GET("/test-notification", api_mobile.TestNotification)
-
+	mobileUser.GET("/courses-in-semester", api_mobile.GetCourseInSemesterOfOneUser)
+	mobileUser.GET("/semesters", api_mobile.GetSemesterInFaculty)
+	
 	r.POST("/checkin", api_device.EventCheckin)
 	r.POST("/login", api_mobile.Login)
 	//r.GET("/courses/:id", api_device.GetCourseByID)

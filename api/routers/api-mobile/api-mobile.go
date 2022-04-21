@@ -2,9 +2,10 @@ package api_mobile
 
 import (
 	"fmt"
-	"github.com/smartschool/service/fireapp"
 	"net/http"
 	"time"
+
+	"github.com/smartschool/service/fireapp"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -91,6 +92,7 @@ func Login(c *gin.Context) {
 	expire := time.Now().Add(time.Hour * 24 * 30 * 12)
 	claims["exp"] = expire.Unix()
 	claims["orig_iat"] = time.Now().Unix()
+	claims["faculty_id"] = user.FacultyID
 
 	tokenString, _ := authMw.GetSignedString(token)
 	resp := map[string]interface{}{"token": tokenString}
@@ -155,11 +157,11 @@ func GetCourseAttendanceOfOneUser(c *gin.Context) {
 	}
 	userId, canConvert := id.(float64)
 	if !canConvert {
-		c.JSON(http.StatusNotFound, gin.H{"message": "Authenticate fail"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Authenticate fail"})
 		return
 	}
 
-	course, err := service.GetCourseInfoByID(request.CourseID)
+	course, err := service.GetCourseBasicInfoByID(request.CourseID)
 	if err != nil || course == nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"messgae": "Cannot verified course",
@@ -174,7 +176,7 @@ func GetCourseAttendanceOfOneUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"course":          course.CourseID,
+		"course":          course.CourseID + " - " + course.Name,
 		"attendance_list": res,
 	})
 }
@@ -203,7 +205,18 @@ func GetInDayAttendance(c *gin.Context) {
 		return
 	}
 
-	res, err := service.GetCheckInHistoryInDay(uint(userId), request.TimezoneOffset)
+	faculty_id, isGet := c.Get("facultyId")
+	if !isGet {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
+		return
+	}
+	userFacultyId, canConvert := faculty_id.(float64)
+	if !canConvert {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Authenticate fail"})
+		return
+	}
+
+	res, err := service.GetCheckInHistoryInDay(uint(userId), uint(userFacultyId), request.TimezoneOffset)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot get attendance history for user"})
 		return
@@ -279,4 +292,66 @@ func TestNotification(c *gin.Context) {
 
 	err := fireapp.SendNotification(uint(userId), data)
 	_ = err
+}
+
+func GetCourseInSemesterOfOneUser(c *gin.Context) {
+	request := struct {
+		SemesterID uint `form:"semester_id" binding:"required"`
+	}{}
+
+	err := c.ShouldBind(&request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"messgae": "Cannot capture request",
+		})
+		return
+	}
+
+	id, isGet := c.Get("userId")
+	if !isGet {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
+		return
+	}
+	userId, canConvert := id.(float64)
+	if !canConvert {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Authenticate fail"})
+		return
+	}
+
+	res, err := service.GetListCourseByUserSemester(uint(userId), request.SemesterID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"messgae": "Cannot get list course in selected semester for user",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"course_list": res,
+	})
+}
+
+func GetSemesterInFaculty(c *gin.Context) {
+	faculty_id, isGet := c.Get("facultyId")
+	if !isGet {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
+		return
+	}
+	userFacultyId, canConvert := faculty_id.(float64)
+	if !canConvert {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Authenticate fail"})
+		return
+	}
+
+	res, err := service.GetSemesterByFacultyID(uint(userFacultyId))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"messgae": "Cannot get list semester for user",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"semester_list": res,
+	})
 }

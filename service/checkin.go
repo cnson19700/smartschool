@@ -16,28 +16,29 @@ import (
 func CheckIn(deviceSignal dto.DeviceSignal) error {
 
 	var status string = ""
+	var checkinValue string = deviceSignal.CardId
 	var err error = nil
 	entryTime := helper.ConvertDeviceTimestampToExact(deviceSignal.Timestamp)
 
-	// if !helper.CheckValidDifferentTimeEntry(entryTime, 1*time.Minute) {
-	// 	status = "[Abnormal]: Invalid Checkin time"
-	// 	repository.CreateLogCheckIn(entity.DeviceSignalLog{CardId: deviceSignal.CardId, CompanyTokenKey: deviceSignal.CompanyTokenKey, Status: status, Timestamp: entryTime})
-	// 	return
-	// }
+	if !helper.CheckValidDifferentTimeEntry(entryTime, constant.AcceptDeviceSignalDelay) {
+		status = "[Abnormal]: Invalid Checkin time - Delay over 5 second"
+		repository.CreateLogCheckIn(entity.DeviceSignalLog{CardId: checkinValue, CompanyTokenKey: deviceSignal.CompanyTokenKey, Status: status, Timestamp: entryTime})
+		return nil
+	}
 
-	checkinType, checkinValue, err := helper.ClassifyCheckinCode(deviceSignal.CardId)
+	checkinType, err := helper.ClassifyCheckinCode(deviceSignal.CardId)
 
 	switch checkinType {
 	case "Card":
 		status, err = recordCheckinCard(checkinValue, deviceSignal.CompanyTokenKey, entryTime)
 
 	case "QR":
-		userInfo, isFormatCorrect, errParse := helper.ParseQR(checkinValue)
+		userCode, isFormatCorrect, errParse := helper.ParseQR(checkinValue, entryTime)
+		checkinValue = userCode
 		if !isFormatCorrect || errParse != nil {
 			status = "[Abnormal]: Invalid format QR or Expired QR"
 		} else {
-			checkinValue = userInfo
-			status, err = recordCheckinCard(userInfo, deviceSignal.CompanyTokenKey, entryTime)
+			status, err = recordCheckinCard(checkinValue, deviceSignal.CompanyTokenKey, entryTime)
 		}
 
 		//status = recordCheckinQR(checkinValue, deviceSignal.CompanyTokenKey, entryTime)
@@ -97,7 +98,7 @@ func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time)
 		}
 
 		if !notFound {
-			_, err := repository.QueryAttendanceByStudentSchedule(fmt.Sprint(student.ID), schedule.ID)
+			notFound, err = repository.ExistQueryAttendanceByStudentSchedule(student.ID, schedule.ID)
 			if err != nil {
 				return "[Abnormal]: Error when query Attendance", err
 			}
@@ -109,7 +110,7 @@ func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time)
 				}
 
 				//database.DbInstance.Create(&entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
-				err = repository.CreateAttendance(entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
+				err = repository.CreateAttendance(entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, TeacherID: 0, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
 				if err != nil {
 					return "[Abnormal]: Error when create Attendance", err
 				}
@@ -170,7 +171,7 @@ func recordCheckinQR(checkinValues string, deviceID string, checkinTime time.Tim
 	}
 
 	if !notFound {
-		_, err = repository.QueryAttendanceByStudentSchedule(fmt.Sprint(student.ID), schedule.ID)
+		_, err = repository.ExistQueryAttendanceByStudentSchedule(student.ID, schedule.ID)
 		if err != nil {
 			return "[Abnormal]: Error when query Attendance", err
 		}
@@ -199,7 +200,7 @@ func recordCheckinQR(checkinValues string, deviceID string, checkinTime time.Tim
 func GenerateQREncodeString(userId uint) (string, error) {
 	currentDateTime, _ := time.Now().UTC().MarshalText()
 
-	hashedSecretKeyByte, bcryptError := bcrypt.GenerateFromPassword([]byte(constant.QRSecretKey), bcrypt.DefaultCost)
+	hashedSecretKeyByte, bcryptError := bcrypt.GenerateFromPassword([]byte(constant.QRSecretKey + string(currentDateTime)), bcrypt.DefaultCost)
 	if bcryptError != nil {
 		return "", bcryptError
 	}

@@ -99,7 +99,7 @@ func GetCourses(ctx *context.Context) table.Table {
 		}
 
 		id, _ := strconv.Atoi(values.Get("id"))
-		course, _, err := repository.QueryCourseInfoByID(uint(id))
+		course, _, err := repository.QueryCourseBasicInfoByID(uint(id))
 		if err != nil {
 			return err
 		}

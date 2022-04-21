@@ -88,6 +88,54 @@ func MigrateDatabase() {
 	fmt.Println("Migrate DB normal")
 }
 
+func addScheduleDummy() {
+	startSem, _ := helper.StringToTimeUTC("2022-04-11T00:00:00+07:00")
+	endSem, _ := helper.StringToTimeUTC("2022-09-11T00:00:00+07:00")
+	DummySemester := []entity.Semester{{ID: 2, Title: "HK2", Year: "2022", FacultyID: 1, StartTime: startSem, EndTime: endSem}}
+
+	DummyCourses := []entity.Course{
+		{ID: 4, SemesterID: 2, NumberOfStudent: 45, CourseID: "CS002", Name: "Intro to Computer Science II"},
+		{ID: 5, SemesterID: 2, NumberOfStudent: 44, CourseID: "MTH002", Name: "Calculus II"},
+		{ID: 6, SemesterID: 2, NumberOfStudent: 45, CourseID: "PH002", Name: "Physics II"},
+	}
+
+	startCS, _ := helper.StringToTimeUTC("2022-04-12T07:30:00+07:00")
+	endCS, _ := helper.StringToTimeUTC("2022-04-12T09:10:00+07:00")
+	startPH, _ := helper.StringToTimeUTC("2022-04-12T09:30:00+07:00")
+	endPH, _ := helper.StringToTimeUTC("2022-04-12T11:10:00+07:00")
+	startCSLab, _ := helper.StringToTimeUTC("2022-04-12T13:30:00+07:00")
+	endCSLab, _ := helper.StringToTimeUTC("2022-04-12T15:30:00+07:00")
+	startMTH, _ := helper.StringToTimeUTC("2022-04-12T15:30:00+07:00")
+	endMTH, _ := helper.StringToTimeUTC("2022-04-12T17:10:00+07:00")
+	DummySchedule := []entity.Schedule{
+		{ID: 5, RoomID: 1, CourseID: 4, StartTime: startCS, EndTime: endCS},
+		{ID: 6, RoomID: 2, CourseID: 5, StartTime: startPH, EndTime: endPH},
+		{ID: 7, RoomID: 3, CourseID: 6, StartTime: startMTH, EndTime: endMTH},
+		{ID: 8, RoomID: 4, CourseID: 5, StartTime: startCSLab, EndTime: endCSLab},
+	}
+
+	DummyStudentCourseEnrollment := []entity.StudentCourseEnrollment{
+		{ID: 13, CourseID: 4, StudentID: 3},
+		{ID: 14, CourseID: 4, StudentID: 4},
+		{ID: 15, CourseID: 4, StudentID: 5},
+		{ID: 16, CourseID: 4, StudentID: 6},
+		{ID: 17, CourseID: 5, StudentID: 1},
+		{ID: 18, CourseID: 5, StudentID: 2},
+		{ID: 19, CourseID: 5, StudentID: 5},
+		{ID: 20, CourseID: 5, StudentID: 6},
+		{ID: 21, CourseID: 6, StudentID: 1},
+		{ID: 22, CourseID: 6, StudentID: 2},
+		{ID: 23, CourseID: 6, StudentID: 3},
+		{ID: 24, CourseID: 6, StudentID: 4},
+	}
+
+	DbInstance.Create(&DummySemester)
+	DbInstance.Create(&DummyCourses)
+	DbInstance.Create(&DummyStudentCourseEnrollment)
+	DbInstance.Create(&DummySchedule)
+
+}
+
 func createDummy2() {
 
 	DummyFaculties := []entity.Faculty{

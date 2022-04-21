@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/smartschool/database"
+	"github.com/smartschool/model/dto"
 	"github.com/smartschool/model/entity"
 )
 
@@ -22,12 +23,34 @@ func QueryAllCourses() (*[]entity.Course, error) {
 	return &course, nil
 }
 
-func QueryCourseInfoByID(id uint) (*entity.Course, bool, error) {
-	var course entity.Course
-	result := database.DbInstance.Where("id = ?", id).Find(&course)
+func QueryCourseBasicInfoByID(id uint) (*dto.CourseReportPartElement, bool, error) {
+	var course dto.CourseReportPartElement
+	result := database.DbInstance.Table("courses").Where("id = ?", id).Find(&course)
 
 	return &course, result.RowsAffected == 0, result.Error
 }
+
+func QueryListCourseBySemester(sem_id uint) ([]dto.CourseReportPartElement, bool, error) {
+	var queryList []dto.CourseReportPartElement
+	result := database.DbInstance.Table("courses").Where("semester_id = ?", sem_id).Find(&queryList)
+
+	return queryList, result.RowsAffected == 0, result.Error
+}
+
+func QueryListCourseIDBySemester(sem_id uint) ([]uint, bool, error) {
+	var queryList []uint
+	result := database.DbInstance.Table("courses").Select("id").Where("semester_id = ?", sem_id).Find(&queryList)
+
+	return queryList, result.RowsAffected == 0, result.Error
+}
+
+func QueryListCourseBasicInfoByID(list_id []uint) ([]dto.CourseReportPartElement, bool, error) {
+	var queryList []dto.CourseReportPartElement
+	result := database.DbInstance.Table("courses").Where("id IN ?", list_id).Find(&queryList)
+
+	return queryList, result.RowsAffected == 0, result.Error
+}
+
 func QueryCourseByTeacherID(teacher_id string) ([]*entity.CourseByTeacher, error) {
 	courses := []*entity.Course{}
 	courses_by_teacher := []*entity.CourseByTeacher{}

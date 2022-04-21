@@ -1,8 +1,6 @@
 package api_device
 
 import (
-	//"net/http"
-
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -16,34 +14,41 @@ func EventCheckin(c *gin.Context) {
 	var requestData dto.DeviceSignal
 	err := c.ShouldBindJSON(&requestData)
 	if err != nil {
-		panic(err)
-	}
-
-	service.CheckIn(requestData)
-}
-
-func GetStudentCheckInLateHistory(c *gin.Context) {
-	id := c.Param("id")
-
-	studentFound, checkinHistoryList := service.GetCheckInHistoryBySID(id, "Late")
-
-	if studentFound == nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"message": "Student not found!!!",
-		})
+		c.JSON(http.StatusBadRequest, gin.H{})
 		return
 	}
 
-	resp := map[string]interface{}{
-		"id":         studentFound.ID,
-		"student_id": studentFound.StudentID,
-		"history":    checkinHistoryList,
-		//"name":       studentFound.Name,
+	err = service.CheckIn(requestData)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{})
+		return
 	}
 
-	c.JSON(http.StatusOK, resp)
-
+	c.JSON(http.StatusOK, gin.H{})
 }
+
+// func GetStudentCheckInLateHistory(c *gin.Context) {
+// 	id := c.Param("id")
+
+// 	studentFound, checkinHistoryList := service.GetCheckInHistoryBySID(id, "Late")
+
+// 	if studentFound == nil {
+// 		c.JSON(http.StatusNotFound, gin.H{
+// 			"message": "Student not found!!!",
+// 		})
+// 		return
+// 	}
+
+// 	resp := map[string]interface{}{
+// 		"id":         studentFound.ID,
+// 		"student_id": studentFound.StudentID,
+// 		"history":    checkinHistoryList,
+// 		//"name":       studentFound.Name,
+// 	}
+
+// 	c.JSON(http.StatusOK, resp)
+
+// }
 
 // func GetCourseByID(c *gin.Context) {
 // 	id := c.Param("id")

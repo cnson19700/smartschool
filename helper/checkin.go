@@ -10,15 +10,15 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func ClassifyCheckinCode(code string) (CheckinType string, Value string, err error) {
+func ClassifyCheckinCode(code string) (CheckinType string, err error) {
 	reQR, err := regexp.Compile(`^[a-zA-Z0-9]+:\S+\=$`) //format: <Prefix>:<encodeString>=
 	if err != nil {
-		return "ERROR", "", err
+		return "ERROR", err
 	}
 
 	reCard, err := regexp.Compile("^[a-zA-Z0-9]+$")
 	if err != nil {
-		return "ERROR", "", err
+		return "ERROR", err
 	}
 
 	if reQR.Match([]byte(code)) {
@@ -26,15 +26,15 @@ func ClassifyCheckinCode(code string) (CheckinType string, Value string, err err
 		// // checkCode = base64.StdEncoding.EncodeToString([]byte(checkCode)) //this is temp
 		// rawDecodedText, err := base64.StdEncoding.DecodeString(checkCode)
 
-		return "QR", code, nil
+		return "QR", nil
 
 	}
 
 	if reCard.Match([]byte(code)) {
-		return "Card", code, nil
+		return "Card", nil
 	}
 
-	return "ERROR", "", nil
+	return "ERROR", nil
 }
 
 func ConvertDeviceTimestampToExact(timestamp int64) time.Time {
@@ -56,40 +56,43 @@ func CheckValidDifferentTimeEntry(timeEntry time.Time, acceptDuration time.Durat
 	return false
 }
 
-func ParseQR(code string) (string, bool, error) {
+func ParseQR(code string, timeEntry time.Time) (string, bool, error) {
 	code = code[:(len(code) - 1)]
 	checkCodeValues := strings.Split(code, ":")
 	if len(checkCodeValues) != 2 {
-		return "", false, nil
+		return code, false, nil
 	}
 
 	if checkCodeValues[0] != constant.QRPrefix {
-		return "", false, nil
+		return code, false, nil
 	}
 
 	rawDecodedText, err := base64.StdEncoding.DecodeString(checkCodeValues[1])
 	if err != nil {
-		return "", false, err
+		return code, false, err
 	}
 	contentValues := strings.Split(string(rawDecodedText), "|")
 	if len(contentValues) != 3 {
-		return "", false, nil
+		return code, false, nil
 	}
 
 	userId := contentValues[0]
 	requestDateTime, err := StringToTimeUTC(contentValues[1])
 	secret := contentValues[2]
 	if err != nil {
-		return "", false, err
+		return userId, false, err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(secret), []byte(constant.QRSecretKey))
+	err = bcrypt.CompareHashAndPassword([]byte(secret), []byte(constant.QRSecretKey+contentValues[1]))
 	if err != nil {
-		return "", false, nil
+		return userId, false, nil
 	}
 
-	if diff := time.Since(requestDateTime); diff > constant.AcceptRefreshQRSecond || diff < 0 {
-		return "", false, nil
+	// if diff := time.Since(requestDateTime); diff > constant.AcceptRefreshQRSecond || diff < 0 {
+	// 	return "", false, nil
+	// }
+	if diff := timeEntry.Sub(requestDateTime); diff > constant.AcceptRefreshQRSecond || diff < 0 {
+		return userId, false, nil
 	}
 
 	return userId, true, nil

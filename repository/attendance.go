@@ -57,11 +57,11 @@ func QueryAttendanceByCourseID(courseId string) ([]*entity.Attendance, error) {
 	return attendance, nil
 }
 
-func QueryAttendanceByStudentSchedule(student_id string, schedule_id uint) (*entity.Attendance, error) {
-	var checkAttend entity.Attendance
-	result := database.DbInstance.Select("id").Where("user_id = ? AND schedule_id = ?", student_id, schedule_id).Find(&checkAttend)
+func ExistQueryAttendanceByStudentSchedule(student_id uint, schedule_id uint) (bool, error) {
+	var checkAttendID uint
+	result := database.DbInstance.Table("attendances").Select("id").Where("user_id = ? AND schedule_id = ?", student_id, schedule_id).Find(&checkAttendID)
 
-	return &checkAttend, result.Error
+	return result.RowsAffected == 0, result.Error
 }
 
 func CreateAttendance(attendance entity.Attendance) error {
@@ -86,6 +86,13 @@ func QueryListAttendanceInDayByUser(user_id uint, start time.Time, end time.Time
 	return queryList, result.RowsAffected == 0, result.Error
 }
 
+func CountAttendanceOfSchedule(user_id uint, schedule_id_list []uint) (int64, error) {
+	var c int64
+	result := database.DbInstance.Table("attendances").Select("id").Where("user_id = ? AND schedule_id IN ?", user_id, schedule_id_list).Count(&c)
+
+	return c, result.Error
+}
+  
 func SearchAttendance(params url.Values) ([]*entity.Attendance, error) {
 	//params includes student_id, student_name, order[], checkin_status, checkin_day
 	filter := entity.AttendanceFilter{
