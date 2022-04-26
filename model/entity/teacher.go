@@ -7,5 +7,5 @@ type Teacher struct {
 	TeacherID string `gorm:"index; column:teacher_id" json:"teacher_id"` //identified ID
 	gorm.Model
 
-	Courses []*Course `gorm:"many2many:teacher_courses; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	TeacherCourses []*TeacherCourse `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }

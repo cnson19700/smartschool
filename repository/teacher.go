@@ -14,3 +14,12 @@ func QueryTeacherByID(id string) (*entity.Teacher, error) {
 
 	return teacher, nil
 }
+
+func QueryTeacherByName(name string) (*entity.User, bool, error) {
+	var user entity.User
+
+	result := database.DbInstance.Where("first_name = ?", name).
+		Limit(1).Find(&user)
+
+	return &user, result.RowsAffected == 0, result.Error
+}

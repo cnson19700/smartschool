@@ -79,11 +79,10 @@ func MigrateDatabase() {
 		panic(errJoin)
 	}
 
-	errJoin = DbInstance.SetupJoinTable(&entity.Teacher{}, "Courses", &entity.TeacherCourse{})
-
-	if errJoin != nil {
-		panic(errJoin)
-	}
+	//errJoin = DbInstance.SetupJoinTable(&entity.Teacher{}, "Courses", &entity.TeacherCourse{})
+	//if errJoin != nil {
+	//	panic(errJoin)
+	//}
 
 	fmt.Println("Migrate DB normal")
 }
