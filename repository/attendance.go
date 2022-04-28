@@ -57,7 +57,7 @@ func QueryAttendanceByCourseID(courseId string) ([]*entity.Attendance, error) {
 	return attendance, nil
 }
 
-func ExistQueryAttendanceByStudentSchedule(student_id uint, schedule_id uint) (bool, error) {
+func ExistQueryAttendanceByUserSchedule(student_id uint, schedule_id uint) (bool, error) {
 	var checkAttendID uint
 	result := database.DbInstance.Table("attendances").Select("id").Where("user_id = ? AND schedule_id = ?", student_id, schedule_id).Find(&checkAttendID)
 

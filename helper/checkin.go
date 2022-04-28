@@ -3,6 +3,7 @@ package helper
 import (
 	"encoding/base64"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -56,44 +57,50 @@ func CheckValidDifferentTimeEntry(timeEntry time.Time, acceptDuration time.Durat
 	return false
 }
 
-func ParseQR(code string, timeEntry time.Time) (string, bool, error) {
+func ParseQR(code string, timeEntry time.Time) (uint, bool, error) {
 	code = code[:(len(code) - 1)]
 	checkCodeValues := strings.Split(code, ":")
 	if len(checkCodeValues) != 2 {
-		return code, false, nil
+		return 0, false, nil
 	}
 
 	if checkCodeValues[0] != constant.QRPrefix {
-		return code, false, nil
+		return 0, false, nil
 	}
 
 	rawDecodedText, err := base64.StdEncoding.DecodeString(checkCodeValues[1])
 	if err != nil {
-		return code, false, err
+		return 0, false, err
 	}
 	contentValues := strings.Split(string(rawDecodedText), "|")
 	if len(contentValues) != 3 {
-		return code, false, nil
+		return 0, false, nil
 	}
 
-	userId := contentValues[0]
+	userId_str := contentValues[0]
+
+	userId, err := strconv.ParseUint(userId_str, 10, 64)
+	if err != nil {
+		return 0, false, err
+	}
+
 	requestDateTime, err := StringToTimeUTC(contentValues[1])
 	secret := contentValues[2]
 	if err != nil {
-		return userId, false, err
+		return uint(userId), false, err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(secret), []byte(constant.QRSecretKey+contentValues[1]))
 	if err != nil {
-		return userId, false, nil
+		return uint(userId), false, nil
 	}
 
 	// if diff := time.Since(requestDateTime); diff > constant.AcceptRefreshQRSecond || diff < 0 {
 	// 	return "", false, nil
 	// }
 	if diff := timeEntry.Sub(requestDateTime); diff > constant.AcceptRefreshQRSecond || diff < 0 {
-		return userId, false, nil
+		return uint(userId), false, nil
 	}
 
-	return userId, true, nil
+	return uint(userId), true, nil
 }

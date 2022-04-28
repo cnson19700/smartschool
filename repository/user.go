@@ -40,3 +40,17 @@ func CheckEmailExist(email string) bool {
 	err := database.DbInstance.Where("email= ?", email).Find(&user).Error
 	return err == nil
 }
+
+func QueryUserRoleIDByUserID(id uint) (uint, error) {
+	var role_id uint
+	result := database.DbInstance.Table("users").Select("role_id").Where("id = ?", id).Find(&role_id)
+
+	return role_id, result.Error
+}
+
+func QueryUserRoleDetailByRoleID(id uint) (string, error) {
+	var role_title string
+	result := database.DbInstance.Table("roles").Select("title").Where("id = ?", id).Find(&role_title)
+
+	return role_title, result.Error
+}
