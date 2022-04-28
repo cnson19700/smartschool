@@ -292,6 +292,7 @@ func TestNotification(c *gin.Context) {
 
 	err := fireapp.SendNotification(uint(userId), data)
 	_ = err
+	// c.JSON(http.StatusOK, data)
 }
 
 func GetCourseInSemesterOfOneUser(c *gin.Context) {

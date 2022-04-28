@@ -17,7 +17,7 @@ type Course struct {
 	Semester       *Semester        `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	Students       []*Student       `gorm:"many2many:student_course_enrollments; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	TeacherCourses []*TeacherCourse `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	//Rooms          []*Room          `gorm:"many2many:schedules; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	// Rooms          []*Room          `gorm:"many2many:schedules; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 type CourseByTeacher struct {
