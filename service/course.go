@@ -20,8 +20,8 @@ func GetAttendanceInCourseOneUser(courseID uint, userID uint) ([]dto.AttendanceL
 		//scheduleMap[scheduleList[i].ID] = scheduleList[i]
 	}
 
-	attendList, notFound, err := repository.QueryListAttendanceByUserSchedule(userID, scheduleIDList)
-	if err != nil || notFound {
+	attendList, _, err := repository.QueryListAttendanceByUserSchedule(userID, scheduleIDList)
+	if err != nil {
 		return nil, err
 	}
 

@@ -31,7 +31,7 @@ func CheckIn(deviceSignal dto.DeviceSignal) error {
 	switch checkinType {
 	case "Card":
 
-		userId, notFound, errFind := findRequestUser(checkinValue)
+		userId, notFound, errFind := findRequestUserByCardID(checkinValue)
 		if errFind != nil || notFound {
 			status = "[Abnormal]: Invalid Card - User not found"
 		} else {
