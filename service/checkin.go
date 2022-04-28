@@ -10,6 +10,7 @@ import (
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/model/entity"
 	"github.com/smartschool/repository"
+	"github.com/smartschool/service/fireapp"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -94,12 +95,14 @@ func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time)
 
 		_, notFound, err = repository.QueryEnrollmentByStudentCourse(student.ID, schedule.CourseID)
 		if err != nil {
+			// MessageToNotify(student, schedule, checkinTime, "Error query Enrollment")
 			return "[Abnormal]: Error when query Student Course Enrollment", err
 		}
 
 		if !notFound {
 			notFound, err = repository.ExistQueryAttendanceByStudentSchedule(student.ID, schedule.ID)
 			if err != nil {
+				// MessageToNotify(student, schedule, checkinTime, "Error in query Attendance")
 				return "[Abnormal]: Error when query Attendance", err
 			}
 
@@ -114,9 +117,10 @@ func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time)
 				if err != nil {
 					return "[Abnormal]: Error when create Attendance", err
 				}
-
+				// MessageToNotify(student, schedule, checkinTime, checkinStatus)
 				return "[Normal]: Checkin Success", nil
 			} else if isScheduleForeseen {
+				// MessageToNotify(student, schedule, checkinTime, "Checkin Exist.")
 				return "[Normal]: Checkin exist", nil
 			}
 
@@ -200,7 +204,7 @@ func recordCheckinQR(checkinValues string, deviceID string, checkinTime time.Tim
 func GenerateQREncodeString(userId uint) (string, error) {
 	currentDateTime, _ := time.Now().UTC().MarshalText()
 
-	hashedSecretKeyByte, bcryptError := bcrypt.GenerateFromPassword([]byte(constant.QRSecretKey + string(currentDateTime)), bcrypt.DefaultCost)
+	hashedSecretKeyByte, bcryptError := bcrypt.GenerateFromPassword([]byte(constant.QRSecretKey+string(currentDateTime)), bcrypt.DefaultCost)
 	if bcryptError != nil {
 		return "", bcryptError
 	}
@@ -217,4 +221,18 @@ func GenerateQREncodeString(userId uint) (string, error) {
 	QRString := constant.QRPrefix + ":" + encodeString + "="
 
 	return QRString, nil
+}
+
+func MessageToNotify(student *entity.Student, schedule *entity.Schedule, checkinTime time.Time, checkinStatus string) {
+	course_name, _, _ := repository.QueryCourseBasicInfoByID(schedule.CourseID)
+	room, _, _ := repository.QueryRoomInfo(schedule.RoomID)
+	data := map[string]string{
+		"message":       "Hello world",
+		"course":        course_name.Name,
+		"room":          room.RoomID,
+		"shift":         schedule.StartTime.Format("2006-01-02 15:04:05") + "-" + schedule.EndTime.Format("2006-01-02 15:04:05"),
+		"checkintime":   checkinTime.Format("2006-01-02 15:04:05"),
+		"checkinstatus": checkinStatus,
+	}
+	fireapp.SendNotification(student.ID, data)
 }

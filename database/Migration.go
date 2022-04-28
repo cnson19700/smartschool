@@ -69,15 +69,15 @@ func MigrateDatabase() {
 		panic(errJoin)
 	}
 
-	errJoin = DbInstance.SetupJoinTable(&entity.Room{}, "Courses", &entity.Schedule{})
-	if errJoin != nil {
-		panic(errJoin)
-	}
+	// errJoin = DbInstance.SetupJoinTable(&entity.Room{}, "Courses", &entity.Schedule{})
+	// if errJoin != nil {
+	// 	panic(errJoin)
+	// }
 
-	errJoin = DbInstance.SetupJoinTable(&entity.Course{}, "Rooms", &entity.Schedule{})
-	if errJoin != nil {
-		panic(errJoin)
-	}
+	// errJoin = DbInstance.SetupJoinTable(&entity.Course{}, "Rooms", &entity.Schedule{})
+	// if errJoin != nil {
+	// 	panic(errJoin)
+	// }
 
 	errJoin = DbInstance.SetupJoinTable(&entity.Teacher{}, "Courses", &entity.TeacherCourse{})
 

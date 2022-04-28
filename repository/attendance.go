@@ -2,10 +2,10 @@ package repository
 
 import (
 	"fmt"
-	"net/url"
 	"strings"
 	"time"
 
+	"github.com/GoAdminGroup/go-admin/plugins/admin/modules/parameter"
 	"github.com/smartschool/database"
 	"github.com/smartschool/model/entity"
 )
@@ -92,20 +92,30 @@ func CountAttendanceOfSchedule(user_id uint, schedule_id_list []uint) (int64, er
 
 	return c, result.Error
 }
-  
-func SearchAttendance(params url.Values) ([]*entity.Attendance, error) {
+
+func SearchAttendance(params parameter.Parameters) ([]*entity.Attendance, error) {
 	//params includes student_id, student_name, order[], checkin_status, checkin_day
 	filter := entity.AttendanceFilter{
-		StudentName:     strings.ToLower(params.Get("student_name")),
-		StudentID:       params.Get("student_id"),
-		CheckinStatus:   strings.ToLower(params.Get("checkin_status")),
-		CheckinDayStart: params.Get("created_at_start__goadmin"),
-		CheckinDayTo:    params.Get("created_at_end__goadmin"),
+		StudentName:     strings.ToLower(params.GetFieldValue("student_name")),
+		StudentID:       params.GetFieldValue("student_id"),
+		CheckinStatus:   strings.ToLower(params.GetFieldValue("checkin_status")),
+		CheckinDayStart: params.GetFieldValue("created_at_start__goadmin"),
+		CheckinDayTo:    params.GetFieldValue("created_at_end__goadmin"),
 	}
 
-	orders := strings.Split(params.Get("orders"), ",")
+	order := params.SortType
 	query := database.DbInstance.Model(&entity.Attendance{})
 	attendances := []*entity.Attendance{}
+	scheduleIDs := []uint{}
+	teacher_id, course_id := params.GetFieldValue("teacher_id"), params.GetFieldValue("course_id")
+	if len(teacher_id) > 0 && len(course_id) > 0 {
+		database.DbInstance.Table("schedules").Select("id").Where("course_id = ?", course_id).Scan(&scheduleIDs)
+		if len(scheduleIDs) > 1 {
+			query.Where("teacher_id = ? AND schedule_id IN ? ", teacher_id, scheduleIDs)
+		} else {
+			query.Where("teacher_id = ? AND schedule_id = ? ", teacher_id, scheduleIDs)
+		}
+	}
 
 	if filter.StudentID != "" {
 		student_ids := []uint{}
@@ -132,9 +142,11 @@ func SearchAttendance(params url.Values) ([]*entity.Attendance, error) {
 		}
 	}
 
-	for _, order := range orders {
-		query.Order(order)
+	if params.GetFieldValue("batch") != "" {
+
 	}
+
+	query.Order("id " + order)
 	err := query.Find(&attendances).Error
 
 	if err != nil {

@@ -17,7 +17,6 @@ import (
 	"github.com/GoAdminGroup/go-admin/template/types/form"
 	"github.com/smartschool/database"
 	"github.com/smartschool/model/entity"
-	"github.com/smartschool/repository"
 	"gorm.io/gorm/clause"
 )
 
@@ -34,7 +33,7 @@ func GetCourses(ctx *context.Context) table.Table {
 	info.AddField("Semester", "semester_name", db.Varchar)
 
 	info.SetGetDataFn(func(param parameter.Parameters) ([]map[string]interface{}, int) {
-		return GetAllCoursesData()
+		return GetAllCoursesData(param)
 	})
 
 	info.AddButton("Import courses", icon.FileExcelO, action.PopUp("/course", "Import",
@@ -99,11 +98,8 @@ func GetCourses(ctx *context.Context) table.Table {
 		}
 
 		id, _ := strconv.Atoi(values.Get("id"))
-		course, _, err := repository.QueryCourseBasicInfoByID(uint(id))
-		if err != nil {
-			return err
-		}
-		updated := database.DbInstance.Model(&course).Clauses(clause.Returning{}).Updates(map[string]interface{}{
+
+		updated := database.DbInstance.Model(&entity.Course{}).Where("id = ? ", id).Clauses(clause.Returning{}).Updates(map[string]interface{}{
 			"name":              values.Get("name"),
 			"semester_id":       values.Get("semester_id"),
 			"course_id":         values.Get("course_id"),
@@ -202,7 +198,11 @@ func GetCourseData(param string) ([]map[string]interface{}, int) {
 	return tableResult, 1
 
 }
-func GetAllCoursesData() ([]map[string]interface{}, int) {
+func GetAllCoursesData(param parameter.Parameters) ([]map[string]interface{}, int) {
+	sort := "desc"
+	if len(param.SortType) > 0 {
+		sort = param.SortType
+	}
 	query := `
 			select c.id as id, concat(u.first_name, ' ', u.last_name) as teacher_name, c.teacher_id as teacher_id, c.number_of_student, c.name as course_name, c.course_id as course_id, s.title as semester_name, s.id as semester_id, c.teacher_role as teacher_role
 				from courses c, (select users.id, users.first_name as first_name, users.last_name as last_name, teachers.teacher_id as teacher_id
@@ -210,8 +210,7 @@ func GetAllCoursesData() ([]map[string]interface{}, int) {
 					left join teachers
 					on users.id = teachers.id) u, semesters s
 				where c.teacher_id = u.teacher_id and c.semester_id = s.id 
-				ORDER BY c.id desc;
-			`
+				ORDER BY c.id ` + sort
 
 	var courseResults []courseResult
 	database.DbInstance.Raw(query).Scan(&courseResults)

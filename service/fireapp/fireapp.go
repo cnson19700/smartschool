@@ -2,7 +2,8 @@ package fireapp
 
 import (
 	"errors"
-	"firebase.google.com/go"
+
+	firebase "firebase.google.com/go"
 	"firebase.google.com/go/messaging"
 	"github.com/smartschool/database"
 	"github.com/smartschool/model/entity"
