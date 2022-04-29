@@ -14,12 +14,12 @@ import (
 func ClassifyCheckinCode(code string) (CheckinType string, err error) {
 	reQR, err := regexp.Compile(`^[a-zA-Z0-9]+:\S+\=$`) //format: <Prefix>:<encodeString>=
 	if err != nil {
-		return "ERROR", err
+		return constant.CheckinType_Error, err
 	}
 
 	reCard, err := regexp.Compile("^[a-zA-Z0-9]+$")
 	if err != nil {
-		return "ERROR", err
+		return constant.CheckinType_Error, err
 	}
 
 	if reQR.Match([]byte(code)) {
@@ -27,15 +27,15 @@ func ClassifyCheckinCode(code string) (CheckinType string, err error) {
 		// // checkCode = base64.StdEncoding.EncodeToString([]byte(checkCode)) //this is temp
 		// rawDecodedText, err := base64.StdEncoding.DecodeString(checkCode)
 
-		return "QR", nil
+		return constant.CheckinType_QR, nil
 
 	}
 
 	if reCard.Match([]byte(code)) {
-		return "Card", nil
+		return constant.CheckinType_Card, nil
 	}
 
-	return "ERROR", nil
+	return constant.CheckinType_Error, nil
 }
 
 func ConvertDeviceTimestampToExact(timestamp int64) time.Time {
