@@ -2,12 +2,11 @@ package repository
 
 import (
 	"github.com/smartschool/database"
-	"github.com/smartschool/model/entity"
 )
 
-func QueryDeviceByID(id string) (*entity.Device, bool, error) {
-	var device entity.Device
-	result := database.DbInstance.Select("room_id").Where("device_id = ?", id).Find(&device)
+func QueryRoomByDeviceID(id string) (uint, bool, error) {
+	var room_id uint
+	result := database.DbInstance.Table("devices").Select("room_id").Where("device_id = ?", id).Find(&room_id)
 
-	return &device, result.RowsAffected == 0, result.Error
+	return room_id, result.RowsAffected == 0, result.Error
 }

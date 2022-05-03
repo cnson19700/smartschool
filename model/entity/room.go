@@ -9,5 +9,5 @@ type Room struct {
 	//DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
 	gorm.Model
 
-	Courses []*Course `gorm:"many2many:schedules; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	// Courses []*Course `gorm:"many2many:schedules; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }

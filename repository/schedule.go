@@ -33,7 +33,7 @@ func QueryFullListScheduleByCourse(course_id uint) ([]entity.Schedule, bool, err
 
 func QueryListScheduleByListCourseTime(course_id_list []uint, start time.Time, end time.Time) ([]entity.Schedule, bool, error) {
 	var queryList []entity.Schedule
-	result := database.DbInstance.Where("course_id IN ? AND start_time >= ? AND end_time <= ?", course_id_list, start, end).Preload("Room").Preload("Course").Find(&queryList)
+	result := database.DbInstance.Order("end_time").Where("course_id IN ? AND start_time >= ? AND end_time <= ?", course_id_list, start, end).Preload("Room").Preload("Course").Find(&queryList)
 
 	return queryList, result.RowsAffected == 0, result.Error
 }
@@ -54,7 +54,7 @@ func QueryCurrentScheduleIDOfCourse(course_id uint, current time.Time) ([]uint, 
 
 func QueryListScheduleByCourse(course_id uint, current time.Time) ([]entity.Schedule, bool, error) {
 	var queryList []entity.Schedule
-	result := database.DbInstance.Where("course_id = ?  AND end_time <= ?", course_id, current).Preload("Room").Find(&queryList)
+	result := database.DbInstance.Order("end_time").Where("course_id = ? AND end_time <= ?", course_id, current).Preload("Room").Find(&queryList)
 
 	return queryList, result.RowsAffected == 0, result.Error
 }

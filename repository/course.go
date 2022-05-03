@@ -76,3 +76,10 @@ func QueryCourseByTeacherID(teacher_id string) ([]*entity.CourseByTeacher, error
 
 	return courses_by_teacher, nil
 }
+
+func QueryTeacherIDByCourseID(course_id uint) (uint, error) {
+	var teacher_id uint
+	result := database.DbInstance.Table("courses").Where("id = ?", course_id).Find(&teacher_id)
+
+	return teacher_id, result.Error
+}

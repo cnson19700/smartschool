@@ -47,6 +47,7 @@ func MigrateDatabase() {
 	DbInstance.AutoMigrate(&entity.Semester{})
 	DbInstance.AutoMigrate(&entity.Role{})
 	DbInstance.AutoMigrate(&entity.User{})
+	DbInstance.AutoMigrate(&entity.Card{})
 	DbInstance.AutoMigrate(&entity.Student{})
 	DbInstance.AutoMigrate(&entity.Course{})
 	DbInstance.AutoMigrate(&entity.Teacher{})
@@ -59,25 +60,25 @@ func MigrateDatabase() {
 	DbInstance.AutoMigrate(&entity.DeviceSignalLog{})
 	DbInstance.AutoMigrate(&entity.UserNotificationToken{})
 
-	errJoin := DbInstance.SetupJoinTable(&entity.Student{}, "Courses", &entity.StudentCourseEnrollment{})
+	// errJoin := DbInstance.SetupJoinTable(&entity.Student{}, "Courses", &entity.StudentCourseEnrollment{})
+	// if errJoin != nil {
+	// 	panic(errJoin)
+	// }
+
+	errJoin := DbInstance.SetupJoinTable(&entity.Course{}, "Students", &entity.StudentCourseEnrollment{})
 	if errJoin != nil {
 		panic(errJoin)
 	}
 
-	errJoin = DbInstance.SetupJoinTable(&entity.Course{}, "Students", &entity.StudentCourseEnrollment{})
-	if errJoin != nil {
-		panic(errJoin)
-	}
+	// errJoin = DbInstance.SetupJoinTable(&entity.Room{}, "Courses", &entity.Schedule{})
+	// if errJoin != nil {
+	// 	panic(errJoin)
+	// }
 
-	errJoin = DbInstance.SetupJoinTable(&entity.Room{}, "Courses", &entity.Schedule{})
-	if errJoin != nil {
-		panic(errJoin)
-	}
-
-	errJoin = DbInstance.SetupJoinTable(&entity.Course{}, "Rooms", &entity.Schedule{})
-	if errJoin != nil {
-		panic(errJoin)
-	}
+	// errJoin = DbInstance.SetupJoinTable(&entity.Course{}, "Rooms", &entity.Schedule{})
+	// if errJoin != nil {
+	// 	panic(errJoin)
+	// }
 
 	//errJoin = DbInstance.SetupJoinTable(&entity.Teacher{}, "Courses", &entity.TeacherCourse{})
 	//if errJoin != nil {
@@ -114,18 +115,18 @@ func addScheduleDummy() {
 	}
 
 	DummyStudentCourseEnrollment := []entity.StudentCourseEnrollment{
-		{ID: 13, CourseID: 4, StudentID: 3},
-		{ID: 14, CourseID: 4, StudentID: 4},
-		{ID: 15, CourseID: 4, StudentID: 5},
-		{ID: 16, CourseID: 4, StudentID: 6},
-		{ID: 17, CourseID: 5, StudentID: 1},
-		{ID: 18, CourseID: 5, StudentID: 2},
-		{ID: 19, CourseID: 5, StudentID: 5},
-		{ID: 20, CourseID: 5, StudentID: 6},
-		{ID: 21, CourseID: 6, StudentID: 1},
-		{ID: 22, CourseID: 6, StudentID: 2},
-		{ID: 23, CourseID: 6, StudentID: 3},
-		{ID: 24, CourseID: 6, StudentID: 4},
+		{CourseID: 4, StudentID: 3},
+		{CourseID: 4, StudentID: 4},
+		{CourseID: 4, StudentID: 5},
+		{CourseID: 4, StudentID: 6},
+		{CourseID: 5, StudentID: 1},
+		{CourseID: 5, StudentID: 2},
+		{CourseID: 5, StudentID: 5},
+		{CourseID: 5, StudentID: 6},
+		{CourseID: 6, StudentID: 1},
+		{CourseID: 6, StudentID: 2},
+		{CourseID: 6, StudentID: 3},
+		{CourseID: 6, StudentID: 4},
 	}
 
 	DbInstance.Create(&DummySemester)
@@ -175,8 +176,8 @@ func createDummy2() {
 		{ID: 6, StudentID: "17120001", Batch: "17CTT1"},
 	}
 
-	startSem, _ := helper.StringToTimeUTC("2022-01-11T00:00:00+07:00")
-	endSem, _ := helper.StringToTimeUTC("2022-04-11T00:00:00+07:00")
+	startSem, _ := helper.StringToTimeUTC("2022-04-11T00:00:00+07:00")
+	endSem, _ := helper.StringToTimeUTC("2022-11-11T00:00:00+07:00")
 	DummySemester := []entity.Semester{{ID: 1, Title: "HK1", Year: "2022", FacultyID: 1, StartTime: startSem, EndTime: endSem}}
 
 	DummyCourses := []entity.Course{
@@ -186,18 +187,20 @@ func createDummy2() {
 	}
 
 	DummyStudentCourseEnrollment := []entity.StudentCourseEnrollment{
-		{ID: 1, CourseID: 1, StudentID: 3},
-		{ID: 2, CourseID: 1, StudentID: 4},
-		{ID: 3, CourseID: 1, StudentID: 5},
-		{ID: 4, CourseID: 1, StudentID: 6},
-		{ID: 5, CourseID: 2, StudentID: 1},
-		{ID: 6, CourseID: 2, StudentID: 2},
-		{ID: 7, CourseID: 2, StudentID: 5},
-		{ID: 8, CourseID: 2, StudentID: 6},
-		{ID: 9, CourseID: 3, StudentID: 1},
-		{ID: 10, CourseID: 3, StudentID: 2},
-		{ID: 11, CourseID: 3, StudentID: 3},
-		{ID: 12, CourseID: 3, StudentID: 4},
+		{CourseID: 1, StudentID: 3},
+		{CourseID: 1, StudentID: 4},
+		{CourseID: 1, StudentID: 5},
+		{CourseID: 1, StudentID: 6},
+		{CourseID: 2, StudentID: 1},
+		{CourseID: 2, StudentID: 2},
+		{CourseID: 2, StudentID: 5},
+		{CourseID: 2, StudentID: 6},
+		{CourseID: 3, StudentID: 1},
+		{CourseID: 3, StudentID: 2},
+		{CourseID: 3, StudentID: 3},
+		{CourseID: 3, StudentID: 4},
+		{CourseID: 3, StudentID: 5},
+		{CourseID: 3, StudentID: 6},
 	}
 
 	DummyRooms := []entity.Room{
@@ -206,25 +209,38 @@ func createDummy2() {
 		{ID: 3, RoomID: "A12", Name: "Math lecture room"},
 	}
 
-	startCS, _ := helper.StringToTimeUTC("2022-01-11T07:30:00+07:00")
-	endCS, _ := helper.StringToTimeUTC("2022-01-11T09:10:00+07:00")
-	startPH, _ := helper.StringToTimeUTC("2022-01-11T09:30:00+07:00")
-	endPH, _ := helper.StringToTimeUTC("2022-01-11T11:10:00+07:00")
-	startCSLab, _ := helper.StringToTimeUTC("2022-01-12T07:30:00+07:00")
-	endCSLab, _ := helper.StringToTimeUTC("2022-01-12T09:30:00+07:00")
-	startMTH, _ := helper.StringToTimeUTC("2022-01-12T09:30:00+07:00")
-	endMTH, _ := helper.StringToTimeUTC("2022-01-12T11:10:00+07:00")
+	startCS, _ := helper.StringToTimeUTC("2022-04-29T07:30:00+07:00")
+	endCS, _ := helper.StringToTimeUTC("2022-04-29T09:10:00+07:00")
+	startPH, _ := helper.StringToTimeUTC("2022-04-29T09:30:00+07:00")
+	endPH, _ := helper.StringToTimeUTC("2022-04-29T11:10:00+07:00")
+	startCSLab, _ := helper.StringToTimeUTC("2022-04-29T13:30:00+07:00")
+	endCSLab, _ := helper.StringToTimeUTC("2022-04-29T15:30:00+07:00")
+	startMTH, _ := helper.StringToTimeUTC("2022-04-29T15:30:00+07:00")
+	endMTH, _ := helper.StringToTimeUTC("2022-04-29T17:10:00+07:00")
 	DummySchedule := []entity.Schedule{
 		{ID: 1, RoomID: 1, CourseID: 1, StartTime: startCS, EndTime: endCS},
 		{ID: 2, RoomID: 2, CourseID: 3, StartTime: startPH, EndTime: endPH},
-		{ID: 3, RoomID: 3, CourseID: 2, StartTime: startMTH, EndTime: endMTH},
-		{ID: 4, RoomID: 3, CourseID: 1, StartTime: startCSLab, EndTime: endCSLab},
+		{ID: 3, RoomID: 3, CourseID: 2, StartTime: startCSLab, EndTime: endCSLab},
+		{ID: 4, RoomID: 3, CourseID: 1, StartTime: startMTH, EndTime: endMTH},
 	}
 
 	DummyDevice := []entity.Device{
 		{ID: 1, RoomID: 1, DeviceID: "D1"},
 		{ID: 2, RoomID: 2, DeviceID: "D2"},
-		{ID: 3, RoomID: 3, DeviceID: "D3"}}
+		{ID: 3, RoomID: 3, DeviceID: "D3"},
+	}
+
+	DummyCard := []entity.Card{
+		{ID: 1, UserID: 1, CardID: "C1"},
+		{ID: 2, UserID: 2, CardID: "C2"},
+		{ID: 3, UserID: 3, CardID: "C3"},
+		{ID: 4, UserID: 4, CardID: "C4"},
+		{ID: 5, UserID: 5, CardID: "C5"},
+		{ID: 6, UserID: 6, CardID: "C6"},
+		{ID: 7, UserID: 7, CardID: "C7"},
+		{ID: 8, UserID: 8, CardID: "C8"},
+		{ID: 9, UserID: 9, CardID: "C9"},
+	}
 
 	if DbInstance == nil {
 		panic("[ERROR] Nil DB")
@@ -243,11 +259,12 @@ func createDummy2() {
 	DbInstance.Create(&DummySchedule)
 	DbInstance.Create(&DummyDevice)
 	DbInstance.Create(&DummyTeacherCourses)
+	DbInstance.Create(&DummyCard)
 
 	fmt.Println("Create DB dummies normal")
 }
 
-func createDummy() {
+/*func createDummy() {
 	t := time.Now()
 	DummyFaculties := []entity.Faculty{{Title: "Computer Science"}, {Title: "Chemistry"}}
 	DummySemesters := []entity.Semester{{Title: "HK1-2018", Year: "2018", StartTime: time.Now(), EndTime: time.Now().Add(20), FacultyID: 1}}
@@ -273,7 +290,7 @@ func createDummy() {
 	DbInstance.Create(&DummyDevice)
 	DbInstance.Create(&DummyTeacherCourses)
 
-}
+}*/
 
 func DropAllTables() {
 	DbInstance.Migrator().DropTable(&entity.Faculty{})

@@ -2,7 +2,7 @@ package service
 
 import (
 	"encoding/base64"
-	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/smartschool/helper"
@@ -21,7 +21,7 @@ func CheckIn(deviceSignal dto.DeviceSignal) error {
 	entryTime := helper.ConvertDeviceTimestampToExact(deviceSignal.Timestamp)
 
 	if !helper.CheckValidDifferentTimeEntry(entryTime, constant.AcceptDeviceSignalDelay) {
-		status = "[Abnormal]: Invalid Checkin time - Delay over 5 second"
+		status = constant.CheckinStatus_InvalidCheckinTime
 		repository.CreateLogCheckIn(entity.DeviceSignalLog{CardId: checkinValue, CompanyTokenKey: deviceSignal.CompanyTokenKey, Status: status, Timestamp: entryTime})
 		return nil
 	}
@@ -29,21 +29,37 @@ func CheckIn(deviceSignal dto.DeviceSignal) error {
 	checkinType, err := helper.ClassifyCheckinCode(deviceSignal.CardId)
 
 	switch checkinType {
-	case "Card":
-		status, err = recordCheckinCard(checkinValue, deviceSignal.CompanyTokenKey, entryTime)
+	case constant.CheckinType_Card:
 
-	case "QR":
-		userCode, isFormatCorrect, errParse := helper.ParseQR(checkinValue, entryTime)
-		checkinValue = userCode
-		if !isFormatCorrect || errParse != nil {
-			status = "[Abnormal]: Invalid format QR or Expired QR"
+		userId, notFound, errFind := findRequestUserByCardID(checkinValue)
+		if errFind != nil || notFound {
+			status = constant.CheckinStatus_InvalidCardUserNotFound
 		} else {
-			status, err = recordCheckinCard(checkinValue, deviceSignal.CompanyTokenKey, entryTime)
+			checkinValue = strconv.Itoa(int(userId))
+			userRole, errFind := findUserRole(userId)
+			if errFind != nil {
+				status = constant.CheckinStatus_InvalidCardRoleNotFound
+			} else {
+				status, err = recordCheckin(userId, userRole, deviceSignal.CompanyTokenKey, entryTime)
+			}
 		}
 
-		//status = recordCheckinQR(checkinValue, deviceSignal.CompanyTokenKey, entryTime)
+	case constant.CheckinType_QR:
+		userId, isFormatCorrect, errParse := helper.ParseQR(checkinValue, entryTime)
+		if !isFormatCorrect || errParse != nil {
+			status = constant.CheckinStatus_InvalidQR
+		} else {
+			checkinValue = strconv.Itoa(int(userId))
+			userRole, errFind := findUserRole(userId)
+			if errFind != nil {
+				status = constant.CheckinStatus_InvalidQRRoleNotFound
+			} else {
+				status, err = recordCheckin(userId, userRole, deviceSignal.CompanyTokenKey, entryTime)
+			}
+		}
+
 	default:
-		status = "[Abnormal]: Invalid format CardID"
+		status = constant.CheckinStatus_InvalidInfo
 	}
 
 	repository.CreateLogCheckIn(entity.DeviceSignalLog{CardId: checkinValue, CompanyTokenKey: deviceSignal.CompanyTokenKey, Status: status, Timestamp: entryTime})
@@ -51,170 +67,115 @@ func CheckIn(deviceSignal dto.DeviceSignal) error {
 	return err
 }
 
-func recordCheckinCard(studentID string, deviceID string, checkinTime time.Time) (string, error) {
+func recordCheckin(userID uint, userRole uint, deviceID string, checkinTime time.Time) (string, error) {
 
-	device, notFound, err := repository.QueryDeviceByID(deviceID)
+	roomId, notFound, err := repository.QueryRoomByDeviceID(deviceID)
 	if err != nil {
-		return "[Abnormal]: Error when query Device", err
+		return constant.CheckinStatus_ErrorQueryDevice, err
 	}
 	if notFound {
-		return "[Abnormal]: Device does not match any room", nil
-	}
-
-	student, notFound, err := repository.QueryStudentBySID(studentID)
-	if err != nil {
-		return "[Abnormal]: Error when query Student by SID", err
-	}
-	if notFound {
-		return "[Abnormal]: Student not recognize", nil
+		return constant.CheckinStatus_DeviceNotFound, nil
 	}
 
 	var isScheduleForeseen bool = false
-	schedule, notFound, err := repository.QueryScheduleByRoomTime(device.RoomID, checkinTime)
+	schedule, notFound, err := repository.QueryScheduleByRoomTime(roomId, checkinTime)
 	if err != nil {
-		return "[Abnormal]: Error when query Schedule", err
+		return constant.CheckinStatus_ErrorQuerySchedule, err
 	}
 	needCheckNextSchedule := notFound
 
 	for !isScheduleForeseen {
 		if needCheckNextSchedule {
 			temp := schedule
-			schedule, notFound, err = repository.QueryScheduleByRoomTime(device.RoomID, checkinTime.Add(constant.AcceptEarlyMinute))
+			schedule, notFound, err = repository.QueryScheduleByRoomTime(roomId, checkinTime.Add(constant.AcceptEarlyMinute))
 			isScheduleForeseen = true
 			if err != nil {
-				return "[Abnormal]: Error when query Schedule", err
+				return constant.CheckinStatus_ErrorQuerySchedule, err
 			}
 			if notFound {
-				return "[Normal]: Forseen time slot not in any Schedule", nil
+				return constant.CheckinStatus_ScheduleNotFound, nil
 			}
 			if schedule.ID == temp.ID {
-				return "[Normal]: Spam check-in", nil
+				return constant.CheckinStatus_SameScheduleSpam, nil
 			}
 		}
 
-		_, notFound, err = repository.QueryEnrollmentByStudentCourse(student.ID, schedule.CourseID)
+		if userRole == constant.StudentRole {
+			notFound, err = repository.ExistEnrollmentByStudentCourse(userID, schedule.CourseID)
+		} else if userRole == constant.TeacherRole {
+			notFound, err = repository.ExistEnrollmentByTeacherCourse(userID, schedule.CourseID)
+		} else {
+			return constant.CheckinStatus_AmbiguousUserRole, err
+		}
 		if err != nil {
-			return "[Abnormal]: Error when query Student Course Enrollment", err
+			return constant.CheckinStatus_ErrorQueryEnrollment, err
 		}
 
 		if !notFound {
-			notFound, err = repository.ExistQueryAttendanceByStudentSchedule(student.ID, schedule.ID)
+			notFound, err = repository.ExistAttendanceByUserSchedule(userID, schedule.ID)
 			if err != nil {
-				return "[Abnormal]: Error when query Attendance", err
+				return constant.CheckinStatus_ErrorQueryAttendance, err
 			}
 
 			if notFound {
-				checkinStatus := "Attend"
+				checkinStatus := constant.CheckinStatus_Attend
 				if timeDiff := checkinTime.Sub(schedule.StartTime); timeDiff > constant.AcceptLateMinute {
-					checkinStatus = "Late"
+					checkinStatus = constant.CheckinStatus_Late
 				}
 
-				//database.DbInstance.Create(&entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
-				err = repository.CreateAttendance(entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, TeacherID: 0, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
+				// teacherId, err := repository.QueryTeacherIDByCourseID(schedule.CourseID)
+				// if err != nil {
+				// 	return "[Abnormal]: Error when query teacher in course", err
+				// }
+
+				err = repository.CreateAttendance(entity.Attendance{UserID: userID, ScheduleID: schedule.ID, TeacherID: 0, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
 				if err != nil {
-					return "[Abnormal]: Error when create Attendance", err
+					return constant.CheckinStatus_ErrorCreateAttendance, err
 				}
 
-				return "[Normal]: Checkin Success", nil
+				return constant.CheckinStatus_Success, nil
 			} else if isScheduleForeseen {
-				return "[Normal]: Checkin exist", nil
+				return constant.CheckinStatus_Exist, nil
 			}
 
 		} else if isScheduleForeseen {
-			return "[Normal]: Student dont take this course", nil
+			return constant.CheckinStatus_EnrollmentNotFound, nil
 		}
 
 		needCheckNextSchedule = true
 	}
 
-	return "[Abnormal]: Error in Logic Check-in", nil
-}
-
-func recordCheckinQR(checkinValues string, deviceID string, checkinTime time.Time) (string, error) {
-	studentID, courseID := helper.ParseData(checkinValues)
-
-	device, notFound, err := repository.QueryDeviceByID(deviceID)
-	if err != nil {
-		return "[Abnormal]: Error when query Device", err
-	}
-	if notFound {
-		return "[Abnormal]: Device does not match any room", nil
-	}
-
-	course, notFound, err := repository.QueryCourseByID(courseID)
-	if err != nil {
-		return "[Abnormal]: Error when query Device", err
-	}
-	if notFound {
-		return "[Abnormal]: Course does not exist", nil
-	}
-
-	schedule, notFound, err := repository.QueryScheduleByRoomTimeCourse(device.RoomID, checkinTime, course.ID)
-	if err != nil {
-		return "[Abnormal]: Error when query Schedule", err
-	}
-	if notFound {
-		return "[Normal]: Forseen time slot not in any Schedule", nil
-	}
-
-	student, notFound, err := repository.QueryStudentBySID(studentID)
-	if err != nil {
-		return "[Abnormal]: Error when query Student by SID", err
-	}
-	if notFound {
-		return "[Abnormal]: Student not recognize", nil
-	}
-
-	_, notFound, _ = repository.QueryEnrollmentByStudentCourse(student.ID, course.ID)
-	if err != nil {
-		return "[Abnormal]: Error when query Student Course Enrollment", err
-	}
-
-	if !notFound {
-		_, err = repository.ExistQueryAttendanceByStudentSchedule(student.ID, schedule.ID)
-		if err != nil {
-			return "[Abnormal]: Error when query Attendance", err
-		}
-
-		if notFound {
-			checkinStatus := "Attend"
-			if timeDiff := checkinTime.Sub(schedule.StartTime); timeDiff > (time.Minute * 20) {
-				checkinStatus = "Late"
-			}
-
-			//database.DbInstance.Create(&entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
-			err = repository.CreateAttendance(entity.Attendance{UserID: student.ID, ScheduleID: schedule.ID, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
-			if err != nil {
-				return "[Abnormal]: Error when create Attendance", err
-			}
-
-			return "[Normal]: Checkin Success", nil
-		} else {
-			return "[Normal]: Checkin exist", nil
-		}
-	} else {
-		return "[Normal]: Student dont take this course", nil
-	}
+	return constant.CheckinStatus_ErrorLogic, nil
 }
 
 func GenerateQREncodeString(userId uint) (string, error) {
 	currentDateTime, _ := time.Now().UTC().MarshalText()
 
-	hashedSecretKeyByte, bcryptError := bcrypt.GenerateFromPassword([]byte(constant.QRSecretKey + string(currentDateTime)), bcrypt.DefaultCost)
+	hashedSecretKeyByte, bcryptError := bcrypt.GenerateFromPassword([]byte(constant.QRSecretKey+string(currentDateTime)), bcrypt.DefaultCost)
 	if bcryptError != nil {
 		return "", bcryptError
 	}
 
-	student, err := repository.QueryStudentByID(fmt.Sprint(userId))
-	if err != nil {
-		return "", err
-	}
-
-	rawString := student.StudentID + "|" + string(currentDateTime) + "|" + string(hashedSecretKeyByte)
+	rawString := strconv.Itoa(int(userId)) + "|" + string(currentDateTime) + "|" + string(hashedSecretKeyByte)
 
 	encodeString := base64.StdEncoding.EncodeToString([]byte(rawString))
 
 	QRString := constant.QRPrefix + ":" + encodeString + "="
 
 	return QRString, nil
+}
+
+func findUserRole(userId uint) (uint, error) {
+	roleId, err := repository.QueryUserRoleIDByUserID(userId)
+	if err != nil {
+		return 0, err
+	}
+
+	return roleId, nil
+}
+
+func findRequestUserByCardID(code string) (uint, bool, error) {
+	userId, notFound, err := repository.QueryUserByCardID(code)
+
+	return userId, notFound, err
 }
