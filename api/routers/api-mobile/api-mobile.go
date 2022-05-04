@@ -60,7 +60,7 @@ func Login(c *gin.Context) {
 	}
 
 	var user entity.User
-	err = database.DbInstance.Where("email = ?", request.Email).First(&user).Error
+	err = database.DbInstance.Where("user_name = ?", request.Email).First(&user).Error
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"message": "User not found",
