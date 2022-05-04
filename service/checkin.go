@@ -10,6 +10,7 @@ import (
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/model/entity"
 	"github.com/smartschool/repository"
+	"github.com/smartschool/service/fireapp"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -178,4 +179,28 @@ func findRequestUserByCardID(code string) (uint, bool, error) {
 	userId, notFound, err := repository.QueryUserByCardID(code)
 
 	return userId, notFound, err
+}
+func MessageToNotify(student *entity.Student, schedule *entity.Schedule, checkinTime time.Time, checkinStatus string) {
+	course_name, _, err1 := repository.QueryCourseBasicInfoByID(schedule.CourseID)
+	room, _, err2 := repository.QueryRoomInfo(schedule.RoomID)
+	msg := ""
+	if err1 != nil {
+		msg += "Fail in finding Course Name"
+	}
+
+	if err2 != nil {
+		msg += "\n Fail in finding Room"
+	}
+	if msg == "" {
+		msg = "Success"
+	}
+	data := map[string]string{
+		"message":       msg,
+		"course":        course_name.Name,
+		"room":          room.RoomID,
+		"shift":         schedule.StartTime.Format("2006-01-02 15:04:05") + "-" + schedule.EndTime.Format("2006-01-02 15:04:05"),
+		"checkintime":   checkinTime.Format("2006-01-02 15:04:05"),
+		"checkinstatus": checkinStatus,
+	}
+	fireapp.SendNotification(student.ID, data)
 }

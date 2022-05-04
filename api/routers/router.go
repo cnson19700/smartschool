@@ -31,11 +31,11 @@ func Initialize() (*gin.Engine, error) {
 	mobileUser.GET("/test-notification", api_mobile.TestNotification)
 	mobileUser.GET("/courses-in-semester", api_mobile.GetCourseInSemesterOfOneUser)
 	mobileUser.GET("/semesters", api_mobile.GetSemesterInFaculty)
-	
+
 	r.POST("/checkin", api_device.EventCheckin)
 	r.POST("/login", api_mobile.Login)
 	//r.GET("/courses/:id", api_device.GetCourseByID)
-	//r.GET("/courses", api_device.GetCourses)
+	// r.GET("/courses", api_device.GetCourses)
 	// r.GET("/teachercourses", api_web.GetTeacherCourse)
 
 	return r, nil
