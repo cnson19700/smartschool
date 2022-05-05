@@ -26,11 +26,11 @@ func GetCourses(ctx *context.Context) table.Table {
 	info := tableCourses.GetInfo()
 
 	info.AddField("ID", "id", db.Int).FieldSortable()
-	info.AddField("Course", "course_id", db.Varchar)
+	// info.AddField("Course", "course_id", db.Varchar)
+	info.AddField("Class", "class", db.Varchar)
 	info.AddField("Name", "name", db.Varchar)
 	info.AddField("Teacher", "teacher_name", db.Varchar)
 	info.AddField("Teacher Role", "teacher_role", db.Varchar)
-	info.AddField("Class", "class", db.Varchar)
 	info.AddField("Semester", "semester_name", db.Varchar)
 
 	info.SetGetDataFn(func(param parameter.Parameters) ([]map[string]interface{}, int) {
@@ -147,12 +147,12 @@ func GetCourses(ctx *context.Context) table.Table {
 	})
 
 	detail := tableCourses.GetDetail()
-	detail.AddField("Course", "course_id", db.Varchar)
+	// detail.AddField("Course", "course_id", db.Varchar)
+	detail.AddField("Class", "class", db.Varchar)
 	detail.AddField("Name", "name", db.Varchar)
 	detail.AddField("Number of Student", "number_of_student", db.Int)
 	detail.AddField("Teacher", "teacher_name", db.Varchar)
 	detail.AddField("Teacher Role", "teacher_role", db.Varchar)
-	detail.AddField("Class", "class", db.Varchar)
 	detail.AddField("Semester", "semester_name", db.Varchar)
 	detail.AddField("Attendances", "attendance", db.Varchar).FieldDisplay(func(value types.FieldModel) interface{} {
 		teacher_id, _ := value.Row["teacher_id"].(string)
@@ -194,7 +194,7 @@ func GetCourseData(param string) ([]map[string]interface{}, int) {
 	tempResult["number_of_student"] = currentResult.NumberOfStudent
 	tempResult["semester_id"] = currentResult.SemesterID
 	tempResult["teacher_role"] = currentResult.TeacherRole
-	tempResult["class"] = currentResult.Class
+	tempResult["class"] = currentResult.CourseID + " - " + currentResult.Class
 
 	tableResult[0] = tempResult
 
@@ -231,7 +231,7 @@ func GetAllCoursesData(param parameter.Parameters) ([]map[string]interface{}, in
 		tempResult["number_of_student"] = currentResult.NumberOfStudent
 		tempResult["semester_id"] = currentResult.SemesterID
 		tempResult["teacher_role"] = currentResult.TeacherRole
-		tempResult["class"] = currentResult.Class
+		tempResult["class"] = currentResult.CourseID + " - " + currentResult.Class
 
 		tableResults[i] = tempResult
 	}
