@@ -30,6 +30,7 @@ func GetCourses(ctx *context.Context) table.Table {
 	info.AddField("Name", "name", db.Varchar)
 	info.AddField("Teacher", "teacher_name", db.Varchar)
 	info.AddField("Teacher Role", "teacher_role", db.Varchar)
+	info.AddField("Class", "class", db.Varchar)
 	info.AddField("Semester", "semester_name", db.Varchar)
 
 	info.SetGetDataFn(func(param parameter.Parameters) ([]map[string]interface{}, int) {
@@ -151,6 +152,7 @@ func GetCourses(ctx *context.Context) table.Table {
 	detail.AddField("Number of Student", "number_of_student", db.Int)
 	detail.AddField("Teacher", "teacher_name", db.Varchar)
 	detail.AddField("Teacher Role", "teacher_role", db.Varchar)
+	detail.AddField("Class", "class", db.Varchar)
 	detail.AddField("Semester", "semester_name", db.Varchar)
 	detail.AddField("Attendances", "attendance", db.Varchar).FieldDisplay(func(value types.FieldModel) interface{} {
 		teacher_id, _ := value.Row["teacher_id"].(string)
@@ -173,7 +175,7 @@ func GetCourses(ctx *context.Context) table.Table {
 
 func GetCourseData(param string) ([]map[string]interface{}, int) {
 	query := `
-			select c.id , concat(u.first_name, ' ', u.last_name) as teacher_name, c.teacher_id, c.number_of_student, c.name as course_name, c.course_id as course_id, s.title as semester_name, s.id as semester_id, c.teacher_role as teacher_role
+			select c.id , concat(u.first_name, ' ', u.last_name) as teacher_name, c.teacher_id, c.number_of_student, c.name as course_name, c.course_id as course_id, s.title as semester_name, s.id as semester_id, c.teacher_role as teacher_role, c.class
 				from courses c, (select us.id, us.first_name as first_name, us.last_name as last_name
 					from users us, courses c, teachers t
 					where c.id = ` + param + ` and c.teacher_id = t.teacher_id and us.id = t.id) u, semesters s
@@ -192,6 +194,7 @@ func GetCourseData(param string) ([]map[string]interface{}, int) {
 	tempResult["number_of_student"] = currentResult.NumberOfStudent
 	tempResult["semester_id"] = currentResult.SemesterID
 	tempResult["teacher_role"] = currentResult.TeacherRole
+	tempResult["class"] = currentResult.Class
 
 	tableResult[0] = tempResult
 
@@ -204,10 +207,10 @@ func GetAllCoursesData(param parameter.Parameters) ([]map[string]interface{}, in
 		sort = param.SortType
 	}
 	query := `
-			select c.id as id, concat(u.first_name, ' ', u.last_name) as teacher_name, c.teacher_id as teacher_id, c.number_of_student, c.name as course_name, c.course_id as course_id, s.title as semester_name, s.id as semester_id, c.teacher_role as teacher_role
+			select c.id as id, concat(u.first_name, ' ', u.last_name) as teacher_name, c.teacher_id as teacher_id, c.number_of_student, c.name as course_name, c.course_id as course_id, s.title as semester_name, s.id as semester_id, c.teacher_role as teacher_role, c.class
 				from courses c, (select users.id, users.first_name as first_name, users.last_name as last_name, teachers.teacher_id as teacher_id
 					from users
-					left join teachers
+					join teachers
 					on users.id = teachers.id) u, semesters s
 				where c.teacher_id = u.teacher_id and c.semester_id = s.id 
 				ORDER BY c.id ` + sort
@@ -228,6 +231,7 @@ func GetAllCoursesData(param parameter.Parameters) ([]map[string]interface{}, in
 		tempResult["number_of_student"] = currentResult.NumberOfStudent
 		tempResult["semester_id"] = currentResult.SemesterID
 		tempResult["teacher_role"] = currentResult.TeacherRole
+		tempResult["class"] = currentResult.Class
 
 		tableResults[i] = tempResult
 	}
@@ -284,6 +288,7 @@ type courseResult struct {
 	SemesterName    string
 	SemesterID      int
 	TeacherRole     string
+	Class           string
 }
 
 type teacherOptionResult struct {
