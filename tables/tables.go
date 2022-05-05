@@ -7,4 +7,5 @@ var Generators = map[string]table.Generator{
 	"summary":     GetSummary,
 	"users":       GetUsers,
 	"attendances": GetAttendances,
+	"teachers":    GetTeachers,
 }
