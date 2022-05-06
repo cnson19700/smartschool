@@ -60,7 +60,7 @@ func Login(c *gin.Context) {
 	}
 
 	var user entity.User
-	err = database.DbInstance.Where("email = ?", request.Email).First(&user).Error
+	err = database.DbInstance.Where("user_name = ?", request.Email).First(&user).Error
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"message": "User not found",
@@ -95,7 +95,11 @@ func Login(c *gin.Context) {
 	claims["faculty_id"] = user.FacultyID
 
 	tokenString, _ := authMw.GetSignedString(token)
-	resp := map[string]interface{}{"token": tokenString}
+	resp := map[string]interface{}{
+		"username":    user.LastName + " " + user.FirstName,
+		"is_activate": user.IsActivate,
+		"token":       tokenString,
+	}
 
 	c.JSON(http.StatusOK, resp)
 }
@@ -354,5 +358,30 @@ func GetSemesterInFaculty(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"semester_list": res,
+	})
+}
+
+func ChangePasswordFirstTime(c *gin.Context) {
+	var req = dto.ChangePasswordFirstTimeRequest{}
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"messgae": "Update Password request is invalid",
+		})
+		return
+	}
+	id, isGet := c.Get("userId")
+	if !isGet {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
+		return
+	}
+	err = service.ChangePasswordFirstTime(fmt.Sprint(id), req)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Error when changing password for first time"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"is_activate": true,
 	})
 }
