@@ -3,10 +3,11 @@ package repository
 import (
 	"github.com/pkg/errors"
 	"github.com/smartschool/database"
+	"github.com/smartschool/model/dto"
 	"github.com/smartschool/model/entity"
 )
 
-func QueryUserBySID(sid string) (*entity.User) {
+func QueryUserBySID(sid string) *entity.User {
 	var user entity.User
 	err := database.DbInstance.Where("id = ?", sid).First(&user).Error
 	if err != nil {
@@ -53,4 +54,11 @@ func QueryUserRoleDetailByRoleID(id uint) (string, error) {
 	result := database.DbInstance.Table("roles").Select("title").Where("id = ?", id).Find(&role_title)
 
 	return role_title, result.Error
+}
+
+func QueryListUserNameInfo(ids []uint) ([]dto.UserFullNameInfo, bool, error) {
+	var users []dto.UserFullNameInfo
+	result := database.DbInstance.Table("users").Where("id IN ?", ids).Find(&users)
+
+	return users, result.RowsAffected == 0, result.Error
 }

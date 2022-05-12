@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/smartschool/lib/constant"
 	"github.com/smartschool/service/fireapp"
 
 	"github.com/dgrijalva/jwt-go"
@@ -383,5 +384,36 @@ func ChangePasswordFirstTime(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"is_activate": true,
+	})
+}
+
+func GetFormRequestChangeAttendanceStatus(c *gin.Context) {
+	request := struct {
+		AttendanceID uint `form:"attendance_id" binding:"required"`
+	}{}
+
+	err := c.ShouldBind(&request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"messgae": "Cannot capture request",
+		})
+		return
+	}
+
+	schedule, teacherList, err := service.GetFormRequestChangeAttendanceStatus(request.AttendanceID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot get schedule info for this request"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"schedule_id":    schedule.ScheduleID,
+		"course_name":    schedule.CourseName,
+		"room":           schedule.Room,
+		"start_time":     schedule.StartTime,
+		"end_time":       schedule.EndTime,
+		"current_status": schedule.CurrentStatus,
+		"request_status": constant.Option_CheckinStatus,
+		"teacher_list":   teacherList,
 	})
 }

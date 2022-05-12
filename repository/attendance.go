@@ -154,3 +154,10 @@ func SearchAttendance(params parameter.Parameters) ([]*entity.Attendance, error)
 	}
 	return attendances, nil
 }
+
+func QueryAttendanceByID(id uint) (entity.Attendance, error) {
+	var queryRes entity.Attendance
+	result := database.DbInstance.Where("id = ?", id).Preload("Schedule.Room").Preload("Schedule.Course").First(&queryRes)
+
+	return queryRes, result.Error
+}

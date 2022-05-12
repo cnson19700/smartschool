@@ -38,3 +38,5 @@ const CheckinStatus_Success string = "[Normal]: Checkin Success"
 const CheckinStatus_Exist string = "[Normal]: Checkin Exist"
 const CheckinStatus_EnrollmentNotFound string = "[Normal]: Student dont take this course"
 const CheckinStatus_ErrorLogic string = "[Abnormal]: Error in Logic Check-in"
+
+var Option_CheckinStatus = [...]string{"Late", "Attend", "Absence with permission"}
