@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/base64"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -72,15 +73,18 @@ func recordCheckin(userID uint, userRole uint, deviceID string, checkinTime time
 
 	roomId, notFound, err := repository.QueryRoomByDeviceID(deviceID)
 	if err != nil {
+		NotiFail(userID, constant.CheckinStatus_ErrorQueryDevice)
 		return constant.CheckinStatus_ErrorQueryDevice, err
 	}
 	if notFound {
+		NotiFail(userID, constant.CheckinStatus_DeviceNotFound)
 		return constant.CheckinStatus_DeviceNotFound, nil
 	}
 
 	var isScheduleForeseen bool = false
 	schedule, notFound, err := repository.QueryScheduleByRoomTime(roomId, checkinTime)
 	if err != nil {
+		NotiFail(userID, constant.CheckinStatus_ErrorQuerySchedule)
 		return constant.CheckinStatus_ErrorQuerySchedule, err
 	}
 	needCheckNextSchedule := notFound
@@ -91,12 +95,15 @@ func recordCheckin(userID uint, userRole uint, deviceID string, checkinTime time
 			schedule, notFound, err = repository.QueryScheduleByRoomTime(roomId, checkinTime.Add(constant.AcceptEarlyMinute))
 			isScheduleForeseen = true
 			if err != nil {
+				NotiFail(userID, constant.CheckinStatus_ErrorQuerySchedule)
 				return constant.CheckinStatus_ErrorQuerySchedule, err
 			}
 			if notFound {
+				NotiFail(userID, constant.CheckinStatus_ScheduleNotFound)
 				return constant.CheckinStatus_ScheduleNotFound, nil
 			}
 			if schedule.ID == temp.ID {
+				NotiFail(userID, constant.CheckinStatus_SameScheduleSpam)
 				return constant.CheckinStatus_SameScheduleSpam, nil
 			}
 		}
@@ -106,15 +113,18 @@ func recordCheckin(userID uint, userRole uint, deviceID string, checkinTime time
 		} else if userRole == constant.TeacherRole {
 			notFound, err = repository.ExistEnrollmentByTeacherCourse(userID, schedule.CourseID)
 		} else {
+			NotiFail(userID, constant.CheckinStatus_AmbiguousUserRole)
 			return constant.CheckinStatus_AmbiguousUserRole, err
 		}
 		if err != nil {
+			NotiFail(userID, constant.CheckinStatus_ErrorQueryEnrollment)
 			return constant.CheckinStatus_ErrorQueryEnrollment, err
 		}
 
 		if !notFound {
 			notFound, err = repository.ExistAttendanceByUserSchedule(userID, schedule.ID)
 			if err != nil {
+				NotiFail(userID, constant.CheckinStatus_ErrorQueryAttendance)
 				return constant.CheckinStatus_ErrorQueryAttendance, err
 			}
 
@@ -131,21 +141,24 @@ func recordCheckin(userID uint, userRole uint, deviceID string, checkinTime time
 
 				err = repository.CreateAttendance(entity.Attendance{UserID: userID, ScheduleID: schedule.ID, TeacherID: 0, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
 				if err != nil {
+					NotiFail(userID, constant.CheckinStatus_ErrorCreateAttendance)
 					return constant.CheckinStatus_ErrorCreateAttendance, err
 				}
-
+				student, _ := repository.QueryStudentByID(fmt.Sprint(userID))
+				MessageToNotify(student, schedule, checkinTime, checkinStatus)
 				return constant.CheckinStatus_Success, nil
 			} else if isScheduleForeseen {
 				return constant.CheckinStatus_Exist, nil
 			}
 
 		} else if isScheduleForeseen {
+			NotiFail(userID, constant.CheckinStatus_EnrollmentNotFound)
 			return constant.CheckinStatus_EnrollmentNotFound, nil
 		}
 
 		needCheckNextSchedule = true
 	}
-
+	NotiFail(userID, constant.CheckinStatus_ErrorLogic)
 	return constant.CheckinStatus_ErrorLogic, nil
 }
 
@@ -203,4 +216,11 @@ func MessageToNotify(student *entity.Student, schedule *entity.Schedule, checkin
 		"checkinstatus": checkinStatus,
 	}
 	fireapp.SendNotification(student.ID, data)
+}
+
+func NotiFail(studentID uint, msg string) {
+	data := map[string]string{
+		"message": "Fail to Checkin - " + msg,
+	}
+	fireapp.SendNotification(studentID, data)
 }
