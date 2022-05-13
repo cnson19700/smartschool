@@ -220,7 +220,7 @@ func MessageToNotify(student *entity.Student, schedule *entity.Schedule, checkin
 
 func NotiFail(studentID uint, msg string) {
 	data := map[string]string{
-		"message": "Fail to Checkin",
+		"message": "Fail to Checkin - " + msg,
 	}
 	fireapp.SendNotification(studentID, data)
 }
