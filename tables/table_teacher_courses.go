@@ -18,16 +18,17 @@ func GetTeacherCourses(ctx *context.Context) (tableTeacherCourses table.Table) {
 	info := tableTeacherCourses.GetInfo()
 	info.AddField("CourseID", "course_id", db.Varchar)
 	info.AddField("Course Name", "id", db.Varchar).FieldDisplay(func(value types.FieldModel) interface{} {
-		id, _ := value.Row["id"].(int)
+		course_id, _ := value.Row["course_id"].(string)
 		return template.
 			Default().
 			Link().
-			SetURL("/admin/info/courses/detail?__goadmin_detail_pk=" + fmt.Sprint(id)).
+			SetURL("/admin/info/courses/detail?__goadmin_detail_pk=" + fmt.Sprint(course_id)).
 			SetContent(template.HTML(value.Row["course_name"].(string))).
 			OpenInNewTab().
 			SetTabTitle(template.HTML(value.Row["course_name"].(string))).
 			GetContent()
 	})
+	info.AddField("Class", "class", db.Varchar)
 	info.AddField("Role in course", "teacher_role", db.Varchar)
 	info.AddField("Semester", "semester_name", db.Varchar)
 
@@ -51,7 +52,7 @@ func GetTeacherCoursesData(param string) ([]map[string]interface{}, int) {
 		tempResult := make(map[string]interface{})
 
 		tempResult["id"] = currentResult.ID
-		tempResult["course_id"] = currentResult.Class + " - " + currentResult.CourseID
+		tempResult["course_id"] = currentResult.CourseID
 		tempResult["course_name"] = currentResult.CourseName
 		tempResult["class"] = currentResult.Class
 		tempResult["semester_name"] = currentResult.SemesterName

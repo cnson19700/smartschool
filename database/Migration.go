@@ -31,6 +31,7 @@ func Close() {
 
 func ConnectDatabase() {
 	dbURI := "host=13.228.244.196 port=5432 user=busmapdb dbname=phenikaamaas_attendancedb sslmode=disable password=frjsdfhaflpzlcdzgnfvuxkdwiiiiklpojzowxajmendeeoqtbzyrgi"
+	// dbURI := "host=localhost port=5432 user=postgres dbname=postgres"
 
 	var err error
 	DbInstance, err = gorm.Open(postgres.Open(dbURI), &gorm.Config{})
