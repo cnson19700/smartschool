@@ -57,7 +57,7 @@ func GetMe(id string) (*dto.StudentProfile, error) {
 
 	StudentProfile := dto.StudentProfile{
 		StudentID:   student.StudentID,
-		Name:        user.LastName + user.FirstName,
+		Name:        user.LastName + " " + user.FirstName,
 		Class:       student.Batch,
 		Email:       user.Email,
 		Gender:      genderStudent,

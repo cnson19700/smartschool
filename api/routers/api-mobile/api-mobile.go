@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/smartschool/service/fireapp"
-
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	api_jwt "github.com/smartschool/api/api-jwt"
@@ -156,7 +154,7 @@ func GetCourseAttendanceOfOneUser(c *gin.Context) {
 
 	id, isGet := c.Get("userId")
 	if !isGet {
-		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
+		c.JSON(http.StatusNotFound, gin.H{"message": "cannot find this user"})
 		return
 	}
 	userId, canConvert := id.(float64)
@@ -168,7 +166,7 @@ func GetCourseAttendanceOfOneUser(c *gin.Context) {
 	course, err := service.GetCourseBasicInfoByID(request.CourseID)
 	if err != nil || course == nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"messgae": "Cannot verified course",
+			"message": "Cannot verified course",
 		})
 		return
 	}
@@ -284,19 +282,6 @@ func UpdateNotificationToken(c *gin.Context) {
 			return
 		}
 	}
-}
-
-func TestNotification(c *gin.Context) {
-	id, _ := c.Get("userId")
-	userId, _ := id.(float64)
-
-	data := map[string]string{
-		"message": "Hello world",
-	}
-
-	err := fireapp.SendNotification(uint(userId), data)
-	_ = err
-	// c.JSON(http.StatusOK, data)
 }
 
 func GetCourseInSemesterOfOneUser(c *gin.Context) {
