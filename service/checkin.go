@@ -12,7 +12,6 @@ import (
 	"github.com/smartschool/model/entity"
 	"github.com/smartschool/repository"
 	"github.com/smartschool/service/fireapp"
-	"github.com/smartschool/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -216,7 +215,6 @@ func MessageToNotify(student *entity.Student, schedule *entity.Schedule, checkin
 		"checkintime":   checkinTime.Format("2006-01-02 15:04:05"),
 		"checkinstatus": checkinStatus,
 	}
-	utils.Log(2, data)
 	fireapp.SendNotification(student.ID, data)
 }
 
