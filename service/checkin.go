@@ -6,12 +6,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/smartschool/apptypes"
 	"github.com/smartschool/helper"
-	"github.com/smartschool/lib/constant"
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/model/entity"
 	"github.com/smartschool/repository"
 	"github.com/smartschool/service/fireapp"
+	"github.com/smartschool/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -22,8 +23,8 @@ func CheckIn(deviceSignal dto.DeviceSignal) error {
 	var err error = nil
 	entryTime := helper.ConvertDeviceTimestampToExact(deviceSignal.Timestamp)
 
-	if !helper.CheckValidDifferentTimeEntry(entryTime, constant.AcceptDeviceSignalDelay) {
-		status = constant.CheckinStatus_InvalidCheckinTime
+	if !helper.CheckValidDifferentTimeEntry(entryTime, apptypes.AcceptDeviceSignalDelay) {
+		status = apptypes.CheckinStatus_InvalidCheckinTime
 		repository.CreateLogCheckIn(entity.DeviceSignalLog{CardId: checkinValue, CompanyTokenKey: deviceSignal.CompanyTokenKey, Status: status, Timestamp: entryTime})
 		return nil
 	}
@@ -31,37 +32,37 @@ func CheckIn(deviceSignal dto.DeviceSignal) error {
 	checkinType, err := helper.ClassifyCheckinCode(deviceSignal.CardId)
 
 	switch checkinType {
-	case constant.CheckinType_Card:
+	case apptypes.CheckinType_Card:
 
 		userId, notFound, errFind := findRequestUserByCardID(checkinValue)
 		if errFind != nil || notFound {
-			status = constant.CheckinStatus_InvalidCardUserNotFound
+			status = apptypes.CheckinStatus_InvalidCardUserNotFound
 		} else {
 			checkinValue = strconv.Itoa(int(userId))
 			userRole, errFind := findUserRole(userId)
 			if errFind != nil {
-				status = constant.CheckinStatus_InvalidCardRoleNotFound
+				status = apptypes.CheckinStatus_InvalidCardRoleNotFound
 			} else {
 				status, err = recordCheckin(userId, userRole, deviceSignal.CompanyTokenKey, entryTime)
 			}
 		}
 
-	case constant.CheckinType_QR:
+	case apptypes.CheckinType_QR:
 		userId, isFormatCorrect, errParse := helper.ParseQR(checkinValue, entryTime)
 		if !isFormatCorrect || errParse != nil {
-			status = constant.CheckinStatus_InvalidQR
+			status = apptypes.CheckinStatus_InvalidQR
 		} else {
 			checkinValue = strconv.Itoa(int(userId))
 			userRole, errFind := findUserRole(userId)
 			if errFind != nil {
-				status = constant.CheckinStatus_InvalidQRRoleNotFound
+				status = apptypes.CheckinStatus_InvalidQRRoleNotFound
 			} else {
 				status, err = recordCheckin(userId, userRole, deviceSignal.CompanyTokenKey, entryTime)
 			}
 		}
 
 	default:
-		status = constant.CheckinStatus_InvalidInfo
+		status = apptypes.CheckinStatus_InvalidInfo
 	}
 
 	repository.CreateLogCheckIn(entity.DeviceSignalLog{CardId: checkinValue, CompanyTokenKey: deviceSignal.CompanyTokenKey, Status: status, Timestamp: entryTime})
@@ -73,65 +74,65 @@ func recordCheckin(userID uint, userRole uint, deviceID string, checkinTime time
 
 	roomId, notFound, err := repository.QueryRoomByDeviceID(deviceID)
 	if err != nil {
-		NotiFail(userID, constant.CheckinStatus_ErrorQueryDevice)
-		return constant.CheckinStatus_ErrorQueryDevice, err
+		NotiFail(userID, apptypes.CheckinStatus_ErrorQueryDevice)
+		return apptypes.CheckinStatus_ErrorQueryDevice, err
 	}
 	if notFound {
-		NotiFail(userID, constant.CheckinStatus_DeviceNotFound)
-		return constant.CheckinStatus_DeviceNotFound, nil
+		NotiFail(userID, apptypes.CheckinStatus_DeviceNotFound)
+		return apptypes.CheckinStatus_DeviceNotFound, nil
 	}
 
 	var isScheduleForeseen bool = false
 	schedule, notFound, err := repository.QueryScheduleByRoomTime(roomId, checkinTime)
 	if err != nil {
-		NotiFail(userID, constant.CheckinStatus_ErrorQuerySchedule)
-		return constant.CheckinStatus_ErrorQuerySchedule, err
+		NotiFail(userID, apptypes.CheckinStatus_ErrorQuerySchedule)
+		return apptypes.CheckinStatus_ErrorQuerySchedule, err
 	}
 	needCheckNextSchedule := notFound
 
 	for !isScheduleForeseen {
 		if needCheckNextSchedule {
 			temp := schedule
-			schedule, notFound, err = repository.QueryScheduleByRoomTime(roomId, checkinTime.Add(constant.AcceptEarlyMinute))
+			schedule, notFound, err = repository.QueryScheduleByRoomTime(roomId, checkinTime.Add(apptypes.AcceptEarlyMinute))
 			isScheduleForeseen = true
 			if err != nil {
-				NotiFail(userID, constant.CheckinStatus_ErrorQuerySchedule)
-				return constant.CheckinStatus_ErrorQuerySchedule, err
+				NotiFail(userID, apptypes.CheckinStatus_ErrorQuerySchedule)
+				return apptypes.CheckinStatus_ErrorQuerySchedule, err
 			}
 			if notFound {
-				NotiFail(userID, constant.CheckinStatus_ScheduleNotFound)
-				return constant.CheckinStatus_ScheduleNotFound, nil
+				NotiFail(userID, apptypes.CheckinStatus_ScheduleNotFound)
+				return apptypes.CheckinStatus_ScheduleNotFound, nil
 			}
 			if schedule.ID == temp.ID {
-				NotiFail(userID, constant.CheckinStatus_SameScheduleSpam)
-				return constant.CheckinStatus_SameScheduleSpam, nil
+				NotiFail(userID, apptypes.CheckinStatus_SameScheduleSpam)
+				return apptypes.CheckinStatus_SameScheduleSpam, nil
 			}
 		}
 
-		if userRole == constant.StudentRole {
+		if userRole == apptypes.StudentRole {
 			notFound, err = repository.ExistEnrollmentByStudentCourse(userID, schedule.CourseID)
-		} else if userRole == constant.TeacherRole {
+		} else if userRole == apptypes.TeacherRole {
 			notFound, err = repository.ExistEnrollmentByTeacherCourse(userID, schedule.CourseID)
 		} else {
-			NotiFail(userID, constant.CheckinStatus_AmbiguousUserRole)
-			return constant.CheckinStatus_AmbiguousUserRole, err
+			NotiFail(userID, apptypes.CheckinStatus_AmbiguousUserRole)
+			return apptypes.CheckinStatus_AmbiguousUserRole, err
 		}
 		if err != nil {
-			NotiFail(userID, constant.CheckinStatus_ErrorQueryEnrollment)
-			return constant.CheckinStatus_ErrorQueryEnrollment, err
+			NotiFail(userID, apptypes.CheckinStatus_ErrorQueryEnrollment)
+			return apptypes.CheckinStatus_ErrorQueryEnrollment, err
 		}
 
 		if !notFound {
 			notFound, err = repository.ExistAttendanceByUserSchedule(userID, schedule.ID)
 			if err != nil {
-				NotiFail(userID, constant.CheckinStatus_ErrorQueryAttendance)
-				return constant.CheckinStatus_ErrorQueryAttendance, err
+				NotiFail(userID, apptypes.CheckinStatus_ErrorQueryAttendance)
+				return apptypes.CheckinStatus_ErrorQueryAttendance, err
 			}
 
 			if notFound {
-				checkinStatus := constant.CheckinStatus_Attend
-				if timeDiff := checkinTime.Sub(schedule.StartTime); timeDiff > constant.AcceptLateMinute {
-					checkinStatus = constant.CheckinStatus_Late
+				checkinStatus := apptypes.CheckinStatus_Attend
+				if timeDiff := checkinTime.Sub(schedule.StartTime); timeDiff > apptypes.AcceptLateMinute {
+					checkinStatus = apptypes.CheckinStatus_Late
 				}
 
 				// teacherId, err := repository.QueryTeacherIDByCourseID(schedule.CourseID)
@@ -141,31 +142,31 @@ func recordCheckin(userID uint, userRole uint, deviceID string, checkinTime time
 
 				err = repository.CreateAttendance(entity.Attendance{UserID: userID, ScheduleID: schedule.ID, TeacherID: 0, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
 				if err != nil {
-					NotiFail(userID, constant.CheckinStatus_ErrorCreateAttendance)
-					return constant.CheckinStatus_ErrorCreateAttendance, err
+					NotiFail(userID, apptypes.CheckinStatus_ErrorCreateAttendance)
+					return apptypes.CheckinStatus_ErrorCreateAttendance, err
 				}
 				student, _ := repository.QueryStudentByID(fmt.Sprint(userID))
 				MessageToNotify(student, schedule, checkinTime, checkinStatus)
-				return constant.CheckinStatus_Success, nil
+				return apptypes.CheckinStatus_Success, nil
 			} else if isScheduleForeseen {
-				return constant.CheckinStatus_Exist, nil
+				return apptypes.CheckinStatus_Exist, nil
 			}
 
 		} else if isScheduleForeseen {
-			NotiFail(userID, constant.CheckinStatus_EnrollmentNotFound)
-			return constant.CheckinStatus_EnrollmentNotFound, nil
+			NotiFail(userID, apptypes.CheckinStatus_EnrollmentNotFound)
+			return apptypes.CheckinStatus_EnrollmentNotFound, nil
 		}
 
 		needCheckNextSchedule = true
 	}
-	NotiFail(userID, constant.CheckinStatus_ErrorLogic)
-	return constant.CheckinStatus_ErrorLogic, nil
+	NotiFail(userID, apptypes.CheckinStatus_ErrorLogic)
+	return apptypes.CheckinStatus_ErrorLogic, nil
 }
 
 func GenerateQREncodeString(userId uint) (string, error) {
 	currentDateTime, _ := time.Now().UTC().MarshalText()
 
-	hashedSecretKeyByte, bcryptError := bcrypt.GenerateFromPassword([]byte(constant.QRSecretKey+string(currentDateTime)), bcrypt.DefaultCost)
+	hashedSecretKeyByte, bcryptError := bcrypt.GenerateFromPassword([]byte(apptypes.QRSecretKey+string(currentDateTime)), bcrypt.DefaultCost)
 	if bcryptError != nil {
 		return "", bcryptError
 	}
@@ -174,7 +175,7 @@ func GenerateQREncodeString(userId uint) (string, error) {
 
 	encodeString := base64.StdEncoding.EncodeToString([]byte(rawString))
 
-	QRString := constant.QRPrefix + ":" + encodeString + "="
+	QRString := apptypes.QRPrefix + ":" + encodeString + "="
 
 	return QRString, nil
 }
@@ -215,6 +216,7 @@ func MessageToNotify(student *entity.Student, schedule *entity.Schedule, checkin
 		"checkintime":   checkinTime.Format("2006-01-02 15:04:05"),
 		"checkinstatus": checkinStatus,
 	}
+	utils.Log(2, data)
 	fireapp.SendNotification(student.ID, data)
 }
 

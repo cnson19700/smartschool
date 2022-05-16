@@ -7,19 +7,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/smartschool/lib/constant"
+	"github.com/smartschool/apptypes"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func ClassifyCheckinCode(code string) (CheckinType string, err error) {
 	reQR, err := regexp.Compile(`^[a-zA-Z0-9]+:\S+\=$`) //format: <Prefix>:<encodeString>=
 	if err != nil {
-		return constant.CheckinType_Error, err
+		return apptypes.CheckinType_Error, err
 	}
 
 	reCard, err := regexp.Compile("^[a-zA-Z0-9]+$")
 	if err != nil {
-		return constant.CheckinType_Error, err
+		return apptypes.CheckinType_Error, err
 	}
 
 	if reQR.Match([]byte(code)) {
@@ -27,15 +27,15 @@ func ClassifyCheckinCode(code string) (CheckinType string, err error) {
 		// // checkCode = base64.StdEncoding.EncodeToString([]byte(checkCode)) //this is temp
 		// rawDecodedText, err := base64.StdEncoding.DecodeString(checkCode)
 
-		return constant.CheckinType_QR, nil
+		return apptypes.CheckinType_QR, nil
 
 	}
 
 	if reCard.Match([]byte(code)) {
-		return constant.CheckinType_Card, nil
+		return apptypes.CheckinType_Card, nil
 	}
 
-	return constant.CheckinType_Error, nil
+	return apptypes.CheckinType_Error, nil
 }
 
 func ConvertDeviceTimestampToExact(timestamp int64) time.Time {
@@ -64,7 +64,7 @@ func ParseQR(code string, timeEntry time.Time) (uint, bool, error) {
 		return 0, false, nil
 	}
 
-	if checkCodeValues[0] != constant.QRPrefix {
+	if checkCodeValues[0] != apptypes.QRPrefix {
 		return 0, false, nil
 	}
 
@@ -90,15 +90,15 @@ func ParseQR(code string, timeEntry time.Time) (uint, bool, error) {
 		return uint(userId), false, err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(secret), []byte(constant.QRSecretKey+contentValues[1]))
+	err = bcrypt.CompareHashAndPassword([]byte(secret), []byte(apptypes.QRSecretKey+contentValues[1]))
 	if err != nil {
 		return uint(userId), false, nil
 	}
 
-	// if diff := time.Since(requestDateTime); diff > constant.AcceptRefreshQRSecond || diff < 0 {
+	// if diff := time.Since(requestDateTime); diff > apptypes.AcceptRefreshQRSecond || diff < 0 {
 	// 	return "", false, nil
 	// }
-	if diff := timeEntry.Sub(requestDateTime); diff > constant.AcceptRefreshQRSecond || diff < 0 {
+	if diff := timeEntry.Sub(requestDateTime); diff > apptypes.AcceptRefreshQRSecond || diff < 0 {
 		return uint(userId), false, nil
 	}
 
