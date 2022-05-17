@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/GoAdminGroup/go-admin/context"
 	"github.com/GoAdminGroup/go-admin/modules/db"
@@ -15,22 +16,26 @@ import (
 	"github.com/GoAdminGroup/go-admin/template/types"
 	"github.com/GoAdminGroup/go-admin/template/types/action"
 	"github.com/GoAdminGroup/go-admin/template/types/form"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/smartschool/database"
 	"github.com/smartschool/model/entity"
+	"github.com/smartschool/repository"
 	"gorm.io/gorm/clause"
 )
 
 func GetCourses(ctx *context.Context) table.Table {
-	tableCourses := table.NewDefaultTable(table.DefaultConfigWithDriver("sqlite"))
+	tableCourses := table.NewDefaultTable(table.DefaultConfigWithDriver("sqlite").SetPrimaryKey("course_id", db.Varchar))
 
 	info := tableCourses.GetInfo()
+	info.HideDeleteButton()
+	info.HideEditButton()
 
 	info.AddField("ID", "id", db.Int).FieldSortable()
-	// info.AddField("Course", "course_id", db.Varchar)
-	info.AddField("Class", "class", db.Varchar)
+	// info.AddField("Class", "class", db.Varchar)
+	info.AddField("Course Code", "course_id", db.Varchar)
 	info.AddField("Name", "name", db.Varchar)
-	info.AddField("Teacher", "teacher_name", db.Varchar)
-	info.AddField("Teacher Role", "teacher_role", db.Varchar)
+	// info.AddField("Teacher", "teacher_name", db.Varchar)
+	// info.AddField("Teacher Role", "teacher_role", db.Varchar)
 	info.AddField("Semester", "semester_name", db.Varchar)
 
 	info.SetGetDataFn(func(param parameter.Parameters) ([]map[string]interface{}, int) {
@@ -147,23 +152,27 @@ func GetCourses(ctx *context.Context) table.Table {
 	})
 
 	detail := tableCourses.GetDetail()
-	// detail.AddField("Course", "course_id", db.Varchar)
-	detail.AddField("Class", "class", db.Varchar)
 	detail.AddField("Name", "name", db.Varchar)
-	detail.AddField("Number of Student", "number_of_student", db.Int)
-	detail.AddField("Teacher", "teacher_name", db.Varchar)
-	detail.AddField("Teacher Role", "teacher_role", db.Varchar)
 	detail.AddField("Semester", "semester_name", db.Varchar)
-	detail.AddField("Attendances", "attendance", db.Varchar).FieldDisplay(func(value types.FieldModel) interface{} {
-		teacher_id, _ := value.Row["teacher_id"].(string)
-		course_id, _ := value.Row["id"].(int)
-		return template.Default().
-			Link().
-			SetURL("/admin/info/attendances?teacher_id=" + teacher_id + "&course_id=" + fmt.Sprint(course_id)).
-			SetContent(template.HTML("Attendance Details")).
-			OpenInNewTab().
-			SetTabTitle(template.HTML("Attendance Detail")).
-			GetContent()
+	detail.AddField("Teachers", "id", db.Varchar).FieldDisplay(func(value types.FieldModel) interface{} {
+		query := `select distinct concat(u.first_name,'', u.last_name) as teacher_name, u.id as teacher_id
+		from users u
+		join teacher_courses tc
+		on tc.teacher_id = u.id and u.role_id = 3 and tc.course_id in (` + value.Row["id"].(string) + `)`
+
+		var teachers []teacherOptionResult
+		database.DbInstance.Raw(query).Scan(&teachers)
+		var display []interface{}
+		for _, t := range teachers {
+			tmp := template.Default().
+				Link().
+				SetURL("/admin/info/teachers/detail?__goadmin_detail_pk=" + fmt.Sprint(t.TeacherID)).
+				SetContent(template.HTML(t.TeacherName)).
+				GetContent()
+			display = append(display, tmp)
+		}
+		return display_teachers(display)
+
 	})
 
 	detail.SetGetDataFn(func(param parameter.Parameters) ([]map[string]interface{}, int) {
@@ -175,26 +184,27 @@ func GetCourses(ctx *context.Context) table.Table {
 
 func GetCourseData(param string) ([]map[string]interface{}, int) {
 	query := `
-			select c.id , concat(u.first_name, ' ', u.last_name) as teacher_name, c.teacher_id, c.number_of_student, c.name as course_name, c.course_id as course_id, s.title as semester_name, s.id as semester_id, c.teacher_role as teacher_role, c.class
-				from courses c, (select us.id, us.first_name as first_name, us.last_name as last_name
-					from users us, courses c, teachers t
-					where c.id = ` + param + ` and c.teacher_id = t.teacher_id and us.id = t.id) u, semesters s
-				where c.id = ` + param + ` limit 1;`
-	var currentResult courseResult
+	select distinct u.id, u.course_id, u.name as course_name, u.semester_name as semester_name, u.semester_id as semester_id
+	from teacher_courses tc
+	join (select c.id, c.name, c.course_id, s.title as semester_name, s.id as semester_id, c.class
+		from courses c, semesters s
+		where c.course_id LIKE '%` + param + `%' and c.semester_id = s.id) u
+	on u.id = tc.course_id`
+
+	var currentResult []courseResult
 	database.DbInstance.Raw(query).Scan(&currentResult)
 	tableResult := make([]map[string]interface{}, 1)
 	tempResult := make(map[string]interface{})
-
-	tempResult["id"] = currentResult.ID
-	tempResult["teacher_name"] = currentResult.TeacherName
-	tempResult["teacher_id"] = currentResult.TeacherID
-	tempResult["course_id"] = currentResult.CourseID
-	tempResult["name"] = currentResult.CourseName
-	tempResult["semester_name"] = currentResult.SemesterName
-	tempResult["number_of_student"] = currentResult.NumberOfStudent
-	tempResult["semester_id"] = currentResult.SemesterID
-	tempResult["teacher_role"] = currentResult.TeacherRole
-	tempResult["class"] = currentResult.CourseID + " - " + currentResult.Class
+	course_ids, course_names := []string{}, []string{}
+	for _, c := range currentResult {
+		course_ids = append(course_ids, fmt.Sprint(c.ID))
+		course_names = append(course_names, c.CourseName)
+	}
+	tempResult["id"] = strings.Join(course_ids, ",")
+	tempResult["course_id"] = currentResult[0].CourseID
+	tempResult["name"] = unique_name(course_names)
+	tempResult["semester_name"] = currentResult[0].SemesterName
+	tempResult["semester_id"] = currentResult[0].SemesterID
 
 	tableResult[0] = tempResult
 
@@ -202,36 +212,34 @@ func GetCourseData(param string) ([]map[string]interface{}, int) {
 
 }
 func GetAllCoursesData(param parameter.Parameters) ([]map[string]interface{}, int) {
-	sort := "desc"
-	if len(param.SortType) > 0 {
-		sort = param.SortType
-	}
+	// sort := "desc"
+	// if len(param.SortType) > 0 {
+	// 	sort = param.SortType
+	// }
 	query := `
-			select c.id as id, concat(u.first_name, ' ', u.last_name) as teacher_name, c.teacher_id as teacher_id, c.number_of_student, c.name as course_name, c.course_id as course_id, s.title as semester_name, s.id as semester_id, c.teacher_role as teacher_role, c.class
-				from courses c, (select users.id, users.first_name as first_name, users.last_name as last_name, teachers.teacher_id as teacher_id
-					from users
-					join teachers
-					on users.id = teachers.id) u, semesters s
-				where c.teacher_id = u.teacher_id and c.semester_id = s.id 
-				ORDER BY c.id ` + sort
+	select distinct c.name as course_name, c.course_id as course_id, 
+	s.title as semester_name, s.id as semester_id, c.number_of_student
+	from courses c, semesters s
+	where c.semester_id = s.id order by c.course_id`
 
 	var courseResults []courseResult
 	database.DbInstance.Raw(query).Scan(&courseResults)
-
+	teacher, _ := repository.QueryTeacherByID("10")
+	spew.Dump(teacher)
 	tableResults := make([]map[string]interface{}, len(courseResults))
 	for i, currentResult := range courseResults {
 		tempResult := make(map[string]interface{})
 
-		tempResult["id"] = currentResult.ID
-		tempResult["teacher_name"] = currentResult.TeacherName
-		tempResult["teacher_id"] = currentResult.TeacherID
+		tempResult["id"] = i + 1
+		// tempResult["teacher_name"] = currentResult.TeacherName
+		// tempResult["teacher_id"] = currentResult.TeacherID
 		tempResult["course_id"] = currentResult.CourseID
 		tempResult["name"] = currentResult.CourseName
 		tempResult["semester_name"] = currentResult.SemesterName
-		tempResult["number_of_student"] = currentResult.NumberOfStudent
+		// tempResult["number_of_student"] = currentResult.NumberOfStudent
 		tempResult["semester_id"] = currentResult.SemesterID
-		tempResult["teacher_role"] = currentResult.TeacherRole
-		tempResult["class"] = currentResult.CourseID + " - " + currentResult.Class
+		// tempResult["teacher_role"] = currentResult.TeacherRole
+		// tempResult["class"] = currentResult.Class
 
 		tableResults[i] = tempResult
 	}
@@ -276,6 +284,25 @@ func GetAllSemestersData() []types.FieldOption {
 		semester_options = append(semester_options, tmp)
 	}
 	return semester_options
+}
+
+func display_teachers(og []interface{}) (display string) {
+	data := make([]string, len(og))
+	for i, v := range og {
+		data[i] = fmt.Sprint(v)
+	}
+	return strings.Join(data, "<br>")
+}
+func unique_name(s []string) string {
+	inResult := make(map[string]bool)
+	var result []string
+	for _, str := range s {
+		if _, ok := inResult[str]; !ok {
+			inResult[str] = true
+			result = append(result, str)
+		}
+	}
+	return strings.Join(result, "/")
 }
 
 type courseResult struct {
