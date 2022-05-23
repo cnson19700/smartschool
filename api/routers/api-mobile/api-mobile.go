@@ -2,6 +2,7 @@ package api_mobile
 
 import (
 	"fmt"
+	"github.com/smartschool/service/fireapp"
 	"net/http"
 	"time"
 
@@ -369,4 +370,17 @@ func ChangePasswordFirstTime(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"is_activate": true,
 	})
+}
+
+func TestNotification(c *gin.Context) {
+	id, _ := c.Get("userId")
+	userId, _ := id.(float64)
+
+	data := map[string]string{
+		"message": "Hello world",
+	}
+
+	err := fireapp.SendNotification(uint(userId), data)
+	_ = err
+	c.JSON(http.StatusOK, data)
 }
