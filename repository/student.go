@@ -8,6 +8,14 @@ import (
 	"github.com/smartschool/model/entity"
 )
 
+type Student interface {
+	QueryStudentBySID(string) (*entity.Student, bool, error)
+	QueryStudentByID(string) (*entity.Student, error)
+	QueryAllStudents() ([]*entity.Student, error)
+	QueryStudentsByName(string) ([]uint, error)
+	QueryAllStudentIDs()
+}
+
 func QueryStudentBySID(sid string) (*entity.Student, bool, error) {
 	var student entity.Student
 	result := database.DbInstance.Where("student_id = ?", sid).Limit(1).Find(&student)
@@ -45,19 +53,6 @@ func QueryCheckinHistoryWithSIdAndStatus(id int, status string) ([]entity.Attend
 	result := append([]entity.Attendance{}, stat...)
 
 	return result, nil
-}
-
-func QueryStudentByEmail(email string) (*entity.User, error) {
-	user := &entity.User{}
-
-	err := database.DbInstance.Where("email = ?", email).
-		First(user).Error
-
-	if err != nil {
-		return nil, errors.Wrap(err, "get user by email")
-	}
-
-	return user, nil
 }
 
 func QueryStudentsByName(student_name string) ([]uint, error) {

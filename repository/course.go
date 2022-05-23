@@ -6,13 +6,6 @@ import (
 	"github.com/smartschool/model/entity"
 )
 
-func QueryCourseByID(id string) (*entity.Course, bool, error) {
-	var course entity.Course
-	result := database.DbInstance.Select("id").Where("course_id = ?", id).Find(&course)
-
-	return &course, result.RowsAffected == 0, result.Error
-}
-
 func QueryAllCourses() (*[]entity.Course, error) {
 	var course []entity.Course
 	err := database.DbInstance.Find(&course).Error
@@ -77,9 +70,9 @@ func QueryCourseByTeacherID(teacher_id string) ([]*entity.CourseByTeacher, error
 	return courses_by_teacher, nil
 }
 
-func QueryTeacherIDByCourseID(course_id uint) (uint, error) {
-	var teacher_id uint
-	result := database.DbInstance.Table("courses").Where("id = ?", course_id).Find(&teacher_id)
+func QueryTeacherIDByCourseID(course_id uint) ([]*entity.Teacher, error) {
+	teacher := make([]*entity.Teacher, 0)
+	result := database.DbInstance.Table("courses").Where("id = ?", course_id).Find(&teacher)
 
-	return teacher_id, result.Error
+	return teacher, result.Error
 }

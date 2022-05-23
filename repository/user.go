@@ -6,7 +6,7 @@ import (
 	"github.com/smartschool/model/entity"
 )
 
-func QueryUserBySID(sid string) (*entity.User) {
+func QueryUserBySID(sid string) *entity.User {
 	var user entity.User
 	err := database.DbInstance.Where("id = ?", sid).First(&user).Error
 	if err != nil {
@@ -53,4 +53,10 @@ func QueryUserRoleDetailByRoleID(id uint) (string, error) {
 	result := database.DbInstance.Table("roles").Select("title").Where("id = ?", id).Find(&role_title)
 
 	return role_title, result.Error
+}
+
+func QueryAdminByFacultyID(facultiId uint) ([]*entity.User, error) {
+	admin := make([]*entity.User, 0)
+	result := database.DbInstance.Table("users").Where("faculty_id=?", facultiId).Find(admin)
+	return admin, result.Error
 }

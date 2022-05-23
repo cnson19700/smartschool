@@ -5,6 +5,11 @@ import (
 	"github.com/smartschool/model/entity"
 )
 
+type TeacherRepository interface {
+	QueryTeacherByID(string) (*entity.Teacher, error)
+	QueryTeacherByName(string) (*entity.User, bool, error)
+}
+
 func QueryTeacherByID(id string) (*entity.Teacher, error) {
 	teacher := &entity.Teacher{}
 	err := database.DbInstance.Where("id = ?", id).First(teacher).Error

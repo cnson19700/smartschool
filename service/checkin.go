@@ -134,11 +134,6 @@ func recordCheckin(userID uint, userRole uint, deviceID string, checkinTime time
 					checkinStatus = apptypes.CheckinStatus_Late
 				}
 
-				// teacherId, err := repository.QueryTeacherIDByCourseID(schedule.CourseID)
-				// if err != nil {
-				// 	return "[Abnormal]: Error when query teacher in course", err
-				// }
-
 				err = repository.CreateAttendance(entity.Attendance{UserID: userID, ScheduleID: schedule.ID, TeacherID: 0, CheckInTime: checkinTime, CheckInStatus: checkinStatus})
 				if err != nil {
 					NotiFail(userID, apptypes.CheckinStatus_ErrorCreateAttendance)

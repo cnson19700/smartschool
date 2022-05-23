@@ -59,6 +59,7 @@ func MigrateDatabase() {
 	DbInstance.AutoMigrate(&entity.Attendance{})
 	DbInstance.AutoMigrate(&entity.DeviceSignalLog{})
 	DbInstance.AutoMigrate(&entity.UserNotificationToken{})
+	DbInstance.AutoMigrate(&entity.Notification{})
 
 	// errJoin := DbInstance.SetupJoinTable(&entity.Student{}, "Courses", &entity.StudentCourseEnrollment{})
 	// if errJoin != nil {

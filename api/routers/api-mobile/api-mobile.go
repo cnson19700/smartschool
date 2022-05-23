@@ -2,9 +2,10 @@ package api_mobile
 
 import (
 	"fmt"
-	"github.com/smartschool/service/fireapp"
 	"net/http"
 	"time"
+
+	"github.com/smartschool/service/fireapp"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -15,38 +16,6 @@ import (
 	"github.com/smartschool/service"
 	"golang.org/x/crypto/bcrypt"
 )
-
-// func Register(c *gin.Context) {
-// 	var registerReq dto.RegisterRequest
-// 	err := c.ShouldBindJSON(&registerReq)
-// 	if err != nil {
-// 		c.JSON(http.StatusUnauthorized, errors.New("register request is invalid"))
-// 		return
-// 	}
-// 	isMail, email := helper.CheckMailFormat(registerReq.Email)
-// 	if !isMail {
-// 		c.JSON(http.StatusBadRequest, errors.New("wrong email request"))
-// 		return
-// 	}
-
-// 	//password format error
-// 	if len(registerReq.Password) < 8 {
-// 		c.JSON(http.StatusBadRequest, errors.New("password must have at least 8 characters"))
-// 	}
-
-// 	passwordHash, err := helper.HashPassword(registerReq.Password)
-// 	if err != nil {
-// 		c.JSON(http.StatusBadRequest, errors.New("password hash fail"))
-// 		return
-// 	}
-
-// 	user := entity.User{
-// 		Email:    email,
-// 		Password: passwordHash,
-// 	}
-// 	database.DbInstance.Create(&user)
-// 	c.JSON(http.StatusOK, "Register success")
-// }
 
 func Login(c *gin.Context) {
 	var request dto.LoginRequest

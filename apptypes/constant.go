@@ -14,6 +14,8 @@ const (
 	AcademicSectionRole uint = 2
 	TeacherRole         uint = 3
 
+	By_Front string = "front"
+
 	MAX_QUERY_LIMIT = 100
 
 	CheckinType_Card  = "Card"
