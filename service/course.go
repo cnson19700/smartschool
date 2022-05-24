@@ -3,6 +3,7 @@ package service
 import (
 	"time"
 
+	"github.com/smartschool/lib/constant"
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/repository"
 )
@@ -26,7 +27,7 @@ func GetAttendanceInCourseOneUser(courseID uint, userID uint) ([]dto.AttendanceL
 	}
 
 	var checkinTime *time.Time
-	var checkinStatus string
+	var checkinStatus constant.CheckInStatus
 	resultList := make([]dto.AttendanceListElement, 0)
 
 	// for i := 0; i < len(attendList); i++ {
@@ -51,6 +52,7 @@ func GetAttendanceInCourseOneUser(courseID uint, userID uint) ([]dto.AttendanceL
 		}
 
 		resultList = append(resultList, dto.AttendanceListElement{
+			ScheduleID:    scheduleList[i].ID,
 			StartTime:     scheduleList[i].StartTime,
 			EndTime:       scheduleList[i].EndTime,
 			Room:          scheduleList[i].Room.RoomID,

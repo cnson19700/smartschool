@@ -389,7 +389,7 @@ func ChangePasswordFirstTime(c *gin.Context) {
 
 func GetFormRequestChangeAttendanceStatus(c *gin.Context) {
 	request := struct {
-		AttendanceID uint `form:"attendance_id" binding:"required"`
+		ScheduleID uint `form:"schedule_id" binding:"required"`
 	}{}
 
 	err := c.ShouldBind(&request)
@@ -400,20 +400,69 @@ func GetFormRequestChangeAttendanceStatus(c *gin.Context) {
 		return
 	}
 
-	schedule, teacherList, err := service.GetFormRequestChangeAttendanceStatus(request.AttendanceID)
+	id, isGet := c.Get("userId")
+	if !isGet {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
+		return
+	}
+
+	userId, canConvert := id.(float64)
+	if !canConvert {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Authenticate fail"})
+		return
+	}
+
+	schedule, teacherList, err := service.GetFormRequestChangeAttendanceStatus(uint(userId), request.ScheduleID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot get schedule info for this request"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"schedule_id":    schedule.ScheduleID,
-		"course_name":    schedule.CourseName,
-		"room":           schedule.Room,
-		"start_time":     schedule.StartTime,
-		"end_time":       schedule.EndTime,
-		"current_status": schedule.CurrentStatus,
-		"request_status": constant.Option_CheckinStatus,
-		"teacher_list":   teacherList,
+		"schedule_id":             schedule.ScheduleID,
+		"course_name":             schedule.CourseName,
+		"room":                    schedule.Room,
+		"start_time":              schedule.StartTime,
+		"end_time":                schedule.EndTime,
+		"check_in_time":           schedule.CheckInTime,
+		"current_check_in_status": schedule.CurrentStatus,
+		"request_status":          constant.Option_CheckinStatus,
+		"teacher_list":            teacherList,
+	})
+}
+
+func RequestChangeAttendanceStatus(c *gin.Context) {
+
+	id, isGet := c.Get("userId")
+	if !isGet {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
+		return
+	}
+
+	userId, canConvert := id.(float64)
+	if !canConvert {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Authenticate fail"})
+		return
+	}
+
+	var request dto.ChangeAttendanceStatusRequest
+	err := c.ShouldBindJSON(&request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"messgae": "Cannot capture request",
+		})
+		return
+	}
+
+	fmt.Println(request)
+	err = service.RequestChangeAttendanceStatus(uint(userId), request)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot handle this request"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"messgae": "Success",
 	})
 }

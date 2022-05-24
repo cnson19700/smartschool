@@ -15,6 +15,7 @@ type Schedule struct {
 	//DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
 	gorm.Model
 
-	Room   *Room   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	Course *Course `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Room         *Room            `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Course       *Course          `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	FormRequests []AttendanceForm `gorm:"many2many:form_details; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }

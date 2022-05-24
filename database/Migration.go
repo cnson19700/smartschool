@@ -30,7 +30,8 @@ func Close() {
 }
 
 func ConnectDatabase() {
-	dbURI := "host=13.228.244.196 port=5432 user=busmapdb dbname=phenikaamaas_attendancedb sslmode=disable password=frjsdfhaflpzlcdzgnfvuxkdwiiiiklpojzowxajmendeeoqtbzyrgi"
+	dbURI := "host=localhost user=postgres dbname=nhan_local_database sslmode=disable password=Postgres port=5432"
+	//dbURI := "host=13.228.244.196 port=5432 user=busmapdb dbname=phenikaamaas_attendancedb sslmode=disable password=frjsdfhaflpzlcdzgnfvuxkdwiiiiklpojzowxajmendeeoqtbzyrgi"
 
 	var err error
 	DbInstance, err = gorm.Open(postgres.Open(dbURI), &gorm.Config{})
@@ -59,6 +60,8 @@ func MigrateDatabase() {
 	DbInstance.AutoMigrate(&entity.Attendance{})
 	DbInstance.AutoMigrate(&entity.DeviceSignalLog{})
 	DbInstance.AutoMigrate(&entity.UserNotificationToken{})
+	DbInstance.AutoMigrate(&entity.AttendanceForm{})
+	DbInstance.AutoMigrate(&entity.FormDetail{})
 
 	// errJoin := DbInstance.SetupJoinTable(&entity.Student{}, "Courses", &entity.StudentCourseEnrollment{})
 	// if errJoin != nil {
@@ -66,6 +69,11 @@ func MigrateDatabase() {
 	// }
 
 	errJoin := DbInstance.SetupJoinTable(&entity.Course{}, "Students", &entity.StudentCourseEnrollment{})
+	if errJoin != nil {
+		panic(errJoin)
+	}
+
+	errJoin = DbInstance.SetupJoinTable(&entity.AttendanceForm{}, "Schedules", &entity.FormDetail{})
 	if errJoin != nil {
 		panic(errJoin)
 	}

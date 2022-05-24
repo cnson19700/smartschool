@@ -31,7 +31,7 @@ func QueryAttendanceByTeacherCourse(teacherID string, courseId string) ([]*entit
 			StudentID:     student.StudentID,
 			StudentName:   user.FirstName + " " + user.LastName,
 			ScheduleID:    attendance.ScheduleID,
-			CheckinStatus: attendance.CheckInStatus,
+			CheckinStatus: string(attendance.CheckInStatus),
 		}
 		attendance_results = append(attendance_results, attendance_result)
 	}
@@ -160,4 +160,29 @@ func QueryAttendanceByID(id uint) (entity.Attendance, error) {
 	result := database.DbInstance.Where("id = ?", id).Preload("Schedule.Room").Preload("Schedule.Course").First(&queryRes)
 
 	return queryRes, result.Error
+}
+
+func CreateChangeAttendanceRequest(request entity.AttendanceForm) error {
+	err := database.DbInstance.Omit("Schedules.*").Create(&request).Error
+
+	return err
+	// err := database.DbInstance.Create(&request).Error
+	// if err != nil {
+	// 	return err
+	// }
+	// database.DbInstance.Model(&request).Association("Schedules").Append(schedule_list)
+}
+
+func QueryAttendanceStatusByID(attendance_id uint) (entity.Attendance, error) {
+	var attendance entity.Attendance
+	result := database.DbInstance.Where("id = ?", attendance_id).First(&attendance)
+
+	return attendance, result.Error
+}
+
+func QueryAttendanceStatusByUserSchedule(user_id uint, schedule_id uint) (entity.Attendance, bool, error) {
+	var attendance entity.Attendance
+	result := database.DbInstance.Where("user_id = ? AND schedule_id = ?", user_id, schedule_id).Find(&attendance)
+
+	return attendance, result.RowsAffected == 0, result.Error
 }

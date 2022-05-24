@@ -3,6 +3,7 @@ package service
 import (
 	"time"
 
+	"github.com/smartschool/lib/constant"
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/repository"
 )
@@ -111,7 +112,7 @@ func GetCheckInHistoryInDay(userID uint, facultyID uint, timezoneOffset int) ([]
 	}
 
 	var checkinTime *time.Time
-	var checkinStatus string
+	var checkinStatus constant.CheckInStatus
 	resultList := make([]dto.CheckInHistoryListElement, 0)
 	for i := 0; i < len(scheduleList); i++ {
 
@@ -125,6 +126,7 @@ func GetCheckInHistoryInDay(userID uint, facultyID uint, timezoneOffset int) ([]
 		}
 
 		resultList = append(resultList, dto.CheckInHistoryListElement{
+			ScheduleID:    scheduleList[i].ID,
 			Course:        scheduleList[i].Course.CourseID,
 			StartTime:     scheduleList[i].StartTime,
 			EndTime:       scheduleList[i].EndTime,

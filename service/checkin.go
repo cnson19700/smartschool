@@ -119,9 +119,9 @@ func recordCheckin(userID uint, userRole uint, deviceID string, checkinTime time
 			}
 
 			if notFound {
-				checkinStatus := constant.CheckinStatus_Attend
+				checkinStatus := constant.Attend
 				if timeDiff := checkinTime.Sub(schedule.StartTime); timeDiff > constant.AcceptLateMinute {
-					checkinStatus = constant.CheckinStatus_Late
+					checkinStatus = constant.Late
 				}
 
 				// teacherId, err := repository.QueryTeacherIDByCourseID(schedule.CourseID)

@@ -65,3 +65,17 @@ func QueryScheduleByCourseID(courseID uint) (*entity.Schedule, error) {
 
 	return &schedule, result.Error
 }
+
+func QueryScheduleByID(id uint) (*entity.Schedule, error) {
+	var queryRes entity.Schedule
+	result := database.DbInstance.Where("id = ?", id).Preload("Room").Preload("Course").First(&queryRes)
+
+	return &queryRes, result.Error
+}
+
+func QueryScheduleCourseSemesterByID(id uint) (*entity.Schedule, error) {
+	var queryRes entity.Schedule
+	result := database.DbInstance.Where("id = ?", id).Preload("Course").Preload("Course.Semester").First(&queryRes)
+
+	return &queryRes, result.Error
+}

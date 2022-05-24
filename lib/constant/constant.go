@@ -40,3 +40,29 @@ const CheckinStatus_EnrollmentNotFound string = "[Normal]: Student dont take thi
 const CheckinStatus_ErrorLogic string = "[Abnormal]: Error in Logic Check-in"
 
 var Option_CheckinStatus = [...]string{"Late", "Attend", "Absence with permission"}
+
+type CheckInStatus string
+
+const (
+	Attend                CheckInStatus = "Attend"
+	Late                  CheckInStatus = "Late"
+	Absence               CheckInStatus = "Absence"
+	AbsenceWithPermission CheckInStatus = "Absence with permission"
+	Unknown               CheckInStatus = "Unknown"
+)
+
+type RequestCheckInStatus string
+
+const (
+	RAttend  RequestCheckInStatus = "Attend"
+	RLate    RequestCheckInStatus = "Late"
+	RAbsence RequestCheckInStatus = "Absence"
+)
+
+type RequestStatus string
+
+const (
+	Approve RequestCheckInStatus = "Approve"
+	Reject  RequestCheckInStatus = "Reject"
+	Pending RequestCheckInStatus = "Pending"
+)
