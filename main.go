@@ -9,7 +9,7 @@ import (
 	"github.com/GoAdminGroup/go-admin/engine"
 	"github.com/GoAdminGroup/go-admin/modules/config"
 	"github.com/GoAdminGroup/go-admin/modules/db"
-	_ "github.com/GoAdminGroup/go-admin/modules/db/drivers/sqlite" // sql driver
+	_ "github.com/GoAdminGroup/go-admin/modules/db/drivers/postgres" // sql driver
 	"github.com/GoAdminGroup/go-admin/modules/language"
 	"github.com/GoAdminGroup/go-admin/template/types"
 	_ "github.com/GoAdminGroup/themes/adminlte" // ui theme
@@ -32,10 +32,14 @@ func main() {
 	cfg := config.Config{
 		Databases: config.DatabaseList{
 			"default": {
-				File:       "./admin.db",
+				Host:       "13.228.244.196",
+				Port:       "5432",
+				User:       "busmapdb",
+				Pwd:        "frjsdfhaflpzlcdzgnfvuxkdwiiiiklpojzowxajmendeeoqtbzyrgi",
+				Name:       "phenikaamaas_attendancedb",
 				MaxIdleCon: 50,
 				MaxOpenCon: 150,
-				Driver:     db.DriverSqlite,
+				Driver:     db.DriverPostgresql,
 			},
 		},
 		UrlPrefix: "admin",
