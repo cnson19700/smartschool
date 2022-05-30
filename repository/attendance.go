@@ -154,3 +154,65 @@ func SearchAttendance(params parameter.Parameters) ([]*entity.Attendance, error)
 	}
 	return attendances, nil
 }
+
+func AttendanceByTeacherCourse(params parameter.Parameters) ([]*entity.Attendance, error) {
+	filter := entity.AttendanceFilter{
+		StudentName:     strings.ToLower(params.GetFieldValue("student_name")),
+		StudentID:       params.GetFieldValue("student_id"),
+		CheckinStatus:   strings.ToLower(params.GetFieldValue("checkin_status")),
+	}
+
+	// order := params.SortType
+	query := database.DbInstance.Model(&entity.Attendance{})
+	attendances := []*entity.Attendance{}
+	scheduleIDs := []uint{}
+	teacher_id, course_id, class := params.GetFieldValue("teacher_id"), params.GetFieldValue("course_id"), params.GetFieldValue("class")
+	if len(teacher_id) > 0 && len(course_id) > 0 {
+		// database.DbInstance.Table("schedules").Select("id").Where("course_id = ?", course_id).Scan(&scheduleIDs)
+		// if len(scheduleIDs) > 1 {
+		// 	query.Where("teacher_id = ? AND schedule_id IN ? ", teacher_id, scheduleIDs)
+		// } else {
+		// 	query.Where("teacher_id = ? AND schedule_id = ? ", teacher_id, scheduleIDs)
+		// }
+		query_schedules := `select distinct schedules.id
+		from schedules
+		inner join 
+		(select distinct courses.*
+		from courses
+		inner join teacher_courses on teacher_courses.course_id = courses.id
+		where teacher_courses.teacher_id = ` + teacher_id + ` and 
+		courses.course_id = '` + course_id + `' and courses.class = '` + class + `') c
+			on c.id = schedules.course_id`
+
+		database.DbInstance.Raw(query_schedules).Scan(&scheduleIDs)
+		if len(scheduleIDs) > 1 {
+			query.Where("schedule_id IN ? ", scheduleIDs)
+		} else {
+			query.Where("schedule_id = ? ", scheduleIDs)
+		}
+	}
+
+	if filter.StudentID != "" {
+		student_ids := []uint{}
+		database.DbInstance.Table("students").Select("students.id").Where("student_id LIKE ? ", "%"+filter.StudentID+"%").Scan(&student_ids)
+		query.Where("user_id IN ? ", student_ids)
+	}
+	if filter.StudentName != "" {
+		student_ids, _ := QueryStudentsByName(filter.StudentName) //return user_ids
+		if len(student_ids) > 1 {
+			query.Where("user_id IN ? ", student_ids)
+		} else {
+			query.Where("user_id = ? ", student_ids[0])
+		}
+	}
+	if filter.CheckinStatus != "" {
+		query.Where("LOWER(checkin_status) LIKE ? ", "%"+filter.CheckinStatus+"%")
+	}
+	
+	err := query.Order("created_at DESC").Find(&attendances).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return attendances, nil
+}

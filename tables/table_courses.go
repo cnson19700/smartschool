@@ -158,7 +158,8 @@ func GetCourses(ctx *context.Context) table.Table {
 		query := `select distinct concat(u.first_name,'', u.last_name) as teacher_name, u.id as teacher_id
 		from users u
 		join teacher_courses tc
-		on tc.teacher_id = u.id and u.role_id = 3 and tc.course_id in (` + value.Row["id"].(string) + `)`
+		on tc.teacher_id = u.id and u.role_id = 3 and tc.course_id in (` + value.Row["id"].(string) + `)
+		order by u.id`
 
 		var teachers []teacherOptionResult
 		database.DbInstance.Raw(query).Scan(&teachers)
