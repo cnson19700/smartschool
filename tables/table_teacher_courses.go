@@ -43,6 +43,8 @@ func GetTeacherCourses(ctx *context.Context) (tableTeacherCourses table.Table) {
 			OpenInNewTab().
 			GetContent()
 	})
+	info.HideEditButton()
+	info.HideDeleteButton()
 
 	info.SetGetDataFn(func(param parameter.Parameters) ([]map[string]interface{}, int) {
 		return GetTeacherCoursesData(param.GetFieldValue("__teacher_id"))

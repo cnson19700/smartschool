@@ -14,7 +14,6 @@ import (
 	"github.com/GoAdminGroup/go-admin/template/types"
 	"github.com/GoAdminGroup/go-admin/template/types/action"
 	"github.com/GoAdminGroup/go-admin/template/types/form"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/smartschool/model/entity"
 	"github.com/smartschool/repository"
 )
@@ -65,12 +64,11 @@ func GetAttendances(ctx *context.Context) table.Table {
 		{Value: "Late", Text: "Late"},
 		{Value: "Attend", Text: "Attend"},
 	})
-	info.AddField("Created At", "created_at", db.Varchar)
+	info.AddField("Created At", "created_at", db.Timestamp).FieldFilterable(types.FilterType{FormType: form.DateRange, Placeholder: " ... "})
 	info.HideNewButton()
 	info.HideDetailButton()
 	info.HideDeleteButton()
 
-	spew.Dump()
 	info.SetTable("Overview").SetTitle("Overview").SetDescription("Overview").
 		SetWrapper(func(content template2.HTML) template2.HTML {
 			col1 := `<div style="margin-left:243px;">` + content + `</div>`

@@ -160,6 +160,8 @@ func AttendanceByTeacherCourse(params parameter.Parameters) ([]*entity.Attendanc
 		StudentName:     strings.ToLower(params.GetFieldValue("student_name")),
 		StudentID:       params.GetFieldValue("student_id"),
 		CheckinStatus:   strings.ToLower(params.GetFieldValue("checkin_status")),
+		CheckinDayStart: params.GetFieldValue("created_at_start__goadmin"),
+		CheckinDayTo:    params.GetFieldValue("created_at_end__goadmin"),
 	}
 
 	// order := params.SortType
@@ -208,7 +210,14 @@ func AttendanceByTeacherCourse(params parameter.Parameters) ([]*entity.Attendanc
 	if filter.CheckinStatus != "" {
 		query.Where("LOWER(checkin_status) LIKE ? ", "%"+filter.CheckinStatus+"%")
 	}
-	
+	if filter.CheckinDayStart != "" {
+		if filter.CheckinDayTo != "" {
+			query.Where("created_at BETWEEN ? AND ? ", filter.CheckinDayStart, filter.CheckinDayTo)
+		} else {
+			query.Where("created_at BETWEEN ? AND ?", filter.CheckinDayStart, time.Now())
+		}
+	}
+
 	err := query.Order("created_at DESC").Find(&attendances).Error
 
 	if err != nil {
