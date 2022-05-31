@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"os/signal"
+	"time"
 
 	_ "github.com/GoAdminGroup/go-admin/adapter/gin" // web framework adapter
 	"github.com/GoAdminGroup/go-admin/context"
@@ -21,6 +22,9 @@ import (
 )
 
 func main() {
+	locale, _ := time.LoadLocation("Asia/Ho_Chi_Minh")
+	time.Local = locale
+
 	database.Init()
 
 	r := gin.Default()

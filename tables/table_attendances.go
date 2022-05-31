@@ -139,7 +139,7 @@ func GetAllAttendancesData(param parameter.Parameters) ([]map[string]interface{}
 		attendance_result["schedule_id"] = attendance.ScheduleID
 		attendance_result["course_id"] = course_id
 		attendance_result["checkin_status"] = attendance.CheckInStatus
-		attendance_result["created_at"] = attendance.CreatedAt.UTC().Format("2006-01-02 15:04:05")
+		attendance_result["created_at"] = attendance.CreatedAt.Format("2006-01-02 15:04:05")
 
 		attendance_result["teacher_id"] = param.GetFieldValue("teacher_id")
 		attendance_result["class"] = param.GetFieldValue("class")
