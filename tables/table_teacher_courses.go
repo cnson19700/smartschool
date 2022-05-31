@@ -31,6 +31,18 @@ func GetTeacherCourses(ctx *context.Context) (tableTeacherCourses table.Table) {
 	info.AddField("Class", "class", db.Varchar)
 	info.AddField("Role in course", "teacher_role", db.Varchar)
 	info.AddField("Semester", "semester_name", db.Varchar)
+	info.AddField("Attendance", "attendance", db.Varchar).FieldDisplay(func(value types.FieldModel) interface{} {
+		teacher_id, _ := value.Row["teacher_id"].(string)
+		course_code, _ := value.Row["course_id"].(string)
+		class, _ := value.Row["class"].(string)
+		return template.
+			Default().
+			Link().
+			SetURL("/admin/info/attendances?teacher_id=" + teacher_id + "&course_id=" + course_code + "&class=" + class).
+			SetContent("Attendances").
+			OpenInNewTab().
+			GetContent()
+	})
 
 	info.SetGetDataFn(func(param parameter.Parameters) ([]map[string]interface{}, int) {
 		return GetTeacherCoursesData(param.GetFieldValue("__teacher_id"))
@@ -41,7 +53,7 @@ func GetTeacherCourses(ctx *context.Context) (tableTeacherCourses table.Table) {
 
 func GetTeacherCoursesData(param string) ([]map[string]interface{}, int) {
 	query := `
-	select c.id, c.course_id, c.name as course_name, c.class, s.title as semester_name, s.id as semester_id, tc.teacher_role
+	select c.id, c.course_id, c.name as course_name, c.class, s.title as semester_name, s.id as semester_id, tc.teacher_role, tc.teacher_id
 	from courses c, teacher_courses tc, semesters s
 	where tc.teacher_id = ` + param + ` and tc.course_id = c.id and s.id = c.semester_id
 	order by c.id`
@@ -58,6 +70,7 @@ func GetTeacherCoursesData(param string) ([]map[string]interface{}, int) {
 		tempResult["semester_name"] = currentResult.SemesterName
 		tempResult["semester_id"] = currentResult.SemesterID
 		tempResult["teacher_role"] = currentResult.TeacherRole
+		tempResult["teacher_id"] = currentResult.TeacherID
 		tableResult[i] = tempResult
 	}
 
