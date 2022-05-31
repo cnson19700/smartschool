@@ -59,7 +59,9 @@ func main() {
 
 	r.Static("/public", "./public")
 
-	eng.HTML("GET", "/admin", DashboardPage)
+	r.GET("/admin", func(context *gin.Context) {
+		context.Redirect(301, "/admin/info/courses")
+	})
 
 	r.GET("/summary", excel.ExportSummary)
 	r.POST("/course", excel.ImportCourse)
