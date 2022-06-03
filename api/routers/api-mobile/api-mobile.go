@@ -384,3 +384,24 @@ func TestNotification(c *gin.Context) {
 	_ = err
 	c.JSON(http.StatusOK, data)
 }
+
+func ResetPassword(c *gin.Context) {
+	var request dto.ResetPasswordRequest
+	err := c.ShouldBindJSON(&request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Reset password request is invalid",
+		})
+		return
+	}
+
+	err = service.ResetPassword(request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Password reset email is sent",
+	})
+}

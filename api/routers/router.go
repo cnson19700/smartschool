@@ -36,6 +36,8 @@ func Initialize() (*gin.Engine, error) {
 
 	r.POST("/checkin", api_device.EventCheckin)
 	r.POST("/login", api_mobile.Login)
+	r.POST("/reset-password", api_mobile.ResetPassword)
+
 	//r.GET("/courses/:id", api_device.GetCourseByID)
 	// r.GET("/courses", api_device.GetCourses)
 	// r.GET("/teachercourses", api_web.GetTeacherCourse)
