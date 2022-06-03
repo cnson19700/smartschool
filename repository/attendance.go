@@ -168,7 +168,7 @@ func AttendanceByTeacherCourse(params parameter.Parameters) ([]*entity.Attendanc
 	query := database.DbInstance.Model(&entity.Attendance{})
 	attendances := []*entity.Attendance{}
 	scheduleIDs := []uint{}
-	teacher_id, course_id, class := params.GetFieldValue("teacher_id"), params.GetFieldValue("course_id"), params.GetFieldValue("class")
+	teacher_id, course_id := params.GetFieldValue("teacher_id"), params.GetFieldValue("course_id")
 	if len(teacher_id) > 0 && len(course_id) > 0 {
 		// database.DbInstance.Table("schedules").Select("id").Where("course_id = ?", course_id).Scan(&scheduleIDs)
 		// if len(scheduleIDs) > 1 {
@@ -183,7 +183,7 @@ func AttendanceByTeacherCourse(params parameter.Parameters) ([]*entity.Attendanc
 		from courses
 		inner join teacher_courses on teacher_courses.course_id = courses.id
 		where teacher_courses.teacher_id = ` + teacher_id + ` and 
-		courses.course_id = '` + course_id + `' and courses.class = '` + class + `') c
+		courses.course_id = '` + course_id + `') c
 			on c.id = schedules.course_id`
 
 		database.DbInstance.Raw(query_schedules).Scan(&scheduleIDs)

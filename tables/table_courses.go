@@ -160,14 +160,14 @@ func GetCourses(ctx *context.Context) table.Table {
 		join teacher_courses tc
 		on tc.teacher_id = u.id and u.role_id = 3 and tc.course_id in (` + value.Row["id"].(string) + `)
 		order by u.id`
-
+		course_code,_ := value.Row["course_id"].(string)
 		var teachers []teacherOptionResult
 		database.DbInstance.Raw(query).Scan(&teachers)
 		var display []interface{}
 		for _, t := range teachers {
 			tmp := template.Default().
 				Link().
-				SetURL("/admin/info/teachers/detail?__goadmin_detail_pk=" + fmt.Sprint(t.TeacherID)).
+				SetURL("/admin/info/attendances?teacher_id=" + t.TeacherID + "&course_id=" + course_code).
 				SetContent(template.HTML(t.TeacherName)).
 				GetContent()
 			display = append(display, tmp)
@@ -185,9 +185,9 @@ func GetCourses(ctx *context.Context) table.Table {
 
 func GetCourseData(param string) ([]map[string]interface{}, int) {
 	query := `
-	select distinct u.id, u.course_id, u.name as course_name, u.semester_name as semester_name, u.semester_id as semester_id
+	select distinct u.id, u.course_id, u.name as course_name, concat(u.semester_name,' ',u.year) as semester_name, u.semester_id as semester_id
 	from teacher_courses tc
-	join (select c.id, c.name, c.course_id, s.title as semester_name, s.id as semester_id, c.class
+	join (select c.id, c.name, c.course_id, s.title as semester_name, s.id as semester_id, s.year, c.class
 		from courses c, semesters s
 		where c.course_id LIKE '%` + param + `%' and c.semester_id = s.id) u
 	on u.id = tc.course_id`
@@ -201,6 +201,7 @@ func GetCourseData(param string) ([]map[string]interface{}, int) {
 		course_ids = append(course_ids, fmt.Sprint(c.ID))
 		course_names = append(course_names, c.CourseName)
 	}
+	spew.Dump(strings.Join(course_ids, ","))
 	tempResult["id"] = strings.Join(course_ids, ",")
 	tempResult["course_id"] = currentResult[0].CourseID
 	tempResult["name"] = unique_name(course_names)
@@ -219,7 +220,7 @@ func GetAllCoursesData(param parameter.Parameters) ([]map[string]interface{}, in
 	// }
 	query := `
 	select distinct c.name as course_name, c.course_id as course_id, 
-	s.title as semester_name, s.id as semester_id, c.number_of_student
+	concat(s.title,' ',s.year) as semester_name, s.id as semester_id, s.year, c.number_of_student
 	from courses c, semesters s
 	where c.semester_id = s.id order by c.course_id`
 
