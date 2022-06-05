@@ -83,3 +83,10 @@ func QueryTeacherIDByCourseID(course_id uint) (uint, error) {
 
 	return teacher_id, result.Error
 }
+
+func DeleteCourseByListCourseID(list_course_id []uint) error {
+	var courses []entity.Course
+	err := database.DbInstance.Delete(&courses, list_course_id).Error
+
+	return err
+}

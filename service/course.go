@@ -1,8 +1,10 @@
 package service
 
 import (
+	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/repository"
 )
@@ -123,4 +125,52 @@ func GetListCourseByUserSemester(userID uint, semesterID uint) ([]dto.CourseRepo
 
 	return resultList, nil
 
+}
+
+func DeleteCourseBySemester(c *gin.Context) {
+	request := struct {
+		SemesterID uint `form:"semester_id" binding:"required"`
+	}{}
+
+	err := c.ShouldBind(&request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"messgae": "Cannot capture data for this request",
+		})
+		return
+	}
+
+	err = deleteCourseBySemester(request.SemesterID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"messgae": "Cannot delete course(s) in selected semester for user",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"messgae": "success",
+	})
+}
+
+func deleteCourseBySemester(semester_id uint) error {
+	listCourseIDInSemester, notFound, err := repository.QueryListCourseIDBySemester(semester_id)
+	if err != nil {
+		return err
+	}
+	if notFound {
+		return nil
+	}
+
+	err = repository.DeleteTeacherCourseByListCourseID(listCourseIDInSemester)
+	if err != nil {
+		return err
+	}
+
+	err = repository.DeleteCourseByListCourseID(listCourseIDInSemester)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
