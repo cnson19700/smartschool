@@ -5,7 +5,6 @@ import (
 	api_jwt "github.com/smartschool/api/api-jwt"
 	api_device "github.com/smartschool/api/routers/api-device"
 	api_mobile "github.com/smartschool/api/routers/api-mobile"
-	"github.com/smartschool/service"
 )
 
 func Initialize() (*gin.Engine, error) {
@@ -38,7 +37,6 @@ func Initialize() (*gin.Engine, error) {
 	r.POST("/checkin", api_device.EventCheckin)
 	r.POST("/login", api_mobile.Login)
 	r.POST("/reset-password", api_mobile.ResetPassword)
-	r.GET("/delete-course-by-semester", service.DeleteCourseBySemester)
 
 	//r.GET("/courses/:id", api_device.GetCourseByID)
 	// r.GET("/courses", api_device.GetCourses)

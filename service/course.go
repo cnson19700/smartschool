@@ -1,7 +1,7 @@
 package service
 
 import (
-	"net/http"
+	"errors"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -128,33 +128,29 @@ func GetListCourseByUserSemester(userID uint, semesterID uint) ([]dto.CourseRepo
 }
 
 func DeleteCourseBySemester(c *gin.Context) {
-	request := struct {
-		SemesterID uint `form:"semester_id" binding:"required"`
-	}{}
+	w := c.Writer
 
-	err := c.ShouldBind(&request)
+	err := deleteCourseBySemester(1, 7)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"messgae": "Cannot capture data for this request",
-		})
+		w.Write([]byte("Cannot delete course(s) in selected semester for user"))
 		return
 	}
-
-	err = deleteCourseBySemester(request.SemesterID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"messgae": "Cannot delete course(s) in selected semester for user",
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"messgae": "success",
-	})
 }
 
-func deleteCourseBySemester(semester_id uint) error {
-	listCourseIDInSemester, notFound, err := repository.QueryListCourseIDBySemester(semester_id)
+func deleteCourseBySemester(facultyID uint, timezoneOffset float32) error {
+
+	if timezoneOffset > 14 || timezoneOffset < -12 {
+		return errors.New("invalid time zone, action delete course in semester is stopped")
+	}
+
+	currentDateTime := time.Now().UTC().Add(time.Hour * time.Duration(timezoneOffset))
+
+	semesterID, notFound, err := repository.QuerySemesterByFacultyTime(facultyID, currentDateTime)
+	if err != nil || notFound {
+		return errors.New("invalid semester found, action delete course in semester is stopped")
+	}
+
+	listCourseIDInSemester, notFound, err := repository.QueryListCourseIDBySemester(semesterID)
 	if err != nil {
 		return err
 	}
