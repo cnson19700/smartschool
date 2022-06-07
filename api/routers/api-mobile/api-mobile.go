@@ -317,6 +317,9 @@ func GetCourseInSemesterOfOneUser(c *gin.Context) {
 		return
 	}
 
+	if res == nil {
+		res = make([]dto.CourseReportListElement, 0)
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"course_list": res,
 	})
