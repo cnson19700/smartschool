@@ -1,8 +1,10 @@
 package service
 
 import (
+	"errors"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/repository"
 )
@@ -123,4 +125,48 @@ func GetListCourseByUserSemester(userID uint, semesterID uint) ([]dto.CourseRepo
 
 	return resultList, nil
 
+}
+
+func DeleteCourseBySemester(c *gin.Context) {
+	w := c.Writer
+
+	err := deleteCourseBySemester(1, 7)
+	if err != nil {
+		w.Write([]byte("Cannot delete course(s) in selected semester for user"))
+		return
+	}
+}
+
+func deleteCourseBySemester(facultyID uint, timezoneOffset float32) error {
+
+	if timezoneOffset > 14 || timezoneOffset < -12 {
+		return errors.New("invalid time zone, action delete course in semester is stopped")
+	}
+
+	currentDateTime := time.Now().UTC().Add(time.Hour * time.Duration(timezoneOffset))
+
+	semesterID, notFound, err := repository.QuerySemesterByFacultyTime(facultyID, currentDateTime)
+	if err != nil || notFound {
+		return errors.New("invalid semester found, action delete course in semester is stopped")
+	}
+
+	listCourseIDInSemester, notFound, err := repository.QueryListCourseIDBySemester(semesterID)
+	if err != nil {
+		return err
+	}
+	if notFound {
+		return nil
+	}
+
+	err = repository.DeleteTeacherCourseByListCourseID(listCourseIDInSemester)
+	if err != nil {
+		return err
+	}
+
+	err = repository.DeleteCourseByListCourseID(listCourseIDInSemester)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

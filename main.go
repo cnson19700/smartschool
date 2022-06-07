@@ -16,6 +16,7 @@ import (
 	_ "github.com/GoAdminGroup/themes/adminlte" // ui theme
 	"github.com/gin-gonic/gin"
 	"github.com/smartschool/database"
+	"github.com/smartschool/service"
 	"github.com/smartschool/service/excel"
 	"github.com/smartschool/tables"
 )
@@ -66,6 +67,10 @@ func main() {
 	r.GET("/summary", excel.ExportSummary)
 	r.POST("/course", excel.ImportCourse)
 	r.POST("/user", excel.ImportUser)
+	r.POST("/delete-course-in-semester", func(context *gin.Context) {
+		service.DeleteCourseBySemester(context)
+		context.Redirect(301, "/admin/info/courses")
+	})
 
 	go func() {
 		r.Run(":6001")

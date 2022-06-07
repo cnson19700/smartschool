@@ -42,6 +42,19 @@ func GetCourses(ctx *context.Context) table.Table {
 		return GetAllCoursesData(param)
 	})
 
+	info.AddButton("Delete courses", icon.Minus, action.PopUp("/delete", "Are you sure to delete courses in this semester",
+		func(ctx *context.Context) (success bool, msg string, data interface{}) {
+			data = `
+			<div>
+				<form id="clean-import" method="POST" action="/delete-course-in-semester">
+					<center>
+						<button type="submit" class="btn btn-primary">Confirm</button>
+					</center>
+				</form>
+			</div>`
+
+			return true, "", data
+		}))
 	info.AddButton("Import courses", icon.FileExcelO, action.PopUp("/course", "Import",
 		func(ctx *context.Context) (success bool, msg string, data interface{}) {
 			data = `
@@ -160,7 +173,7 @@ func GetCourses(ctx *context.Context) table.Table {
 		join teacher_courses tc
 		on tc.teacher_id = u.id and u.role_id = 3 and tc.course_id in (` + value.Row["id"].(string) + `)
 		order by u.id`
-		course_code,_ := value.Row["course_id"].(string)
+		course_code, _ := value.Row["course_id"].(string)
 		var teachers []teacherOptionResult
 		database.DbInstance.Raw(query).Scan(&teachers)
 		var display []interface{}
