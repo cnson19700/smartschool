@@ -119,7 +119,7 @@ func UpdatePassword(c *gin.Context) {
 	}
 	err = service.UpdatePassword(fmt.Sprint(id), req)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "2 password not matches"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 

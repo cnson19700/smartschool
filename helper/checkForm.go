@@ -22,6 +22,13 @@ func CheckMailFormat(email string) (bool, string) {
 	return true, email
 }
 
+func CompareOldNewPass(oldPass, newPass string) error {
+	if oldPass == newPass {
+		return errors.New("old and new passwords must be different")
+	}
+	return nil
+}
+
 func ComparePassword(newPass, reNewPass string) error {
 	if len(reNewPass) < 8 {
 		return errors.New("password must have 8 characters")

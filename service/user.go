@@ -2,17 +2,23 @@ package service
 
 import (
 	"errors"
+	"math/rand"
+
 	"github.com/smartschool/helper"
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/repository"
 	mail_service "github.com/smartschool/service/mail-service"
 	"golang.org/x/crypto/bcrypt"
-	"math/rand"
 )
 
 func UpdatePassword(id string, req dto.UpdatePasswordRequest) error {
 	user := repository.QueryUserBySID(id) // get ID from above
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+	if err != nil {
+		return err
+	}
+
+	err = helper.CompareOldNewPass(req.Password, req.NewPass)
 	if err != nil {
 		return err
 	}
