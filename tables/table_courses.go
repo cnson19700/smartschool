@@ -16,10 +16,8 @@ import (
 	"github.com/GoAdminGroup/go-admin/template/types"
 	"github.com/GoAdminGroup/go-admin/template/types/action"
 	"github.com/GoAdminGroup/go-admin/template/types/form"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/smartschool/database"
 	"github.com/smartschool/model/entity"
-	"github.com/smartschool/repository"
 	"gorm.io/gorm/clause"
 )
 
@@ -214,7 +212,6 @@ func GetCourseData(param string) ([]map[string]interface{}, int) {
 		course_ids = append(course_ids, fmt.Sprint(c.ID))
 		course_names = append(course_names, c.CourseName)
 	}
-	spew.Dump(strings.Join(course_ids, ","))
 	tempResult["id"] = strings.Join(course_ids, ",")
 	tempResult["course_id"] = currentResult[0].CourseID
 	tempResult["name"] = unique_name(course_names)
@@ -239,8 +236,6 @@ func GetAllCoursesData(param parameter.Parameters) ([]map[string]interface{}, in
 
 	var courseResults []courseResult
 	database.DbInstance.Raw(query).Scan(&courseResults)
-	teacher, _ := repository.QueryTeacherByID("10")
-	spew.Dump(teacher)
 	tableResults := make([]map[string]interface{}, len(courseResults))
 	for i, currentResult := range courseResults {
 		tempResult := make(map[string]interface{})
