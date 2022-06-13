@@ -192,6 +192,8 @@ func AttendanceByTeacherCourse(params parameter.Parameters) ([]*entity.Attendanc
 		} else {
 			query.Where("schedule_id = ? ", scheduleIDs)
 		}
+	} else {
+		query.Where("user_id = null")
 	}
 
 	if filter.StudentID != "" {
@@ -203,8 +205,10 @@ func AttendanceByTeacherCourse(params parameter.Parameters) ([]*entity.Attendanc
 		student_ids, _ := QueryStudentsByName(filter.StudentName) //return user_ids
 		if len(student_ids) > 1 {
 			query.Where("user_id IN ? ", student_ids)
-		} else {
+		} else if len(student_ids) == 1 {
 			query.Where("user_id = ? ", student_ids[0])
+		} else {
+			query.Where("user_id = null")
 		}
 	}
 	if filter.CheckinStatus != "" {
