@@ -125,7 +125,7 @@ func GetCheckInHistoryInDay(userID uint, facultyID uint, timezoneOffset int) ([]
 		}
 
 		resultList = append(resultList, dto.CheckInHistoryListElement{
-			Course:        scheduleList[i].Course.CourseID,
+			Course:        scheduleList[i].Course.CourseID + " - " + scheduleList[i].Course.Name,
 			StartTime:     scheduleList[i].StartTime,
 			EndTime:       scheduleList[i].EndTime,
 			Room:          scheduleList[i].Room.RoomID,
