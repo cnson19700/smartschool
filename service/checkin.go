@@ -145,6 +145,7 @@ func recordCheckin(userID uint, userRole uint, deviceID string, checkinTime time
 					return apptypes.CheckinStatus_ErrorCreateAttendance, err
 				}
 				student, _ := repository.QueryStudentByID(fmt.Sprint(userID))
+				schedule.RoomID = roomId
 				MessageToNotify(student, schedule, checkinTime, checkinStatus)
 				return apptypes.CheckinStatus_Success, nil
 			} else if isScheduleForeseen {
