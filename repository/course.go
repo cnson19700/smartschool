@@ -90,3 +90,12 @@ func DeleteCourseByListCourseID(list_course_id []uint) error {
 
 	return err
 }
+
+func QueryCourseByCourseIdAndClass(courseId string, class string) (*entity.Course, bool, error) {
+	var course entity.Course
+
+	result := database.DbInstance.Where("course_id = ? and class = ?", courseId, class).
+		Limit(1).Find(&course)
+
+	return &course, result.RowsAffected == 0, result.Error
+}

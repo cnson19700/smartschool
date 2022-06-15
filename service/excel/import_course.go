@@ -32,6 +32,16 @@ func ImportCourse(c *gin.Context) {
 		for i := 6; i < len(rows); i += 1 {
 			row := rows[i]
 
+			_, notFound, err := repository.QueryCourseByCourseIdAndClass(row[1], row[2])
+			if err != nil {
+				w.Write([]byte("Error calling database"))
+				return
+			}
+
+			if !notFound {
+				continue
+			}
+
 			var course entity.Course
 
 			course.CourseID = row[1]
@@ -79,6 +89,8 @@ func ImportCourse(c *gin.Context) {
 			}
 		}
 	}
+
+	c.Redirect(301, "/admin/info/courses")
 }
 
 func ImportTeacherFromCourseFile(c *gin.Context) {

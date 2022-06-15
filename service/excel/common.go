@@ -31,7 +31,7 @@ func PreprocessImport(c *gin.Context) (*excelize.File, error) {
 	fileExt := filepath.Ext(fileNameWithExt)
 	fileNameOnly := strings.TrimSuffix(fileNameWithExt, fileExt)
 	fileNameSaved := fmt.Sprintf("%s_%d%s", fileNameOnly, currentTime, fileExt)
-	filePath := "public/course_import/" + fileNameSaved
+	filePath := "public/import/" + fileNameSaved
 
 	err = ioutil.WriteFile(filePath, fileBytes, 0644)
 	if err != nil {

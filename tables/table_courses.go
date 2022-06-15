@@ -53,11 +53,11 @@ func GetCourses(ctx *context.Context) table.Table {
 
 			return true, "", data
 		}))
-	info.AddButton("Import courses", icon.FileExcelO, action.PopUp("/course", "Import",
+	info.AddButton("Import courses", icon.FileExcelO, action.PopUp("/admin/info/courses", "Import",
 		func(ctx *context.Context) (success bool, msg string, data interface{}) {
 			data = `
 				<div>
-					<form id="form-import-excel" method="POST" action="/course" enctype="multipart/form-data">
+					<form id="form-import-excel" method="POST" action="/admin/info/courses" enctype="multipart/form-data">
 						<input type="file" name="excel-file" id="file" accept=".xlsx" />
 						<center>
 							<input type="submit" value="Đăng tải"/>

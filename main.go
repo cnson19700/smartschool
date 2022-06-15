@@ -65,7 +65,7 @@ func main() {
 	})
 
 	r.GET("/summary", excel.ExportSummary)
-	r.POST("/course", excel.ImportCourse)
+	r.POST("/admin/info/courses", excel.ImportCourse)
 	r.POST("/user", excel.ImportUser)
 	r.POST("/delete-course-in-semester", func(context *gin.Context) {
 		service.DeleteCourseBySemester(context)
