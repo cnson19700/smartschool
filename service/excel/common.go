@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func PreprocessImport(c *gin.Context) (*excelize.File, error) {
+func PreprocessImport(c *gin.Context, savePath string) (*excelize.File, error) {
 	currentTime := time.Now().Unix()
 
 	r := c.Request
@@ -31,7 +31,7 @@ func PreprocessImport(c *gin.Context) (*excelize.File, error) {
 	fileExt := filepath.Ext(fileNameWithExt)
 	fileNameOnly := strings.TrimSuffix(fileNameWithExt, fileExt)
 	fileNameSaved := fmt.Sprintf("%s_%d%s", fileNameOnly, currentTime, fileExt)
-	filePath := "public/import/" + fileNameSaved
+	filePath := savePath + fileNameSaved
 
 	err = ioutil.WriteFile(filePath, fileBytes, 0644)
 	if err != nil {
