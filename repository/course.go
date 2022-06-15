@@ -46,7 +46,7 @@ func QueryListCourseIDBySemester(sem_id uint) ([]uint, bool, error) {
 
 func QueryListCourseBasicInfoByID(list_id []uint) ([]dto.CourseReportPartElement, bool, error) {
 	var queryList []dto.CourseReportPartElement
-	result := database.DbInstance.Table("courses").Where("id IN ?", list_id).Find(&queryList)
+	result := database.DbInstance.Table("courses").Where("id IN ? AND deleted_at IS NULL", list_id).Find(&queryList)
 
 	return queryList, result.RowsAffected == 0, result.Error
 }
