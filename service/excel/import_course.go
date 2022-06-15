@@ -19,7 +19,7 @@ func ImportCourse(c *gin.Context) {
 
 	w := c.Writer
 
-	excel, err := PreprocessImport(c)
+	excel, err := PreprocessImport(c, "public/course_import/")
 	if err != nil {
 		w.Write([]byte(err.Error()))
 	}
@@ -84,7 +84,7 @@ func ImportCourse(c *gin.Context) {
 func ImportTeacherFromCourseFile(c *gin.Context) {
 	w := c.Writer
 
-	excel, err := PreprocessImport(c)
+	excel, err := PreprocessImport(c, "public/course_import/")
 	if err != nil {
 		w.Write([]byte(err.Error()))
 	}
