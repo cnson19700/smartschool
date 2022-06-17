@@ -43,10 +43,8 @@ func GetCourses(ctx *context.Context) table.Table {
 	info.SetDeleteFn(func(ids []string) error {
 		for _, id := range ids {
 			if len(id) != 0 {
-				var dbCourse entity.Course
-				database.DbInstance.Table("courses").
-					Where("course_id = ?", id).
-					First(&dbCourse)
+				var dbCourse *entity.Course
+				dbCourse,_,_ = repository.QueryCourseByID(id)
 
 				if err := database.DbInstance.Delete(&dbCourse).Error; err != nil {
 					return err
