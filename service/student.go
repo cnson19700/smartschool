@@ -115,6 +115,10 @@ func GetCheckInHistoryInDay(userID uint, facultyID uint, timezoneOffset int) ([]
 	resultList := make([]dto.CheckInHistoryListElement, 0)
 	for i := 0; i < len(scheduleList); i++ {
 
+		if scheduleList[i].Course == nil || scheduleList[i].Room == nil {
+			continue
+		}
+
 		checkinTime = nil
 		checkinStatus = ""
 		for j := 0; j < len(attendList); j++ {
