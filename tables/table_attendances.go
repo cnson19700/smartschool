@@ -101,12 +101,18 @@ func GetAttendances(ctx *context.Context) table.Table {
 		func(ctx *context.Context) (success bool, msg string, data interface{}) {
 			data = `
 				<div>
-					<form id="form-import-excel" method="POST" action="/attendance" enctype="multipart/form-data">
-						<input type="file" name="excel-file" id="file" accept=".xlsx" />
+					<form id="form-import-excel" method="POST" action="/admin/info/attendances" enctype="multipart/form-data">
+						<input type="file" name="excel-file" id="file-attendance" accept=".xlsx" />
 						<center>
-							<input type="submit" value="Đăng tải"/>
+							<input type="submit" id="submit-attendance" value="Đăng tải"/>
 						<center>
 					</form>
+					<script>
+					$('#submit-attendance').attr('disabled', "disabled");
+					$('#file-attendance').change(function(e) {
+								$("#submit-attendance").removeAttr('disabled');
+							});
+					</script>
 				</div>`
 
 			return true, "", data

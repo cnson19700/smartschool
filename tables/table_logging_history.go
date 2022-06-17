@@ -19,6 +19,10 @@ func GetLoggingHistories(ctx *context.Context) (tableLoggings table.Table) {
 	tableLoggings = table.NewDefaultTable(table.DefaultConfigWithDriver("sqlite"))
 
 	info := tableLoggings.GetInfo().HideRowSelector()
+	info.HideDeleteButton()
+	info.HideNewButton()
+	info.HideEditButton()
+
 	info.AddField("ID", "id", db.Int)
 	info.AddField("Device ID", "device_id", db.Varchar)
 	info.AddField("Time", "created_at", db.Timestamp)
