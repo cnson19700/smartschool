@@ -23,3 +23,13 @@ func QueryTeacherByName(name string) (*entity.User, bool, error) {
 
 	return &user, result.RowsAffected == 0, result.Error
 }
+
+func GetIDFromTeacherID(teacher_id string) (uint, error){
+	teacher := &entity.Teacher{}
+	err := database.DbInstance.Where("teacher_id = ?", teacher_id).First(teacher).Error
+	if err != nil {
+		return 0, err
+	}
+
+	return teacher.ID, nil
+}

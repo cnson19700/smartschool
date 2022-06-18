@@ -18,6 +18,7 @@ import (
 	"github.com/GoAdminGroup/go-admin/template/types/form"
 	"github.com/smartschool/database"
 	"github.com/smartschool/model/entity"
+	"github.com/smartschool/repository"
 	"gorm.io/gorm/clause"
 )
 
@@ -38,6 +39,20 @@ func GetCourses(ctx *context.Context) table.Table {
 
 	info.SetGetDataFn(func(param parameter.Parameters) ([]map[string]interface{}, int) {
 		return GetAllCoursesData(param)
+	})
+	info.SetDeleteFn(func(ids []string) error {
+		for _, id := range ids {
+			if len(id) != 0 {
+				var dbCourse *entity.Course
+				dbCourse,_,_ = repository.QueryCourseByID(id)
+
+				if err := database.DbInstance.Delete(&dbCourse).Error; err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
 	})
 
 	info.AddButton("Delete courses", icon.Minus, action.PopUp("/delete", "Are you sure to delete courses in this semester",
@@ -109,6 +124,8 @@ func GetCourses(ctx *context.Context) table.Table {
 		return []string{semester}
 	})
 
+	formList.AddField("Class", "class", db.Varchar, form.Text)
+	formList.EnableAjax("Success", "Fail")
 	formList.SetTable("courses").SetTitle("Courses").SetDescription("Courses")
 
 	formList.SetUpdateFn(func(values form2.Values) error {
@@ -127,6 +144,9 @@ func GetCourses(ctx *context.Context) table.Table {
 		if values.IsEmpty("semester_id") {
 			return errors.New("Semester cannot be empty")
 		}
+		if values.IsEmpty("class_id"){
+			return errors.New("Class cannot be empty")
+		}
 
 		id, _ := strconv.Atoi(values.Get("id"))
 
@@ -137,6 +157,7 @@ func GetCourses(ctx *context.Context) table.Table {
 			"teacher_id":        values.Get("teacher_id"),
 			"teacher_role":      values.Get("teacher_role"),
 			"number_of_student": values.Get("number_of_student"),
+			"class": values.Get("class"),
 		}).Error
 		if updated != nil {
 			return updated
@@ -160,22 +181,38 @@ func GetCourses(ctx *context.Context) table.Table {
 		if values.IsEmpty("semester_id") {
 			return errors.New("Semester cannot be empty")
 		}
+		if values.IsEmpty("class"){
+			return errors.New("Class cannot be empty")
+		}
 		semester_id, _ := strconv.Atoi(values.Get("semester_id"))
 		num_student, _ := strconv.Atoi(values.Get("number_of_student"))
+		teacher_id, _ := repository.GetIDFromTeacherID(values.Get("teacher_id"))
 		course := entity.Course{
 			Name:            values.Get("name"),
 			SemesterID:      uint(semester_id),
 			CourseID:        values.Get("course_id"),
 			TeacherID:       values.Get("teacher_id"),
 			TeacherRole:     values.Get("teacher_role"),
-			NumberOfStudent: num_student}
+			NumberOfStudent: num_student,
+			Class: values.Get("class"),}
+		
 		created := database.DbInstance.Create(&course).Error
 		if created != nil {
 			return created
 		}
+		teacher_course := entity.TeacherCourse{
+			TeacherID: teacher_id,
+			TeacherRole: values.Get("teacher_role"),
+			CourseID: course.ID,
+		}
+		tc_created := database.DbInstance.Create(&teacher_course).Error
+		if tc_created != nil {
+			return tc_created
+		}
 		return nil
 	})
 
+	
 	detail := tableCourses.GetDetail()
 	detail.AddField("Name", "name", db.Varchar)
 	detail.AddField("Semester", "semester_name", db.Varchar)
@@ -238,15 +275,11 @@ func GetCourseData(param string) ([]map[string]interface{}, int) {
 
 }
 func GetAllCoursesData(param parameter.Parameters) ([]map[string]interface{}, int) {
-	// sort := "desc"
-	// if len(param.SortType) > 0 {
-	// 	sort = param.SortType
-	// }
 	query := `
 	select distinct c.name as course_name, c.course_id as course_id, 
 	concat(s.title,' ',s.year) as semester_name, s.id as semester_id, s.year, c.number_of_student
 	from courses c, semesters s
-	where c.semester_id = s.id order by c.course_id`
+	where c.semester_id = s.id and c.deleted_at is null order by c.course_id`
 
 	var courseResults []courseResult
 	database.DbInstance.Raw(query).Scan(&courseResults)
