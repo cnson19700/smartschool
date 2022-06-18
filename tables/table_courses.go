@@ -26,8 +26,8 @@ func GetCourses(ctx *context.Context) table.Table {
 	tableCourses := table.NewDefaultTable(table.DefaultConfigWithDriver("sqlite").SetPrimaryKey("course_id", db.Varchar))
 
 	info := tableCourses.GetInfo()
-	info.HideDeleteButton()
-	info.HideEditButton()
+	//info.HideDeleteButton()
+	//info.HideEditButton()
 
 	info.AddField("ID", "id", db.Int).FieldSortable()
 	// info.AddField("Class", "class", db.Varchar)
@@ -44,7 +44,7 @@ func GetCourses(ctx *context.Context) table.Table {
 		for _, id := range ids {
 			if len(id) != 0 {
 				var dbCourse *entity.Course
-				dbCourse,_,_ = repository.QueryCourseByID(id)
+				dbCourse, _, _ = repository.QueryCourseByID(id)
 
 				if err := database.DbInstance.Delete(&dbCourse).Error; err != nil {
 					return err
@@ -144,7 +144,7 @@ func GetCourses(ctx *context.Context) table.Table {
 		if values.IsEmpty("semester_id") {
 			return errors.New("Semester cannot be empty")
 		}
-		if values.IsEmpty("class_id"){
+		if values.IsEmpty("class_id") {
 			return errors.New("Class cannot be empty")
 		}
 
@@ -157,7 +157,7 @@ func GetCourses(ctx *context.Context) table.Table {
 			"teacher_id":        values.Get("teacher_id"),
 			"teacher_role":      values.Get("teacher_role"),
 			"number_of_student": values.Get("number_of_student"),
-			"class": values.Get("class"),
+			"class":             values.Get("class"),
 		}).Error
 		if updated != nil {
 			return updated
@@ -181,7 +181,7 @@ func GetCourses(ctx *context.Context) table.Table {
 		if values.IsEmpty("semester_id") {
 			return errors.New("Semester cannot be empty")
 		}
-		if values.IsEmpty("class"){
+		if values.IsEmpty("class") {
 			return errors.New("Class cannot be empty")
 		}
 		semester_id, _ := strconv.Atoi(values.Get("semester_id"))
@@ -194,16 +194,16 @@ func GetCourses(ctx *context.Context) table.Table {
 			TeacherID:       values.Get("teacher_id"),
 			TeacherRole:     values.Get("teacher_role"),
 			NumberOfStudent: num_student,
-			Class: values.Get("class"),}
-		
+			Class:           values.Get("class")}
+
 		created := database.DbInstance.Create(&course).Error
 		if created != nil {
 			return created
 		}
 		teacher_course := entity.TeacherCourse{
-			TeacherID: teacher_id,
+			TeacherID:   teacher_id,
 			TeacherRole: values.Get("teacher_role"),
-			CourseID: course.ID,
+			CourseID:    course.ID,
 		}
 		tc_created := database.DbInstance.Create(&teacher_course).Error
 		if tc_created != nil {
@@ -212,7 +212,6 @@ func GetCourses(ctx *context.Context) table.Table {
 		return nil
 	})
 
-	
 	detail := tableCourses.GetDetail()
 	detail.AddField("Name", "name", db.Varchar)
 	detail.AddField("Semester", "semester_name", db.Varchar)
