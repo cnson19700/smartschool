@@ -32,20 +32,34 @@ func GetLoggingHistories(ctx *context.Context) (tableLoggings table.Table) {
 			device_signal_logs, _, _ := repository.QueryUserIDByDeviceSignalID(ctx.FormValue("id"))
 			student, err := repository.QueryStudentByID(fmt.Sprint(device_signal_logs.CardId))
 			room_id, _, _ := repository.QueryRoomByDeviceID(device_signal_logs.CompanyTokenKey)
-			room, _, _:= repository.QueryRoomInfo(room_id)
-			if (err != nil){
-				return true, "Invalid Record", `<h2 id='room_title'>Room: `+room.RoomID+`</h2><h3 id='status_title'>`+ device_signal_logs.Status + `</h3> <style>
+			room, _, _ := repository.QueryRoomInfo(room_id)
+			if err != nil {
+				return true, "Invalid Record", `<h2 id='room_title'>Room: ` + room.RoomID + `</h2><h3 id='status_title'>` + device_signal_logs.Status + `</h3> <style>
 					h2#room_title, h3#status_title {text-align: center;}
 				</style>`
-			} else{
-			return true, "ok", "<h2 id='student_title'>"+ student.StudentID +"</h2> <h4>Room: "+ room.RoomID +"</h4> <h4>Status: "+ device_signal_logs.Status+`</h4>`
-		}
-		
+			} else {
+				return true, "ok", "<h2 id='student_title'>" + student.StudentID + "</h2> <h4>Room: " + room.RoomID + "</h4> <h4>Status: " + device_signal_logs.Status + `</h4>`
+			}
+
 		})))
 
 	info.HideEditButton()
 	info.HideDeleteButton()
 	info.HideDetailButton()
+	info.AddButton("Import TEST", icon.FileExcelO, action.PopUp("/test", "Import",
+		func(ctx *context.Context) (success bool, msg string, data interface{}) {
+			data = `
+				<div>
+					<form id="form-import-excel" method="POST" action="/test" enctype="multipart/form-data">
+						<input type="file" name="excel-file" id="file" accept=".xlsx" />
+						<center>
+							<input type="submit" value="Đăng tải"/>
+						<center>
+					</form>
+				</div>`
+
+			return true, "", data
+		}))
 
 	info.SetGetDataFn(func(param parameter.Parameters) ([]map[string]interface{}, int) {
 		return GetLogsData()
@@ -54,7 +68,7 @@ func GetLoggingHistories(ctx *context.Context) (tableLoggings table.Table) {
 	return
 }
 
-func GetLogsData()([]map[string]interface{}, int){
+func GetLogsData() ([]map[string]interface{}, int) {
 	query := `
 	select d.id, d.card_id as user_id, d.created_at, d.status, d.company_token_key as device_id
 	from device_signal_logs d
@@ -64,7 +78,7 @@ func GetLogsData()([]map[string]interface{}, int){
 	var currentResult []logResult
 	database.DbInstance.Raw(query).Scan(&currentResult)
 	tableResult := make([]map[string]interface{}, len(currentResult))
-	for i, current := range currentResult{
+	for i, current := range currentResult {
 		tempResult := make(map[string]interface{})
 
 		tempResult["id"] = current.ID
@@ -79,10 +93,10 @@ func GetLogsData()([]map[string]interface{}, int){
 	return tableResult, 10
 }
 
-type logResult struct{
-	ID int
-	DeviceID string
-	UserID string
-	Status string
+type logResult struct {
+	ID        int
+	DeviceID  string
+	UserID    string
+	Status    string
 	CreatedAt time.Time
 }
