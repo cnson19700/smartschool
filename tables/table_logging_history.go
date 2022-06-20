@@ -46,20 +46,6 @@ func GetLoggingHistories(ctx *context.Context) (tableLoggings table.Table) {
 	info.HideEditButton()
 	info.HideDeleteButton()
 	info.HideDetailButton()
-	info.AddButton("Import TEST", icon.FileExcelO, action.PopUp("/test", "Import",
-		func(ctx *context.Context) (success bool, msg string, data interface{}) {
-			data = `
-				<div>
-					<form id="form-import-excel" method="POST" action="/test" enctype="multipart/form-data">
-						<input type="file" name="excel-file" id="file" accept=".xlsx" />
-						<center>
-							<input type="submit" value="Đăng tải"/>
-						<center>
-					</form>
-				</div>`
-
-			return true, "", data
-		}))
 
 	info.SetGetDataFn(func(param parameter.Parameters) ([]map[string]interface{}, int) {
 		return GetLogsData()

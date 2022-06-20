@@ -11,7 +11,9 @@ import (
 	form2 "github.com/GoAdminGroup/go-admin/plugins/admin/modules/form"
 	"github.com/GoAdminGroup/go-admin/plugins/admin/modules/parameter"
 	"github.com/GoAdminGroup/go-admin/plugins/admin/modules/table"
+	"github.com/GoAdminGroup/go-admin/template/icon"
 	"github.com/GoAdminGroup/go-admin/template/types"
+	"github.com/GoAdminGroup/go-admin/template/types/action"
 	"github.com/GoAdminGroup/go-admin/template/types/form"
 	"github.com/smartschool/database"
 	"github.com/smartschool/model/entity"
@@ -31,6 +33,21 @@ func GetSchedules(ctx *context.Context) table.Table {
 	info.AddField("Room", "room_name", db.Varchar)
 	info.AddField("Start Time", "start_time", db.Varchar)
 	info.AddField("End Time", "end_time", db.Varchar)
+
+	info.AddButton("Import Template", icon.FileExcelO, action.PopUp("/schedule", "Import",
+		func(ctx *context.Context) (success bool, msg string, data interface{}) {
+			data = `
+				<div>
+					<form id="form-import-excel" method="POST" action="/schedule" enctype="multipart/form-data">
+						<input type="file" name="excel-file" id="file" accept=".xlsx" />
+						<center>
+							<input type="submit" value="Đăng tải"/>
+						<center>
+					</form>
+				</div>`
+
+			return true, "", data
+		}))
 
 	info.SetGetDataFn(func(param parameter.Parameters) ([]map[string]interface{}, int) {
 		return GetAllSchedulesData(param)
