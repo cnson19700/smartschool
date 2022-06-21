@@ -17,6 +17,7 @@ import (
 	"github.com/GoAdminGroup/go-admin/template/types/form"
 	"github.com/smartschool/database"
 	"github.com/smartschool/model/entity"
+	"github.com/smartschool/repository"
 	"gorm.io/gorm/clause"
 )
 
@@ -24,9 +25,7 @@ func GetSchedules(ctx *context.Context) table.Table {
 	tableSchedules := table.NewDefaultTable(table.DefaultConfigWithDriver("sqlite"))
 
 	info := tableSchedules.GetInfo()
-	info.HideDeleteButton()
 	info.HideNewButton()
-	//info.HideEditButton()
 
 	info.AddField("ID", "id", db.Int).FieldSortable()
 	info.AddField("Course Code", "course_name", db.Varchar)
@@ -48,6 +47,21 @@ func GetSchedules(ctx *context.Context) table.Table {
 
 			return true, "", data
 		}))
+
+	info.SetDeleteFn(func(ids []string) error {
+		for _, id := range ids {
+			if len(id) != 0 {
+				var dbSchedule *entity.Schedule
+				dbSchedule, _ = repository.QueryScheduleByID(id)
+
+				if err := database.DbInstance.Delete(&dbSchedule).Error; err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
+	})
 
 	info.SetGetDataFn(func(param parameter.Parameters) ([]map[string]interface{}, int) {
 		return GetAllSchedulesData(param)
@@ -116,6 +130,7 @@ func GetAllSchedulesData(param parameter.Parameters) ([]map[string]interface{}, 
 		on r.id = sc.room_id
 		left join courses c
 		on sc.course_id = c.id
+		where sc.deleted_at is null
 		order by sc.id`
 
 	var scheduleResults []scheduleResult

@@ -26,7 +26,7 @@ func ImportSchedule(c *gin.Context) {
 		return
 	}
 
-	const QTTB_SHEET_NAME = "tuần 1"
+	var QTTB_SHEET_NAME = "tuần 1"
 	// splitRegExp := regexp.MustCompile(`\n|,|-`)
 	rooms := make([]entity.Room, 0)
 	courses := []course_row{}
