@@ -65,3 +65,10 @@ func QueryScheduleByCourseID(courseID uint) (*entity.Schedule, error) {
 
 	return &schedule, result.Error
 }
+
+func QueryScheduleByID(ID string) (*entity.Schedule, error) {
+	var schedule entity.Schedule
+	result := database.DbInstance.Where("id = ?", ID).Find(&schedule)
+
+	return &schedule, result.Error
+}

@@ -99,3 +99,19 @@ func QueryCourseByCourseIdAndClass(courseId string, class string) (*entity.Cours
 
 	return &course, result.RowsAffected == 0, result.Error
 }
+
+func QueryCourseIndexByCode(name string) int {
+	ids := []int{}
+	err := database.DbInstance.
+		Table("courses").
+		Select("courses.id").
+		Where("courses.course_id = (?) and courses.deleted_at is null", name).
+		Scan(&ids).Error
+	if err != nil {
+		return 0 // error
+	}
+	if len(ids) > 0 {
+		return ids[0]
+	}
+	return 0 // not exist
+}

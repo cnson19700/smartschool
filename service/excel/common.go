@@ -3,12 +3,13 @@ package excel
 import (
 	"errors"
 	"fmt"
-	"github.com/360EntSecGroup-Skylar/excelize"
-	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/360EntSecGroup-Skylar/excelize"
+	"github.com/gin-gonic/gin"
 )
 
 func PreprocessImport(c *gin.Context, savePath string) (*excelize.File, error) {

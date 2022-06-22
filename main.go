@@ -74,6 +74,10 @@ func main() {
 		service.DeleteCourseBySemester(context)
 		context.Redirect(301, "/admin/info/courses")
 	})
+	r.POST("/schedule", func(context *gin.Context) {
+		excel.ImportSchedule(context)
+		context.Redirect(301, "/admin/info/schedules")
+	})
 
 	go func() {
 		r.Run(":6001")

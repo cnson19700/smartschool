@@ -10,4 +10,5 @@ var Generators = map[string]table.Generator{
 	"teachers":        GetTeachers,
 	"teacher_courses": GetTeacherCourses,
 	"logging_history": GetLoggingHistories,
+	"schedules":       GetSchedules,
 }
