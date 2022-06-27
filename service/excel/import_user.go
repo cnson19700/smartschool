@@ -1,7 +1,10 @@
 package excel
 
 import (
+	"fmt"
+	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -44,27 +47,43 @@ const USER_SHEET_NAME = "User"
 // }
 
 func ImportUser(c *gin.Context) {
-	//w := c.Writer
 
 	excel, err := PreprocessImport(c, "public/user_import/")
 	if err != nil {
-		//w.Write([]byte(err.Error()))
 		return
 	}
 
-	//users := make([]entity.User, 0)
+	headReader := false
+	idc := 0
 	var day, month, year string
-	for idr, row := range excel.GetRows(USER_SHEET_NAME) {
+	for _, row := range excel.GetRows(USER_SHEET_NAME) {
 
-		if idr == 0 {
+		if !headReader {
+			for local_idc, col := range row {
+				if strings.ToLower(col) == apptypes.ImportUser_Marker {
+					headReader = true
+					idc = local_idc
+					break
+				}
+			}
 			continue
 		}
 
-		serialTime, err := strconv.ParseFloat(row[4], 64)
-		if err != nil {
-			continue
+		var DoB time.Time
+		dateType := reflect.TypeOf(row[idc+4]).Kind()
+		if dateType == reflect.String {
+			DoB, err = helper.StringToDateUTC(row[idc+4])
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+		} else {
+			serialTime, err := strconv.ParseFloat(row[idc+4], 64)
+			if err != nil {
+				continue
+			}
+			DoB = ExcelSerialDateToTime(serialTime)
 		}
-		DoB := ExcelSerialDateToTime(serialTime)
 
 		if DoB.Day() < 10 {
 			day = "0" + strconv.Itoa(DoB.Day())
@@ -85,42 +104,49 @@ func ImportUser(c *gin.Context) {
 			continue
 		}
 
+		studentGender := apptypes.DB_Gender_Female
+		if strings.ToLower(row[idc+5]) == apptypes.ImportUser_Gender_Male {
+			studentGender = apptypes.DB_Gender_Male
+		}
+
 		var user entity.User
-		var dummy entity.User
+		var dummyUser entity.User
 
 		user = entity.User{
-			Username:    row[1],
+			Username:    row[idc],
 			Password:    hashedPassword,
-			FirstName:   row[2],
+			LastName:    row[idc+1],
+			FirstName:   row[idc+2],
 			DateOfBirth: DoB,
-			Email:       row[8],
-			PhoneNumber: row[15],
+			Email:       row[idc+7],
 			RoleID:      apptypes.StudentRole,
+			Gender:      studentGender,
 			FacultyID:   1,
 			IsActivate:  false,
 			Student: &entity.Student{
-				StudentID: row[1],
-				Batch:     row[6],
+				StudentID: row[idc],
+				Batch:     row[idc+6],
 			},
 		}
 
-		res := database.DbInstance.Where("user_name = ?", user.Username).Find(&dummy)
+		res := database.DbInstance.Where("user_name = ?", user.Username).Find(&dummyUser)
 		if res.Error != nil {
 			continue
 		}
 		if res.RowsAffected == 0 {
 			database.DbInstance.Create(&user)
 		} else {
-			dummy.Password = user.Password
-			dummy.FirstName = user.FirstName
-			dummy.DateOfBirth = user.DateOfBirth
-			dummy.Email = user.Email
-			dummy.PhoneNumber = user.PhoneNumber
-			dummy.RoleID = user.RoleID
-			dummy.FacultyID = user.FacultyID
-			dummy.Student = user.Student
+			dummyUser.Password = user.Password
+			dummyUser.LastName = user.LastName
+			dummyUser.FirstName = user.FirstName
+			dummyUser.DateOfBirth = user.DateOfBirth
+			dummyUser.Gender = user.Gender
+			dummyUser.Email = user.Email
+			dummyUser.RoleID = user.RoleID
+			dummyUser.FacultyID = user.FacultyID
+			dummyUser.Student = user.Student
 
-			database.DbInstance.Save(&dummy)
+			database.DbInstance.Save(&dummyUser)
 		}
 	}
 }
