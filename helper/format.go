@@ -8,3 +8,10 @@ func StringToTimeUTC(stringTime string) (time.Time, error) {
 
 	return t.UTC(), err
 }
+
+func StringToDateUTC(stringTime string) (time.Time, error) {
+
+	t, err := time.Parse("02/01/2006", stringTime)
+
+	return t, err
+}

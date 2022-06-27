@@ -41,4 +41,10 @@ const (
 	CheckinStatus_EnrollmentNotFound      string = "[Normal]: Student dont take this course"
 	CheckinStatus_ScheduleNotFound        string = "[Normal]: Forseen time slot not in any Schedule"
 	CheckinStatus_SameScheduleSpam        string = "[Normal]: Spam check-in"
+
+	ImportUser_Marker        string = "mssv"
+	ImportUser_Gender_Male   string = "nam"
+	ImportUser_Gender_Female string = "nữ"
+	DB_Gender_Male           int    = 0
+	DB_Gender_Female         int    = 1
 )
