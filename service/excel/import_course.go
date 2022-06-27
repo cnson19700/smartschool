@@ -144,7 +144,7 @@ func ImportTeacherFromCourseFile(c *gin.Context) {
 					user.Username = name
 					user.FirstName = name
 					user.DateOfBirth = time.Now()
-					user.RoleID = 1
+					user.RoleID = 3
 					user.FacultyID = 1
 					user.Teacher = &entity.Teacher{
 						TeacherID: strconv.Itoa(rand.Intn(100000)),
