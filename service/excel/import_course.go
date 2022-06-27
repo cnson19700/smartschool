@@ -12,14 +12,14 @@ import (
 	"time"
 )
 
-var COURSE_SHEET_NAMES = []string{"CLC", "CTTT", "VP"}
+var COURSE_SHEET_NAMES = []string{"CLC", "CTTT", "VP", "Tổng hợp"}
 
 func ImportCourse(c *gin.Context) {
 	ImportTeacherFromCourseFile(c)
 
 	w := c.Writer
 
-	excel, err := PreprocessImport(c, "public/course_import/")
+	excel, err := PreprocessImport(c)
 	if err != nil {
 		w.Write([]byte(err.Error()))
 	}
@@ -29,7 +29,7 @@ func ImportCourse(c *gin.Context) {
 	for _, sheetName := range COURSE_SHEET_NAMES {
 		rows := excel.GetRows(sheetName)
 
-		for i := 6; i < len(rows); i += 1 {
+		for i := 5; i < len(rows); i += 1 {
 			row := rows[i]
 
 			_, notFound, err := repository.QueryCourseByCourseIdAndClass(row[1], row[2])
@@ -51,7 +51,7 @@ func ImportCourse(c *gin.Context) {
 
 			database.DbInstance.Create(&course)
 
-			for j := 4; j < len(row); j += 1 {
+			for j := 4; j < 7; j += 1 {
 				cell := row[j]
 				names := splitRegExp.Split(cell, -1)
 
@@ -96,7 +96,7 @@ func ImportCourse(c *gin.Context) {
 func ImportTeacherFromCourseFile(c *gin.Context) {
 	w := c.Writer
 
-	excel, err := PreprocessImport(c, "public/course_import/")
+	excel, err := PreprocessImport(c)
 	if err != nil {
 		w.Write([]byte(err.Error()))
 	}
@@ -109,10 +109,10 @@ func ImportTeacherFromCourseFile(c *gin.Context) {
 	for _, sheetName := range COURSE_SHEET_NAMES {
 		rows := excel.GetRows(sheetName)
 
-		for i := 6; i < len(rows); i += 1 {
+		for i := 5; i < len(rows); i += 1 {
 			row := rows[i]
 
-			for j := 4; j < len(row); j += 1 {
+			for j := 4; j < 7; j += 1 {
 				cell := row[j]
 				names := splitRegExp.Split(cell, -1)
 
@@ -141,6 +141,7 @@ func ImportTeacherFromCourseFile(c *gin.Context) {
 
 					var user entity.User
 
+					user.Username = name
 					user.FirstName = name
 					user.DateOfBirth = time.Now()
 					user.RoleID = 1

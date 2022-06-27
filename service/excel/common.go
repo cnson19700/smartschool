@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func PreprocessImport(c *gin.Context, savePath string) (*excelize.File, error) {
+func PreprocessImport(c *gin.Context) (*excelize.File, error) {
 	currentTime := time.Now().Unix()
 
 	r := c.Request
@@ -32,7 +32,7 @@ func PreprocessImport(c *gin.Context, savePath string) (*excelize.File, error) {
 	fileExt := filepath.Ext(fileNameWithExt)
 	fileNameOnly := strings.TrimSuffix(fileNameWithExt, fileExt)
 	fileNameSaved := fmt.Sprintf("%s_%d%s", fileNameOnly, currentTime, fileExt)
-	filePath := savePath + fileNameSaved
+	filePath := "public/import/" + fileNameSaved
 
 	err = ioutil.WriteFile(filePath, fileBytes, 0644)
 	if err != nil {

@@ -48,7 +48,7 @@ const USER_SHEET_NAME = "User"
 
 func ImportUser(c *gin.Context) {
 
-	excel, err := PreprocessImport(c, "public/user_import/")
+	excel, err := PreprocessImport(c)
 	if err != nil {
 		return
 	}

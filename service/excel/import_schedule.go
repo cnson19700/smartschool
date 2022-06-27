@@ -20,7 +20,7 @@ type course_row struct {
 
 func ImportSchedule(c *gin.Context) {
 	w := c.Writer
-	excel, err := PreprocessImport(c, "public/schedule_import/")
+	excel, err := PreprocessImport(c)
 	if err != nil {
 		w.Write([]byte(err.Error()))
 		return
