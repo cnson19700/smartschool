@@ -99,7 +99,6 @@ func ImportUser(c *gin.Context) {
 
 		year = strconv.Itoa(DoB.Year())
 
-		fmt.Println(day + month + year)
 		hashedPassword, bcryptError := helper.HashPassword(day + month + year)
 		if bcryptError != nil {
 			continue
