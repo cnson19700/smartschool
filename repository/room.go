@@ -11,3 +11,10 @@ func QueryRoomInfo(room_id uint) (*entity.Room, bool, error) {
 
 	return &room, result.RowsAffected == 0, result.Error
 }
+
+func QueryRoomByName(name string) uint {
+	var room *entity.Room
+	database.DbInstance.Where("name = ?", name).Find(&room)
+
+	return room.ID
+}
