@@ -47,7 +47,7 @@ func ImportCourse(c *gin.Context) {
 			course.CourseID = row[1]
 			course.Class = row[2]
 			course.Name = row[3]
-			course.SemesterID = 1
+			course.SemesterID = 3
 
 			database.DbInstance.Create(&course)
 
