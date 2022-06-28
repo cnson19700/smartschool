@@ -10,9 +10,7 @@ import (
 	"github.com/GoAdminGroup/go-admin/plugins/admin/modules/parameter"
 	"github.com/GoAdminGroup/go-admin/plugins/admin/modules/table"
 	"github.com/GoAdminGroup/go-admin/template"
-	"github.com/GoAdminGroup/go-admin/template/icon"
 	"github.com/GoAdminGroup/go-admin/template/types"
-	"github.com/GoAdminGroup/go-admin/template/types/action"
 	"github.com/GoAdminGroup/go-admin/template/types/form"
 	"github.com/smartschool/model/entity"
 	"github.com/smartschool/repository"
@@ -97,26 +95,6 @@ func GetAttendances(ctx *context.Context) table.Table {
 		return GetAllAttendancesData(param) //base on teacher_course
 	})
 
-	info.AddButton("Import attendances", icon.FileExcelO, action.PopUp("/attendance", "Import",
-		func(ctx *context.Context) (success bool, msg string, data interface{}) {
-			data = `
-				<div>
-					<form id="form-import-excel" method="POST" action="/admin/info/attendances" enctype="multipart/form-data">
-						<input type="file" name="excel-file" id="file-attendance" accept=".xlsx" />
-						<center>
-							<input type="submit" id="submit-attendance" value="Đăng tải"/>
-						<center>
-					</form>
-					<script>
-					$('#submit-attendance').attr('disabled', "disabled");
-					$('#file-attendance').change(function(e) {
-								$("#submit-attendance").removeAttr('disabled');
-							});
-					</script>
-				</div>`
-
-			return true, "", data
-		}))
 	info.SetTable("attendances").SetTitle("Attendances").SetDescription("Attendances")
 	return tableAttendaces
 }
