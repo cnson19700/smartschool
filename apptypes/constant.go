@@ -3,12 +3,12 @@ package apptypes
 import "time"
 
 const (
-	AcceptLateMinute        time.Duration = time.Minute * time.Duration(20)
-	AcceptEarlyMinute       time.Duration = time.Minute * time.Duration(20)
+	AcceptLateMinute        time.Duration = time.Minute * time.Duration(30)
+	AcceptEarlyMinute       time.Duration = time.Minute * time.Duration(30)
 	QRPrefix                string        = "22"
 	QRSecretKey             string        = "Keep read as your greed's lead, Each greed thing is a good news, Did you see the news of yourself, You are now cursed to the hell! - KEDY"
 	AcceptRefreshQRSecond   time.Duration = time.Second * time.Duration(30)
-	AcceptDeviceSignalDelay time.Duration = time.Second * time.Duration(5)
+	AcceptDeviceSignalDelay time.Duration = time.Second * time.Duration(30)
 
 	StudentRole         uint = 1
 	AcademicSectionRole uint = 2
