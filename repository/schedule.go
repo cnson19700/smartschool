@@ -47,7 +47,7 @@ func CountScheduleOfFullCourse(course_id uint) (int64, error) {
 
 func QueryCurrentScheduleIDOfCourse(course_id uint, current time.Time) ([]uint, bool, error) {
 	var queryList []uint
-	result := database.DbInstance.Table("schedules").Select("id").Where("course_id = ? AND start_time <= ?", course_id, current).Find(&queryList)
+	result := database.DbInstance.Table("schedules").Select("id").Where("course_id = ? AND end_time <= ?", course_id, current).Find(&queryList)
 
 	return queryList, result.RowsAffected == 0, result.Error
 }
