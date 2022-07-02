@@ -23,6 +23,9 @@ func GetTeachers(ctx *context.Context) (tableTeachers table.Table) {
 	info.HideNewButton()
 	info.HideDeleteButton()
 	info.HideEditButton()
+	info.HideQueryInfo()
+	info.AddCSS("span>.btn-group{display: none;}")
+	info.SetTable("Teachers").SetTitle("Teachers").SetDescription("Teachers")
 
 	info.SetGetDataFn(func(param parameter.Parameters) ([]map[string]interface{}, int) {
 		return GetAllTeachers(param)

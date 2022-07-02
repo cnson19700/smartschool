@@ -22,6 +22,7 @@ func GetLoggingHistories(ctx *context.Context) (tableLoggings table.Table) {
 	info.HideDeleteButton()
 	info.HideNewButton()
 	info.HideEditButton()
+	info.AddCSS("span>.btn-group{display: none;}")
 
 	info.AddField("ID", "id", db.Int)
 	info.AddField("Device ID", "device_id", db.Varchar)

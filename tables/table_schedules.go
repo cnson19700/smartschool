@@ -26,6 +26,7 @@ func GetSchedules(ctx *context.Context) table.Table {
 
 	info := tableSchedules.GetInfo()
 	info.HideNewButton()
+	info.AddCSS("span>.btn-group{display: none;}")
 
 	info.AddField("ID", "id", db.Int).FieldSortable()
 	info.AddField("Course Code", "course_name", db.Varchar)

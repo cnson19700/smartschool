@@ -26,15 +26,13 @@ func GetCourses(ctx *context.Context) table.Table {
 	tableCourses := table.NewDefaultTable(table.DefaultConfigWithDriver("sqlite").SetPrimaryKey("course_id", db.Varchar))
 
 	info := tableCourses.GetInfo()
-	//info.HideDeleteButton()
-	//info.HideEditButton()
+	info.HideQueryInfo()
+	info.AddCSS("span>.btn-group{display: none;}")
 
 	info.AddField("ID", "id", db.Int).FieldSortable()
 	// info.AddField("Class", "class", db.Varchar)
 	info.AddField("Course Code", "course_id", db.Varchar)
 	info.AddField("Name", "name", db.Varchar)
-	// info.AddField("Teacher", "teacher_name", db.Varchar)
-	// info.AddField("Teacher Role", "teacher_role", db.Varchar)
 	info.AddField("Semester", "semester_name", db.Varchar)
 
 	info.SetGetDataFn(func(param parameter.Parameters) ([]map[string]interface{}, int) {
@@ -125,7 +123,7 @@ func GetCourses(ctx *context.Context) table.Table {
 	})
 
 	formList.AddField("Class", "class", db.Varchar, form.Text)
-	formList.EnableAjax("Success", "Fail")
+	// formList.EnableAjax("Success", "Fail")
 	formList.SetTable("courses").SetTitle("Courses").SetDescription("Courses")
 
 	formList.SetUpdateFn(func(values form2.Values) error {
@@ -187,6 +185,11 @@ func GetCourses(ctx *context.Context) table.Table {
 		semester_id, _ := strconv.Atoi(values.Get("semester_id"))
 		num_student, _ := strconv.Atoi(values.Get("number_of_student"))
 		teacher_id, _ := repository.GetIDFromTeacherID(values.Get("teacher_id"))
+
+		if num_student < 0 {
+			return errors.New("Number of student must be positive number")
+		}
+
 		course := entity.Course{
 			Name:            values.Get("name"),
 			SemesterID:      uint(semester_id),

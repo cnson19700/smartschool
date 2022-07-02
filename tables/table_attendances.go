@@ -32,8 +32,9 @@ func GetAttendances(ctx *context.Context) table.Table {
 				Selected: true,
 			},
 		},
-		FormType: form.SelectSingle,
-		NoIcon:   false,
+		FormType:    form.SelectSingle,
+		NoIcon:      false,
+		Placeholder: ctx.FormValue("course_id"),
 	}).HideFilterButton()
 	info.AddField("Teacher ID", "teacher_id", db.Varchar).FieldFilterable(types.FilterType{
 		Options: []types.FieldOption{
@@ -42,18 +43,9 @@ func GetAttendances(ctx *context.Context) table.Table {
 				Selected: true,
 			},
 		},
-		FormType: form.SelectSingle,
-		NoIcon:   false,
-	}).FieldHide()
-	info.AddField("Class", "class", db.Varchar).FieldFilterable(types.FilterType{
-		Options: []types.FieldOption{
-			{Text: ctx.FormValue("class"),
-				Value:    ctx.FormValue("class"),
-				Selected: true,
-			},
-		},
-		FormType: form.SelectSingle,
-		NoIcon:   false,
+		FormType:    form.SelectSingle,
+		NoIcon:      false,
+		Placeholder: ctx.FormValue("teacher_id"),
 	}).FieldHide()
 	info.AddField("Batch", "batch", db.Varchar)
 	info.AddField("Student ID", "student_id", db.Varchar).FieldFilterable(types.FilterType{FormType: form.SelectSingle}).FieldFilterOptions(GetAllStudentIDs())
@@ -66,6 +58,8 @@ func GetAttendances(ctx *context.Context) table.Table {
 	info.HideNewButton()
 	info.HideDetailButton()
 	info.HideDeleteButton()
+
+	info.AddCSS(".reset {visibility: hidden;}  span>.btn-group{display: none;}")
 
 	info.SetTable("Overview").SetTitle("Overview").SetDescription("Overview").
 		SetWrapper(func(content template2.HTML) template2.HTML {
@@ -81,7 +75,7 @@ func GetAttendances(ctx *context.Context) table.Table {
 			}).SetInfoList([]map[string]types.InfoItem{
 				{"Title": types.InfoItem{Content: "Lates"},
 					"Times": types.InfoItem{Content: template2.HTML(fmt.Sprint(total_lates))}},
-				{"Title": types.InfoItem{Content: "In times"},
+				{"Title": types.InfoItem{Content: "Attend"},
 					"Times": types.InfoItem{Content: template2.HTML(fmt.Sprint(total_intime))}},
 				{"Title": types.InfoItem{Content: "Absences"},
 					"Times": types.InfoItem{Content: template2.HTML(fmt.Sprint(total_absences))}},
@@ -124,7 +118,6 @@ func GetAllAttendancesData(param parameter.Parameters) ([]map[string]interface{}
 		attendance_result["created_at"] = attendance.CreatedAt.Format("2006-01-02 15:04:05")
 
 		attendance_result["teacher_id"] = param.GetFieldValue("teacher_id")
-		attendance_result["class"] = param.GetFieldValue("class")
 
 		switch attendance.CheckInStatus {
 		case "Late":
@@ -154,4 +147,14 @@ func GetAllStudentIDs() []types.FieldOption {
 		options = append(options, temp)
 	}
 	return options
+}
+
+func contains(s []string, str string) bool {
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
+
+	return false
 }
