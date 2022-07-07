@@ -12,15 +12,22 @@ import (
 	"github.com/GoAdminGroup/go-admin/template"
 	"github.com/GoAdminGroup/go-admin/template/types"
 	"github.com/GoAdminGroup/go-admin/template/types/form"
+	"github.com/smartschool/database"
 	"github.com/smartschool/model/entity"
 	"github.com/smartschool/repository"
 )
 
-var total_lates, total_intime, total_absences = 0, 0, 0
+var total_lates, total_intime, total_absences, total_student_inclass = 0, 0, 0, 0
+var batch string
 
 func GetAttendances(ctx *context.Context) table.Table {
 
 	tableAttendaces := table.NewDefaultTable(table.DefaultConfigWithDriver("sqlite"))
+
+	tmp_course, _, _ := repository.QueryCourseByID(ctx.FormValue("course_id"))
+	student_id, _ := repository.QueryFirstStudentInCourseEnrollment(int(tmp_course.ID))
+	student, _ := repository.QueryStudentByID(fmt.Sprint(student_id))
+	batch = student.Batch
 
 	info := tableAttendaces.GetInfo().HideFilterArea()
 	info.AddField("ID", "id", db.Int).HideEditButton().FieldSortable()
@@ -47,17 +54,32 @@ func GetAttendances(ctx *context.Context) table.Table {
 		NoIcon:      false,
 		Placeholder: ctx.FormValue("teacher_id"),
 	}).FieldHide()
-	info.AddField("Batch", "batch", db.Varchar)
+	info.AddField("Batch", "batch", db.Varchar).FieldHide()
 	info.AddField("Student ID", "student_id", db.Varchar).FieldFilterable(types.FilterType{FormType: form.SelectSingle}).FieldFilterOptions(GetAllStudentIDs())
 	info.AddField("Student Name", "student_name", db.Varchar).FieldFilterable()
 	info.AddField("Checkin Status", "checkin_status", db.Varchar).FieldFilterable(types.FilterType{FormType: form.SelectSingle}).FieldFilterOptions(types.FieldOptions{
 		{Value: "Late", Text: "Late"},
 		{Value: "Attend", Text: "Attend"},
+	}).FieldDisplay(func(value types.FieldModel) interface{} {
+		c, _ := value.Row["checkin_status"].(string)
+		switch c {
+		case "Late":
+			c = "<span id='late_stt'>" + c + "</span>"
+		case "Attend":
+			c = "<span id='attend-stt'>" + c + "</span>"
+		}
+		return c
 	})
-	info.AddField("Created At", "created_at", db.Timestamp).FieldFilterable(types.FilterType{FormType: form.DateRange, Placeholder: " ... "})
+	info.AddField("Created At", "created_at", db.Timestamp).FieldFilterable(types.FilterType{FormType: form.DateRange, Placeholder: " ... "}).
+		FieldDisplay(func(value types.FieldModel) interface{} {
+			c, _ := value.Row["created_at"].(string)
+			return "<span id='att-created-at'>" + c + "</span>"
+		})
 	info.HideNewButton()
 	info.HideDetailButton()
 	info.HideDeleteButton()
+	info.HideQueryInfo()
+	info.AddCSS(".late-stt{color: red;} .attend-stt{color: rgb(23, 246, 67);}")
 
 	info.AddCSS(".reset {visibility: hidden;}  span>.btn-group{display: none;}")
 
@@ -67,18 +89,27 @@ func GetAttendances(ctx *context.Context) table.Table {
 
 			table_sum := template.Default().Table().SetThead(types.Thead{
 				{
-					Head: "Title",
+					Head: "Status",
 				},
 				{
 					Head: "Times",
 				},
 			}).SetInfoList([]map[string]types.InfoItem{
+<<<<<<< HEAD
 				{"Title": types.InfoItem{Content: "Lates"},
 					"Times": types.InfoItem{Content: template2.HTML(fmt.Sprint(total_lates))}},
 				{"Title": types.InfoItem{Content: "Attend"},
 					"Times": types.InfoItem{Content: template2.HTML(fmt.Sprint(total_intime))}},
 				{"Title": types.InfoItem{Content: "Absences"},
 					"Times": types.InfoItem{Content: template2.HTML(fmt.Sprint(total_absences))}},
+=======
+				{"Status": types.InfoItem{Content: "Lates"},
+					"Times": types.InfoItem{Content: template2.HTML(fmt.Sprint(total_lates) + "/" + fmt.Sprint(total_student_inclass))}},
+				{"Status": types.InfoItem{Content: "In times"},
+					"Times": types.InfoItem{Content: template2.HTML(fmt.Sprint(total_intime) + "/" + fmt.Sprint(total_student_inclass))}},
+				// {"Title": types.InfoItem{Content: "Absences"},
+				// 	"Times": types.InfoItem{Content: template2.HTML(fmt.Sprint(total_absences))}},
+>>>>>>> 9c0a08f (update v1)
 			},
 			).SetMinWidth("100px").GetContent()
 			col2 := `<div style="position: absolute;width:230px;">` + template.Default().Box().SetHeader("Overview").
@@ -88,8 +119,7 @@ func GetAttendances(ctx *context.Context) table.Table {
 	info.SetGetDataFn(func(param parameter.Parameters) ([]map[string]interface{}, int) {
 		return GetAllAttendancesData(param) //base on teacher_course
 	})
-
-	info.SetTable("attendances").SetTitle("Attendances").SetDescription("Attendances")
+	info.SetTable("attendances").SetTitle("Attendances " + ctx.FormValue("course_id") + " - " + batch).SetDescription("Attendances")
 	return tableAttendaces
 }
 
@@ -99,6 +129,13 @@ func GetAllAttendancesData(param parameter.Parameters) ([]map[string]interface{}
 	attendances, _ = repository.AttendanceByTeacherCourse(param)
 
 	attendance_results := make([]map[string]interface{}, len(attendances))
+
+	//Total student inclass
+	course, _, _ := repository.QueryCourseByID(param.GetFieldValue("course_id"))
+	total_query := `select count(student_id)
+	from student_course_enrollments
+	where course_id = ` + fmt.Sprint(course.ID)
+	database.DbInstance.Raw(total_query).Scan(&total_student_inclass)
 
 	for i, attendance := range attendances {
 		student, _ := repository.QueryStudentByID(fmt.Sprint(attendance.UserID))
