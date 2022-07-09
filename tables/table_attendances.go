@@ -2,6 +2,7 @@ package tables
 
 import (
 	"fmt"
+	"strings"
 
 	template2 "html/template"
 
@@ -19,6 +20,7 @@ import (
 
 var total_lates, total_intime, total_absences, total_student_inclass = 0, 0, 0, 0
 var batch string
+var in_time_schedules []*entity.Schedule
 
 func GetAttendances(ctx *context.Context) table.Table {
 
@@ -42,7 +44,7 @@ func GetAttendances(ctx *context.Context) table.Table {
 		FormType:    form.SelectSingle,
 		NoIcon:      false,
 		Placeholder: ctx.FormValue("course_id"),
-	}).HideFilterButton()
+	}).HideFilterButton().FieldHide()
 	info.AddField("Teacher ID", "teacher_id", db.Varchar).FieldFilterable(types.FilterType{
 		Options: []types.FieldOption{
 			{Text: ctx.FormValue("teacher_id"),
@@ -62,24 +64,55 @@ func GetAttendances(ctx *context.Context) table.Table {
 		{Value: "Attend", Text: "Attend"},
 	}).FieldDisplay(func(value types.FieldModel) interface{} {
 		c, _ := value.Row["checkin_status"].(string)
-		switch c {
-		case "Late":
-			c = "<span id='late_stt'>" + c + "</span>"
-		case "Attend":
-			c = "<span id='attend-stt'>" + c + "</span>"
-		}
+		// switch c {
+		// case "Late":
+		// 	c = "<span id='late-stt'>" + c + "</span>"
+		// case "Attend":
+		// 	c = "<span id='attend-stt'>" + c + "</span>"
+		// }
 		return c
 	})
 	info.AddField("Created At", "created_at", db.Timestamp).FieldFilterable(types.FilterType{FormType: form.DateRange, Placeholder: " ... "}).
 		FieldDisplay(func(value types.FieldModel) interface{} {
 			c, _ := value.Row["created_at"].(string)
-			return "<span id='att-created-at'>" + c + "</span>"
+			var a, b int
+			var d float64
+			add_attr := "attend-stt"
+			database.DbInstance.Raw("select extract(dow from date '" + strings.Split(c, " ")[0] + "')").Scan(&a)
+			for _, i := range in_time_schedules {
+				database.DbInstance.Raw("select extract(dow from date '" + i.StartTime.Format("2006-01-02") + "')").Scan(&b)
+				if a == b {
+					database.DbInstance.Raw("select extract(epoch FROM (TIMESTAMP '" + c + "' -  TIMESTAMP'" + i.StartTime.Format("2006-01-02 15:04:05") + "'))/60").Scan(&d)
+					//checkin time - schedule time > 0 == late
+					if int(d) > 0 && int(d) < 10 {
+						add_attr = "range_five"
+					} else if int(d) >= 10 {
+						add_attr = "range_ten"
+					}
+				}
+			}
+			return "<span id=" + add_attr + ">" + c + "</span>"
 		})
 	info.HideNewButton()
 	info.HideDetailButton()
 	info.HideDeleteButton()
 	info.HideQueryInfo()
-	info.AddCSS(".late-stt{color: red;} .attend-stt{color: rgb(23, 246, 67);}")
+	info.HideCheckBoxColumn()
+	info.AddCSS(`
+		#range_ten{color: #8B0000;} 
+		#attend-stt{color: #228B22;} 
+		#range_five{color: #FF8C00;} 
+		.clearfix{display: none;}`)
+	info.AddJS(`
+		row = $('tr > td > span#range_five').parent();
+		$(row).parent().attr("id", "range_five");
+
+		row = $('tr > td > span#range_ten').parent();
+		$(row).parent().attr("id", "range_ten");
+
+		row = $('tr > td > span#attend-stt').parent();
+		$(row).parent().attr("id", "attend-stt");
+	`)
 
 	info.AddCSS(".reset {visibility: hidden;}  span>.btn-group{display: none;}")
 
@@ -95,21 +128,12 @@ func GetAttendances(ctx *context.Context) table.Table {
 					Head: "Times",
 				},
 			}).SetInfoList([]map[string]types.InfoItem{
-<<<<<<< HEAD
-				{"Title": types.InfoItem{Content: "Lates"},
-					"Times": types.InfoItem{Content: template2.HTML(fmt.Sprint(total_lates))}},
-				{"Title": types.InfoItem{Content: "Attend"},
-					"Times": types.InfoItem{Content: template2.HTML(fmt.Sprint(total_intime))}},
-				{"Title": types.InfoItem{Content: "Absences"},
-					"Times": types.InfoItem{Content: template2.HTML(fmt.Sprint(total_absences))}},
-=======
 				{"Status": types.InfoItem{Content: "Lates"},
 					"Times": types.InfoItem{Content: template2.HTML(fmt.Sprint(total_lates) + "/" + fmt.Sprint(total_student_inclass))}},
 				{"Status": types.InfoItem{Content: "In times"},
 					"Times": types.InfoItem{Content: template2.HTML(fmt.Sprint(total_intime) + "/" + fmt.Sprint(total_student_inclass))}},
 				// {"Title": types.InfoItem{Content: "Absences"},
 				// 	"Times": types.InfoItem{Content: template2.HTML(fmt.Sprint(total_absences))}},
->>>>>>> 9c0a08f (update v1)
 			},
 			).SetMinWidth("100px").GetContent()
 			col2 := `<div style="position: absolute;width:230px;">` + template.Default().Box().SetHeader("Overview").
@@ -126,7 +150,7 @@ func GetAttendances(ctx *context.Context) table.Table {
 func GetAllAttendancesData(param parameter.Parameters) ([]map[string]interface{}, int) {
 	total_absences, total_intime, total_lates = 0, 0, 0
 	attendances := []*entity.Attendance{}
-	attendances, _ = repository.AttendanceByTeacherCourse(param)
+	attendances, _, in_time_schedules = repository.AttendanceByTeacherCourse(param)
 
 	attendance_results := make([]map[string]interface{}, len(attendances))
 
@@ -147,7 +171,7 @@ func GetAllAttendancesData(param parameter.Parameters) ([]map[string]interface{}
 		attendance_result["id"] = attendance.ID
 		attendance_result["teacher_id"] = attendance.TeacherID
 		attendance_result["student_id"] = student.StudentID
-		attendance_result["student_name"] = user.FirstName + " " + user.LastName
+		attendance_result["student_name"] = user.LastName + " " + user.FirstName
 		attendance_result["batch"] = student.Batch
 		attendance_result["schedule_id"] = attendance.ScheduleID
 		attendance_result["course_id"] = course_id
