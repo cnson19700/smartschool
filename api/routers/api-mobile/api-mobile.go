@@ -2,9 +2,10 @@ package api_mobile
 
 import (
 	"fmt"
-	"github.com/smartschool/service/fireapp"
 	"net/http"
 	"time"
+
+	"github.com/smartschool/service/fireapp"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -355,23 +356,31 @@ func ChangePasswordFirstTime(c *gin.Context) {
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"messgae": "Update Password request is invalid",
+			"messgae":     "Update Password request is invalid",
+			"is_activate": false,
 		})
 		return
 	}
 	id, isGet := c.Get("userId")
 	if !isGet {
-		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
+		c.JSON(http.StatusNotFound, gin.H{
+			"message":     "Cannot get userID",
+			"is_activate": false,
+		})
 		return
 	}
-	err = service.ChangePasswordFirstTime(fmt.Sprint(id), req)
+	res, err := service.ChangePasswordFirstTime(fmt.Sprint(id), req)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Error when changing password for first time"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message":     fmt.Sprint(err),
+			"is_activate": res,
+		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"is_activate": true,
+		"message":     "Thay đổi mật khẩu thành công",
+		"is_activate": res,
 	})
 }
 

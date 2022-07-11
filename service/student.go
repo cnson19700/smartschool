@@ -3,6 +3,7 @@ package service
 import (
 	"time"
 
+	"github.com/smartschool/apptypes"
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/repository"
 )
@@ -49,10 +50,10 @@ func GetMe(id string) (*dto.StudentProfile, error) {
 		return &dto.StudentProfile{}, err
 	}
 	var genderStudent string
-	if user.Gender == 0 {
-		genderStudent = "male"
-	} else if user.Gender == 1 {
-		genderStudent = "female"
+	if user.Gender == apptypes.DB_Gender_Male {
+		genderStudent = apptypes.ImportUser_Gender_Male
+	} else if user.Gender == apptypes.DB_Gender_Female {
+		genderStudent = apptypes.ImportUser_Gender_Female
 	}
 
 	StudentProfile := dto.StudentProfile{
