@@ -46,26 +46,26 @@ func UpdatePassword(id string, req dto.UpdatePasswordRequest) error {
 
 }
 
-func ChangePasswordFirstTime(id string, req dto.ChangePasswordFirstTimeRequest) error {
+func ChangePasswordFirstTime(id string, req dto.ChangePasswordFirstTimeRequest) (bool, error) {
 	user := repository.QueryUserBySID(id)
 
 	if user.IsActivate {
-		return errors.New("user is not allowed to change password")
+		return user.IsActivate, errors.New("user is not allowed to change password")
 	}
 
 	err := helper.ComparePassword(req.NewPass, req.ReNewPass)
 	if err != nil {
-		return err
+		return user.IsActivate, err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.NewPass))
 	if err == nil {
-		return errors.New("can not update on the same password")
+		return user.IsActivate, errors.New("Mật khẩu mới không được trùng với mật khẩu cũ!")
 	}
 
 	newPassHash, err := helper.HashPassword(req.NewPass)
 	if err != nil {
-		return err
+		return user.IsActivate, err
 	}
 
 	user.Password = newPassHash
@@ -73,10 +73,10 @@ func ChangePasswordFirstTime(id string, req dto.ChangePasswordFirstTimeRequest) 
 
 	_, err = repository.Update(user)
 	if err != nil {
-		return err
+		return user.IsActivate, err
 	}
 
-	return nil
+	return user.IsActivate, nil
 }
 
 func ResetPassword(req dto.ResetPasswordRequest) error {
