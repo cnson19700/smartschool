@@ -47,4 +47,6 @@ const (
 	ImportUser_Gender_Female string = "nữ"
 	DB_Gender_Male           int    = 0
 	DB_Gender_Female         int    = 1
+	ProfileUser_Gender_Male   string = "Nam"
+	ProfileUser_Gender_Female string = "Nữ"
 )

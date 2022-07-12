@@ -15,7 +15,7 @@ func UpdatePassword(id string, req dto.UpdatePasswordRequest) error {
 	user := repository.QueryUserBySID(id) // get ID from above
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
-		return err
+		return errors.New("Sai mật khẩu!")
 	}
 
 	err = helper.CompareOldNewPass(req.Password, req.NewPass)
@@ -25,13 +25,13 @@ func UpdatePassword(id string, req dto.UpdatePasswordRequest) error {
 
 	err = helper.ComparePassword(req.NewPass, req.ReNewPass)
 	if err != nil {
-		return err
+		return errors.New("Mật khẩu mới và mật khẩu xác nhận không trùng khớp!")
 	}
 
 	newPassHash, err := helper.HashPassword(req.NewPass)
 
 	if err != nil {
-		return err
+		return errors.New("Lỗi hệ thống!")
 	}
 
 	user.Password = newPassHash
@@ -39,7 +39,7 @@ func UpdatePassword(id string, req dto.UpdatePasswordRequest) error {
 	_, err = repository.Update(user)
 
 	if err != nil {
-		return err
+		return errors.New("Lỗi hệ thống!")
 	}
 
 	return nil
@@ -50,7 +50,7 @@ func ChangePasswordFirstTime(id string, req dto.ChangePasswordFirstTimeRequest) 
 	user := repository.QueryUserBySID(id)
 
 	if user.IsActivate {
-		return user.IsActivate, errors.New("user is not allowed to change password")
+		return user.IsActivate, errors.New("Tài khoản có dấu hiệu bất thường")
 	}
 
 	err := helper.ComparePassword(req.NewPass, req.ReNewPass)
@@ -65,7 +65,7 @@ func ChangePasswordFirstTime(id string, req dto.ChangePasswordFirstTimeRequest) 
 
 	newPassHash, err := helper.HashPassword(req.NewPass)
 	if err != nil {
-		return user.IsActivate, err
+		return user.IsActivate, errors.New("Lỗi hệ thống!")
 	}
 
 	user.Password = newPassHash
@@ -73,7 +73,7 @@ func ChangePasswordFirstTime(id string, req dto.ChangePasswordFirstTimeRequest) 
 
 	_, err = repository.Update(user)
 	if err != nil {
-		return user.IsActivate, err
+		return user.IsActivate, errors.New("Lỗi hệ thống!")
 	}
 
 	return user.IsActivate, nil

@@ -120,7 +120,7 @@ func UpdatePassword(c *gin.Context) {
 	}
 	err = service.UpdatePassword(fmt.Sprint(id), req)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": fmt.Sprint(err)})
 		return
 	}
 
@@ -379,7 +379,7 @@ func ChangePasswordFirstTime(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":     "Thay đổi mật khẩu thành công",
+		"message":     "Mật khẩu đã được thay đổi",
 		"is_activate": res,
 	})
 }
