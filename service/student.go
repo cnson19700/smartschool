@@ -51,9 +51,9 @@ func GetMe(id string) (*dto.StudentProfile, error) {
 	}
 	var genderStudent string
 	if user.Gender == apptypes.DB_Gender_Male {
-		genderStudent = apptypes.ImportUser_Gender_Male
+		genderStudent = apptypes.ProfileUser_Gender_Male
 	} else if user.Gender == apptypes.DB_Gender_Female {
-		genderStudent = apptypes.ImportUser_Gender_Female
+		genderStudent = apptypes.ProfileUser_Gender_Female
 	}
 
 	StudentProfile := dto.StudentProfile{

@@ -24,7 +24,7 @@ func CheckMailFormat(email string) (bool, string) {
 
 func CompareOldNewPass(oldPass, newPass string) error {
 	if oldPass == newPass {
-		return errors.New("old and new passwords must be different")
+		return errors.New("Mật khẩu mới không được trùng với mật khẩu cũ!")
 	}
 	return nil
 }
