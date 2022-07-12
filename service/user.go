@@ -15,7 +15,7 @@ func UpdatePassword(id string, req dto.UpdatePasswordRequest) error {
 	user := repository.QueryUserBySID(id) // get ID from above
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
-		return errors.New("Sai mật khẩu!")
+		return errors.New("Mật khẩu không đúng!")
 	}
 
 	err = helper.CompareOldNewPass(req.Password, req.NewPass)
