@@ -35,6 +35,10 @@ func GetCourses(ctx *context.Context) table.Table {
 	info.AddField("Name", "name", db.Varchar)
 	info.AddField("Semester", "semester_name", db.Varchar)
 
+	info.AddColumnButtons("Attendance", types.GetColumnButton("View Attendance", icon.Info,
+		action.Jump("/admin/info/attendances?course_id={%id}"),
+	))
+
 	info.SetGetDataFn(func(param parameter.Parameters) ([]map[string]interface{}, int) {
 		return GetAllCoursesData(param)
 	})

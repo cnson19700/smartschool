@@ -49,6 +49,10 @@ func ImportCourse(c *gin.Context) {
 			course.Name = row[3]
 			course.SemesterID = 3
 
+			if course.CourseID == "" {
+				continue
+			}
+
 			database.DbInstance.Create(&course)
 
 			for j := 4; j < 7; j += 1 {

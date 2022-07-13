@@ -192,6 +192,22 @@ func AttendanceByTeacherCourse(params parameter.Parameters) ([]*entity.Attendanc
 		} else {
 			query.Where("schedule_id = ? ", scheduleIDs)
 		}
+	} else if len(course_id) > 0 {
+		query_schedules := `select distinct schedules.id
+		from schedules
+		inner join 
+		(select distinct courses.*
+		from courses
+		inner join teacher_courses on teacher_courses.course_id = courses.id
+		where courses.course_id = '` + course_id + `') c
+			on c.id = schedules.course_id`
+
+		database.DbInstance.Raw(query_schedules).Scan(&scheduleIDs)
+		if len(scheduleIDs) > 1 {
+			query.Where("schedule_id IN ? ", scheduleIDs)
+		} else {
+			query.Where("schedule_id = ? ", scheduleIDs)
+		}
 	} else {
 		query.Where("user_id = null")
 	}
