@@ -10,7 +10,9 @@ import (
 )
 
 func GetAttendanceInCourseOneUser(courseID uint, userID uint) ([]dto.AttendanceListElement, error) {
-	scheduleList, notFound, err := repository.QueryListScheduleByCourse(courseID, time.Now().UTC())
+
+	currentTime := time.Now().UTC()
+	scheduleList, notFound, err := repository.QueryListScheduleByCourse(courseID, currentTime)
 	if err != nil || notFound {
 		return nil, err
 	}
@@ -52,6 +54,10 @@ func GetAttendanceInCourseOneUser(courseID uint, userID uint) ([]dto.AttendanceL
 			}
 		}
 
+		if checkinStatus == "" && currentTime.Before(scheduleList[i].EndTime) && (currentTime.After(scheduleList[i].StartTime) || currentTime.Equal(scheduleList[i].StartTime)) {
+			continue
+		}
+
 		resultList = append(resultList, dto.AttendanceListElement{
 			StartTime:     scheduleList[i].StartTime,
 			EndTime:       scheduleList[i].EndTime,
@@ -89,6 +95,7 @@ func GetListCourseByUserSemester(userID uint, semesterID uint) ([]dto.CourseRepo
 		return nil, err
 	}
 
+	currentTime := time.Now().UTC()
 	resultList := make([]dto.CourseReportListElement, 0)
 	var totalCount, attendCount int64
 	var absenceCount uint
@@ -99,18 +106,26 @@ func GetListCourseByUserSemester(userID uint, semesterID uint) ([]dto.CourseRepo
 			continue
 		}
 
-		currentScheduleList, notFound, err = repository.QueryCurrentScheduleIDOfCourse(courseList[i].ID, time.Now().UTC())
+		currentScheduleList, notFound, err = repository.QueryCurrentScheduleIDOfCourse(courseList[i].ID, currentTime)
 		if err != nil {
 			continue
 		}
 		attendCount = 0
 		if !notFound {
 			attendCount, err = repository.CountAttendanceOfSchedule(userID, currentScheduleList)
+			if err != nil {
+				continue
+			}
 		}
 
 		absenceCount = uint(len(currentScheduleList) - int(attendCount))
-		if err != nil {
-			continue
+
+		schedule_id, notFound, err := repository.QueryExistCurrentSchedule(courseList[i].ID, currentTime)
+		if err == nil && !notFound {
+			notFound, err = repository.ExistAttendanceByUserSchedule(userID, schedule_id)
+			if err == nil && !notFound {
+				attendCount += 1
+			}
 		}
 
 		resultList = append(resultList, dto.CourseReportListElement{

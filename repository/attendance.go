@@ -59,7 +59,7 @@ func QueryAttendanceByCourseID(courseId string) ([]*entity.Attendance, error) {
 
 func ExistAttendanceByUserSchedule(student_id uint, schedule_id uint) (bool, error) {
 	var checkAttendID uint
-	result := database.DbInstance.Table("attendances").Select("id").Where("user_id = ? AND schedule_id = ?", student_id, schedule_id).Find(&checkAttendID)
+	result := database.DbInstance.Table("attendances").Select("id").Where("user_id = ? AND schedule_id = ? AND deleted_at IS NULL", student_id, schedule_id).Find(&checkAttendID)
 
 	return result.RowsAffected == 0, result.Error
 }
@@ -88,7 +88,7 @@ func QueryListAttendanceInDayByUser(user_id uint, start time.Time, end time.Time
 
 func CountAttendanceOfSchedule(user_id uint, schedule_id_list []uint) (int64, error) {
 	var c int64
-	result := database.DbInstance.Table("attendances").Select("id").Where("user_id = ? AND schedule_id IN ?", user_id, schedule_id_list).Count(&c)
+	result := database.DbInstance.Table("attendances").Select("id").Where("user_id = ? AND schedule_id IN ? AND deleted_at IS NULL", user_id, schedule_id_list).Count(&c)
 
 	return c, result.Error
 }
