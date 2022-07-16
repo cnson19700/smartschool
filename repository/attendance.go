@@ -170,7 +170,21 @@ func AttendanceByTeacherCourse(params parameter.Parameters) ([]*entity.Attendanc
 	scheduleIDs := []uint{}
 	teacher_id, course_id := params.GetFieldValue("teacher_id"), params.GetFieldValue("course_id")
 	var in_time_schedules []*entity.Schedule
+	course, _, _ := QueryCourseByID(course_id)
+	course_code_id := fmt.Sprint(course.ID)
+	// this case for change flow
+	temp_query := `select distinct teacher_id
+	from teacher_courses
+	where course_id = ` + course_code_id + ` and teacher_role = 'GVLT' or teacher_role = 'Professor'`
+	var teacher_ids []uint
+
+	database.DbInstance.Raw(temp_query).Scan(&teacher_ids)
+	if len(teacher_id) <= 0 {
+		teacher_id = fmt.Sprint(teacher_ids[0])
+	}
+
 	if len(teacher_id) > 0 && len(course_id) > 0 {
+
 		query_schedules := `select distinct schedules.id
 		from schedules
 		inner join 
