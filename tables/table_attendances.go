@@ -11,7 +11,9 @@ import (
 	"github.com/GoAdminGroup/go-admin/plugins/admin/modules/parameter"
 	"github.com/GoAdminGroup/go-admin/plugins/admin/modules/table"
 	"github.com/GoAdminGroup/go-admin/template"
+	"github.com/GoAdminGroup/go-admin/template/icon"
 	"github.com/GoAdminGroup/go-admin/template/types"
+	"github.com/GoAdminGroup/go-admin/template/types/action"
 	"github.com/GoAdminGroup/go-admin/template/types/form"
 	"github.com/smartschool/database"
 	"github.com/smartschool/model/entity"
@@ -64,12 +66,6 @@ func GetAttendances(ctx *context.Context) table.Table {
 		{Value: "Attend", Text: "Attend"},
 	}).FieldDisplay(func(value types.FieldModel) interface{} {
 		c, _ := value.Row["checkin_status"].(string)
-		// switch c {
-		// case "Late":
-		// 	c = "<span id='late-stt'>" + c + "</span>"
-		// case "Attend":
-		// 	c = "<span id='attend-stt'>" + c + "</span>"
-		// }
 		return c
 	})
 	info.AddField("Created At", "created_at", db.Timestamp).FieldFilterable(types.FilterType{FormType: form.DateRange, Placeholder: " ... "}).
@@ -97,7 +93,6 @@ func GetAttendances(ctx *context.Context) table.Table {
 	info.HideDetailButton()
 	info.HideDeleteButton()
 	info.HideQueryInfo()
-	info.HideCheckBoxColumn()
 	info.AddCSS(`
 		#range_ten{color: #8B0000;} 
 		#attend-stt{color: #228B22;} 
@@ -143,6 +138,9 @@ func GetAttendances(ctx *context.Context) table.Table {
 	info.SetGetDataFn(func(param parameter.Parameters) ([]map[string]interface{}, int) {
 		return GetAllAttendancesData(param) //base on teacher_course
 	})
+	absence_url := "/admin/info/absence_students?course_id=" + ctx.FormValue("course_id") + "&schedule_ids=" + getScheduleIds(in_time_schedules)
+
+	info.AddButton("Absences Students", icon.Tv, action.Jump(absence_url))
 	info.SetTable("attendances").SetTitle("Attendances " + ctx.FormValue("course_id") + " - " + batch).SetDescription("Attendances")
 	return tableAttendaces
 }
@@ -218,4 +216,15 @@ func contains(s []string, str string) bool {
 	}
 
 	return false
+}
+
+func getScheduleIds(schedules []*entity.Schedule) string {
+	var data []string
+	if len(schedules) > 0 {
+		for _, sch := range schedules {
+			f := sch.ID
+			data = append(data, fmt.Sprint(f))
+		}
+	}
+	return strings.Join(data, ",")
 }
