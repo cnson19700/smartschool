@@ -66,6 +66,7 @@ func main() {
 
 	r.GET("/summary", excel.ExportSummary)
 	r.POST("/admin/info/courses", excel.ImportCourse)
+	r.POST("/admin/info/attendances", excel.ImportCourse)
 	r.POST("/user", func(context *gin.Context) {
 		excel.ImportUser(context)
 		context.Redirect(301, "/admin/info/courses")

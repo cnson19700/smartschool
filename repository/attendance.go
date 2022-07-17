@@ -155,7 +155,7 @@ func SearchAttendance(params parameter.Parameters) ([]*entity.Attendance, error)
 	return attendances, nil
 }
 
-func AttendanceByTeacherCourse(params parameter.Parameters) ([]*entity.Attendance, error) {
+func AttendanceByTeacherCourse(params parameter.Parameters) ([]*entity.Attendance, error, []*entity.Schedule) {
 	filter := entity.AttendanceFilter{
 		StudentName:     strings.ToLower(params.GetFieldValue("student_name")),
 		StudentID:       params.GetFieldValue("student_id"),
@@ -169,13 +169,22 @@ func AttendanceByTeacherCourse(params parameter.Parameters) ([]*entity.Attendanc
 	attendances := []*entity.Attendance{}
 	scheduleIDs := []uint{}
 	teacher_id, course_id := params.GetFieldValue("teacher_id"), params.GetFieldValue("course_id")
+	var in_time_schedules []*entity.Schedule
+	course, _, _ := QueryCourseByID(course_id)
+	course_code_id := fmt.Sprint(course.ID)
+	// this case for change flow
+	temp_query := `select distinct teacher_id
+	from teacher_courses
+	where course_id = ` + course_code_id + ` and teacher_role = 'GVLT' or teacher_role = 'Professor'`
+	var teacher_ids []uint
+
+	database.DbInstance.Raw(temp_query).Scan(&teacher_ids)
+	if len(teacher_id) <= 0 {
+		teacher_id = fmt.Sprint(teacher_ids[0])
+	}
+
 	if len(teacher_id) > 0 && len(course_id) > 0 {
-		// database.DbInstance.Table("schedules").Select("id").Where("course_id = ?", course_id).Scan(&scheduleIDs)
-		// if len(scheduleIDs) > 1 {
-		// 	query.Where("teacher_id = ? AND schedule_id IN ? ", teacher_id, scheduleIDs)
-		// } else {
-		// 	query.Where("teacher_id = ? AND schedule_id = ? ", teacher_id, scheduleIDs)
-		// }
+
 		query_schedules := `select distinct schedules.id
 		from schedules
 		inner join 
@@ -189,8 +198,10 @@ func AttendanceByTeacherCourse(params parameter.Parameters) ([]*entity.Attendanc
 		database.DbInstance.Raw(query_schedules).Scan(&scheduleIDs)
 		if len(scheduleIDs) > 1 {
 			query.Where("schedule_id IN ? ", scheduleIDs)
+			database.DbInstance.Table("schedules").Where("id IN ?", scheduleIDs).Find(&in_time_schedules)
 		} else {
 			query.Where("schedule_id = ? ", scheduleIDs)
+			database.DbInstance.Table("schedules").Where("id = ?", scheduleIDs).Find(&in_time_schedules)
 		}
 	} else if len(course_id) > 0 {
 		query_schedules := `select distinct schedules.id
@@ -236,12 +247,16 @@ func AttendanceByTeacherCourse(params parameter.Parameters) ([]*entity.Attendanc
 		} else {
 			query.Where("created_at BETWEEN ? AND ?", filter.CheckinDayStart, time.Now())
 		}
+	} else {
+		query.Where(`created_at BETWEEN
+		NOW()::DATE-EXTRACT(DOW FROM NOW())::INTEGER-7
+		AND NOW()::DATE-EXTRACT(DOW from NOW())::INTEGER`)
 	}
 
 	err := query.Order("created_at DESC").Find(&attendances).Error
 
 	if err != nil {
-		return nil, err
+		return nil, err, nil
 	}
-	return attendances, nil
+	return attendances, nil, in_time_schedules
 }
