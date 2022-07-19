@@ -8,7 +8,6 @@ import (
 	"github.com/GoAdminGroup/go-admin/modules/db"
 	"github.com/GoAdminGroup/go-admin/plugins/admin/modules/parameter"
 	"github.com/GoAdminGroup/go-admin/plugins/admin/modules/table"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/smartschool/database"
 	"github.com/smartschool/model/entity"
 	"github.com/smartschool/repository"
@@ -40,11 +39,15 @@ func GetAbsenceStudents(ctx *context.Context) table.Table {
 
 func GetAbsencesData(params parameter.Parameters) ([]map[string]interface{}, int) {
 	course, _, _ := repository.QueryCourseByID(params.GetFieldValue("course_id"))
+	created_query := params.GetFieldValue("created_at_start__goadmin")
 	course_id := fmt.Sprint(course.ID)
 	schedules := params.GetFieldValue("schedule_ids")
 	var query string
 	studentIds := []uint{}
 	absenceStudents := []*entity.User{}
+
+	date_constaint := `and a.created_at BETWEEN NOW()::DATE-EXTRACT(DOW FROM NOW())::INTEGER-7
+	AND NOW()::DATE-EXTRACT(DOW from NOW())::INTEGER))`
 
 	schedules_ids := strings.Split(schedules, ",")
 
@@ -56,9 +59,7 @@ func GetAbsencesData(params parameter.Parameters) ([]map[string]interface{}, int
 	from student_course_enrollments st
 	left join attendances a
 	on st.student_id = a.user_id
-	where st.course_id = ` + course_id + ` and a.schedule_id in (` + schedules + `)
-	and a.created_at BETWEEN NOW()::DATE-EXTRACT(DOW FROM NOW())::INTEGER-7
-	AND NOW()::DATE-EXTRACT(DOW from NOW())::INTEGER)`
+	where st.course_id = ` + course_id + ` and a.schedule_id in (` + schedules
 	} else {
 		query = `select s.student_id
 		from student_course_enrollments s
@@ -67,9 +68,13 @@ func GetAbsencesData(params parameter.Parameters) ([]map[string]interface{}, int
 		from student_course_enrollments st
 		left join attendances a
 		on st.student_id = a.user_id
-		where st.course_id = ` + course_id + ` and a.schedule_id = ` + schedules + `)
-		and a.created_at BETWEEN NOW()::DATE-EXTRACT(DOW FROM NOW())::INTEGER-7
-		AND NOW()::DATE-EXTRACT(DOW from NOW())::INTEGER))`
+		where st.course_id = ` + course_id + ` and a.schedule_id = ` + schedules
+	}
+
+	if len(created_query) > 0 {
+		query += ` and a.created_at >= '` + created_query + "')"
+	} else {
+		query += date_constaint
 	}
 	database.DbInstance.Raw(query).Scan(&studentIds)
 	query_students := database.DbInstance.Model(&entity.User{})
@@ -82,7 +87,6 @@ func GetAbsencesData(params parameter.Parameters) ([]map[string]interface{}, int
 	query_students.Order("Id").Find(&absenceStudents)
 
 	absence_results := make([]map[string]interface{}, len(absenceStudents))
-	spew.Dump(absenceStudents)
 
 	for i, currentResult := range absenceStudents {
 		tempResult := make(map[string]interface{})

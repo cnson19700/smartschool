@@ -138,7 +138,10 @@ func GetAttendances(ctx *context.Context) table.Table {
 	info.SetGetDataFn(func(param parameter.Parameters) ([]map[string]interface{}, int) {
 		return GetAllAttendancesData(param) //base on teacher_course
 	})
-	absence_url := "/admin/info/absence_students?course_id=" + ctx.FormValue("course_id") + "&schedule_ids=" + getScheduleIds(in_time_schedules)
+	created_at_query := ctx.FormValue("created_at_start__goadmin")
+	absence_url :=
+		"/admin/info/absence_students?course_id=" + ctx.FormValue("course_id") +
+			"&schedule_ids=" + getScheduleIds(in_time_schedules) + "&created_at_start__goadmin=" + created_at_query
 
 	info.AddButton("Absences Students", icon.Tv, action.Jump(absence_url))
 	info.SetTable("attendances").SetTitle("Attendances " + ctx.FormValue("course_id") + " - " + batch).SetDescription("Attendances")
