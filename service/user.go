@@ -82,10 +82,14 @@ func ChangePasswordFirstTime(id string, req dto.ChangePasswordFirstTimeRequest) 
 func ResetPassword(req dto.ResetPasswordRequest) error {
 	user := repository.QueryUserByEmail(req.Email)
 	if user == nil {
-		return errors.New("User not found")
+		return errors.New("Không tìm thấy email đã đăng ký!")
 	}
 
-	newPassword := generatePassword(10)
+	if !user.IsActivate {
+		return errors.New("Bạn phải kích hoạt tài khoản mới thực hiện được yêu cầu này!")
+	}
+
+	newPassword := generatePassword(8)
 	newPasswordHash, err := helper.HashPassword(newPassword)
 	if err != nil {
 		return errors.New("Error hashing password")
@@ -118,7 +122,8 @@ func ResetPassword(req dto.ResetPasswordRequest) error {
 }
 
 func generatePassword(n int) string {
-	letters := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	//letters := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	letters := []rune("0123456789")
 
 	b := make([]rune, n)
 	for i := range b {

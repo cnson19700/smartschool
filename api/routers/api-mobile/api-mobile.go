@@ -120,7 +120,7 @@ func UpdatePassword(c *gin.Context) {
 	}
 	err = service.UpdatePassword(fmt.Sprint(id), req)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": fmt.Sprint(err)})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -372,7 +372,7 @@ func ChangePasswordFirstTime(c *gin.Context) {
 	res, err := service.ChangePasswordFirstTime(fmt.Sprint(id), req)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"message":     fmt.Sprint(err),
+			"message":     err.Error(),
 			"is_activate": res,
 		})
 		return
@@ -414,6 +414,6 @@ func ResetPassword(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Password reset email is sent",
+		"message": "Đã gửi email reset password!",
 	})
 }
