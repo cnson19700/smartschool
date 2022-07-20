@@ -8,6 +8,7 @@ import (
 	"github.com/GoAdminGroup/go-admin/modules/db"
 	"github.com/GoAdminGroup/go-admin/plugins/admin/modules/parameter"
 	"github.com/GoAdminGroup/go-admin/plugins/admin/modules/table"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/smartschool/database"
 	"github.com/smartschool/model/entity"
 	"github.com/smartschool/repository"
@@ -46,9 +47,11 @@ func GetAbsencesData(params parameter.Parameters) ([]map[string]interface{}, int
 	studentIds := []uint{}
 	absenceStudents := []*entity.User{}
 
-	date_constaint := `and a.created_at BETWEEN NOW()::DATE-EXTRACT(DOW FROM NOW())::INTEGER-7
-	AND NOW()::DATE-EXTRACT(DOW from NOW())::INTEGER))`
+	// date_constaint := `and a.created_at BETWEEN NOW()::DATE-EXTRACT(DOW FROM NOW())::INTEGER-7
+	// AND NOW()::DATE-EXTRACT(DOW from NOW())::INTEGER))`
 
+	date_constaint := `and a.created_at >= current_date at time zone 'UTC' - interval '6 days')`
+	spew.Dump(schedules)
 	schedules_ids := strings.Split(schedules, ",")
 
 	if len(schedules_ids) > 1 {
@@ -59,7 +62,7 @@ func GetAbsencesData(params parameter.Parameters) ([]map[string]interface{}, int
 	from student_course_enrollments st
 	left join attendances a
 	on st.student_id = a.user_id
-	where st.course_id = ` + course_id + ` and a.schedule_id in (` + schedules
+	where st.course_id = ` + course_id + ` and a.schedule_id in (` + schedules + `) `
 	} else {
 		query = `select s.student_id
 		from student_course_enrollments s

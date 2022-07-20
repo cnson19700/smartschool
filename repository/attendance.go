@@ -248,9 +248,10 @@ func AttendanceByTeacherCourse(params parameter.Parameters) ([]*entity.Attendanc
 			query.Where("created_at BETWEEN ? AND ?", filter.CheckinDayStart, time.Now())
 		}
 	} else {
-		query.Where(`created_at BETWEEN
-		NOW()::DATE-EXTRACT(DOW FROM NOW())::INTEGER-7
-		AND NOW()::DATE-EXTRACT(DOW from NOW())::INTEGER`)
+		// query.Where(`created_at BETWEEN
+		// NOW()::DATE-EXTRACT(DOW FROM NOW())::INTEGER-7
+		// AND NOW()::DATE-EXTRACT(DOW from NOW())::INTEGER`)
+		query.Where(`created_at >= current_date at time zone 'UTC' - interval '6 days'`)
 	}
 
 	err := query.Order("created_at DESC").Find(&attendances).Error
