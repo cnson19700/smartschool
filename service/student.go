@@ -136,6 +136,7 @@ func GetCheckInHistoryInDay(userID uint, facultyID uint, timezoneOffset int) ([]
 			Room:          scheduleList[i].Room.RoomID,
 			CheckinTime:   checkinTime,
 			CheckinStatus: checkinStatus,
+			ScheduleID:    scheduleList[i].ID,
 		})
 	}
 

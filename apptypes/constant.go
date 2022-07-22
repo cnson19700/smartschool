@@ -42,11 +42,23 @@ const (
 	CheckinStatus_ScheduleNotFound        string = "[Normal]: Forseen time slot not in any Schedule"
 	CheckinStatus_SameScheduleSpam        string = "[Normal]: Spam check-in"
 
-	ImportUser_Marker        string = "mssv"
-	ImportUser_Gender_Male   string = "nam"
-	ImportUser_Gender_Female string = "nữ"
-	DB_Gender_Male           int    = 0
-	DB_Gender_Female         int    = 1
+	ImportUser_Marker         string = "mssv"
+	ImportUser_Gender_Male    string = "nam"
+	ImportUser_Gender_Female  string = "nữ"
+	DB_Gender_Male            int    = 0
+	DB_Gender_Female          int    = 1
 	ProfileUser_Gender_Male   string = "Nam"
 	ProfileUser_Gender_Female string = "Nữ"
+
+	Attend                string = "Attend"
+	Late                  string = "Late"
+	Absence               string = "Absence"
+	AbsenceWithPermission string = "Absence with permission"
+	Unknown               string = "Unknown"
+
+	Approve string = "Approve"
+	Reject  string = "Reject"
+	Pending string = "Pending"
 )
+
+var Option_CheckinStatus = [...]string{"Late", "Attend"}

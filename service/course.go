@@ -59,6 +59,7 @@ func GetAttendanceInCourseOneUser(courseID uint, userID uint) ([]dto.AttendanceL
 		}
 
 		resultList = append(resultList, dto.AttendanceListElement{
+			ScheduleID:    scheduleList[i].ID,
 			StartTime:     scheduleList[i].StartTime,
 			EndTime:       scheduleList[i].EndTime,
 			Room:          scheduleList[i].Room.RoomID,
