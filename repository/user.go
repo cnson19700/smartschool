@@ -3,6 +3,7 @@ package repository
 import (
 	"github.com/pkg/errors"
 	"github.com/smartschool/database"
+	"github.com/smartschool/model/dto"
 	"github.com/smartschool/model/entity"
 )
 
@@ -63,4 +64,11 @@ func QueryUserByEmail(email string) *entity.User {
 	}
 
 	return &user
+}
+
+func QueryListUserNameInfo(ids []uint) ([]dto.UserFullNameInfo, bool, error) {
+	var users []dto.UserFullNameInfo
+	result := database.DbInstance.Table("users").Where("id IN ?", ids).Find(&users)
+
+	return users, result.RowsAffected == 0, result.Error
 }

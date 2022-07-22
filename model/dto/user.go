@@ -17,3 +17,9 @@ type ResetPasswordRequest struct {
 type ResetPasswordEmailData struct {
 	NewPassword string
 }
+
+type UserFullNameInfo struct {
+	ID        uint   `json:"id"`
+	FirstName string `json:"firstname"`
+	LastName  string `json:"lastname"`
+}

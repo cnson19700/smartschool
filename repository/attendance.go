@@ -261,3 +261,37 @@ func AttendanceByTeacherCourse(params parameter.Parameters) ([]*entity.Attendanc
 	}
 	return attendances, nil, in_time_schedules
 }
+
+func QueryAttendanceByID(id uint) (entity.Attendance, error) {
+	var queryRes entity.Attendance
+	result := database.DbInstance.Where("id = ?", id).Preload("Schedule.Room").Preload("Schedule.Course").First(&queryRes)
+
+	return queryRes, result.Error
+}
+
+func CreateChangeAttendanceRequest(request entity.ComplainForm) error {
+	// err := database.DbInstance.Omit("Schedules.*").Create(&request).Error
+
+	// return err
+	// err := database.DbInstance.Create(&request).Error
+	// if err != nil {
+	// 	return err
+	// }
+	// database.DbInstance.Model(&request).Association("Schedules").Append(schedule_list)
+	err := database.DbInstance.Create(&request).Error
+	return err
+}
+
+func QueryAttendanceStatusByID(attendance_id uint) (entity.Attendance, error) {
+	var attendance entity.Attendance
+	result := database.DbInstance.Where("id = ?", attendance_id).First(&attendance)
+
+	return attendance, result.Error
+}
+
+func QueryAttendanceStatusByUserSchedule(user_id uint, schedule_id uint) (entity.Attendance, bool, error) {
+	var attendance entity.Attendance
+	result := database.DbInstance.Where("user_id = ? AND schedule_id = ?", user_id, schedule_id).Find(&attendance)
+
+	return attendance, result.RowsAffected == 0, result.Error
+}

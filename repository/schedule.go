@@ -79,3 +79,18 @@ func QueryExistCurrentSchedule(course_id uint, current time.Time) (uint, bool, e
 
 	return schedule_id, result.RowsAffected == 0, result.Error
 }
+
+
+func QueryScheduleRoomCourseByID(id uint) (*entity.Schedule, error) {
+	var queryRes entity.Schedule
+	result := database.DbInstance.Where("id = ?", id).Preload("Room").Preload("Course").First(&queryRes)
+
+	return &queryRes, result.Error
+}
+
+func QueryScheduleCourseSemesterByID(id uint) (*entity.Schedule, error) {
+	var queryRes entity.Schedule
+	result := database.DbInstance.Where("id = ?", id).Preload("Course").Preload("Course.Semester").First(&queryRes)
+
+	return &queryRes, result.Error
+}
