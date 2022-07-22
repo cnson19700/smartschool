@@ -68,7 +68,14 @@ func QueryUserByEmail(email string) *entity.User {
 
 func QueryListUserNameInfo(ids []uint) ([]dto.UserFullNameInfo, bool, error) {
 	var users []dto.UserFullNameInfo
-	result := database.DbInstance.Table("users").Where("id IN ?", ids).Find(&users)
+	result := database.DbInstance.Table("users").Where("id IN ? AND deleted_at IS NULL", ids).Find(&users)
 
 	return users, result.RowsAffected == 0, result.Error
+}
+
+func QueryUserNameInfo(id uint) (dto.UserFullNameInfo, error) {
+	var user dto.UserFullNameInfo
+	result := database.DbInstance.Table("users").Where("id = ? AND deleted_at IS NULL", id).First(&user)
+
+	return user, result.Error
 }

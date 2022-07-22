@@ -282,16 +282,16 @@ func CreateChangeAttendanceRequest(request entity.ComplainForm) error {
 	return err
 }
 
-func QueryAttendanceStatusByID(attendance_id uint) (entity.Attendance, error) {
-	var attendance entity.Attendance
-	result := database.DbInstance.Where("id = ?", attendance_id).First(&attendance)
+// func QueryAttendanceStatusByID(user_id uint, schedule_id uint) (entity.Attendance, bool, error) {
+// 	var attendance entity.Attendance
+// 	result := database.DbInstance.Select("checkin_status").Where("user_id = ? AND schedule_id = ?", user_id, schedule_id).First(&attendance)
 
-	return attendance, result.Error
-}
+// 	return attendance, result.RowsAffected == 0, result.Error
+// }
 
 func QueryAttendanceStatusByUserSchedule(user_id uint, schedule_id uint) (entity.Attendance, bool, error) {
 	var attendance entity.Attendance
-	result := database.DbInstance.Where("user_id = ? AND schedule_id = ?", user_id, schedule_id).Find(&attendance)
+	result := database.DbInstance.Select("checkin_status").Where("user_id = ? AND schedule_id = ?", user_id, schedule_id).Find(&attendance)
 
 	return attendance, result.RowsAffected == 0, result.Error
 }

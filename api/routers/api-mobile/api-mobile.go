@@ -496,3 +496,75 @@ func RequestChangeAttendanceStatus(c *gin.Context) {
 		"messgae": "Success",
 	})
 }
+
+func GetComplainFormRequestBySemester(c *gin.Context) {
+	request := struct {
+		SemesterID uint `form:"semester_id" binding:"required"`
+	}{}
+
+	err := c.ShouldBind(&request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"messgae": "Cannot capture request",
+		})
+		return
+	}
+
+	id, isGet := c.Get("userId")
+	if !isGet {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
+		return
+	}
+
+	userId, canConvert := id.(float64)
+	if !canConvert {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Authenticate fail"})
+		return
+	}
+
+	formList, err := service.GetComplainFormRequestBySemester(uint(userId), request.SemesterID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot get complain form list for this request"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"form_list": formList,
+	})
+}
+
+func GetComplainFormRequestDetail(c *gin.Context) {
+	request := struct {
+		FormID uint `form:"form_id" binding:"required"`
+	}{}
+
+	err := c.ShouldBind(&request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"messgae": "Cannot capture request",
+		})
+		return
+	}
+
+	id, isGet := c.Get("userId")
+	if !isGet {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
+		return
+	}
+
+	userId, canConvert := id.(float64)
+	if !canConvert {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Authenticate fail"})
+		return
+	}
+
+	formDetail, err := service.GetComplainFormRequestDetail(uint(userId), request.FormID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot get complain form detail info for this request"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"form_detail": formDetail,
+	})
+}

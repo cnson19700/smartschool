@@ -34,6 +34,8 @@ func Initialize() (*gin.Engine, error) {
 	mobileUser.GET("/get-form-request-change-attendance-status", api_mobile.GetComplainFormRequest)
 	mobileUser.POST("/request-change-attendance-status", api_mobile.RequestChangeAttendanceStatus)
 	mobileUser.GET("/test-notification", api_mobile.TestNotification)
+	mobileUser.GET("/get-complain-form-request", api_mobile.GetComplainFormRequestBySemester)
+	mobileUser.GET("/get-complain-form-request-detail", api_mobile.GetComplainFormRequestDetail)
 
 	r.POST("/checkin", api_device.EventCheckin)
 	r.POST("/login", api_mobile.Login)

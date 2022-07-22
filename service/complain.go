@@ -43,7 +43,7 @@ func GetComplainFormRequest(userID uint, scheduleID uint) (*dto.RequestChangeAtt
 		return nil, nil, errors.New("current status is attend")
 	}
 
-	notFound, err = repository.QueryExistComplainFormIDByUser(userID, scheduleID)
+	notFound, err = repository.QueryExistComplainFormByUser(userID, scheduleID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -71,7 +71,7 @@ func GetComplainFormRequest(userID uint, scheduleID uint) (*dto.RequestChangeAtt
 
 	schedule := dto.RequestChangeAttendanceForm{
 		ScheduleID:    scheduleInfo.ID,
-		CourseName:    scheduleInfo.Course.CourseID,
+		CourseName:    scheduleInfo.Course.CourseID + " - " + scheduleInfo.Course.Name,
 		Room:          scheduleInfo.Room.RoomID,
 		StartTime:     scheduleInfo.StartTime,
 		EndTime:       scheduleInfo.EndTime,
@@ -92,7 +92,7 @@ func RequestChangeAttendanceStatus(userId uint, request dto.ChangeAttendanceStat
 		return errors.New("can not resolve requests of passed semester")
 	}
 
-	_, notFound, err := repository.QueryComplainFormIDByUser(userId, request.ToUserID, schedule.ID)
+	notFound, err := repository.QueryExistComplainFormByUser(userId, schedule.ID)
 	if err != nil {
 		return err
 	}
@@ -136,4 +136,102 @@ func RequestChangeAttendanceStatus(userId uint, request dto.ChangeAttendanceStat
 
 	err = repository.CreateChangeAttendanceRequest(recordRequest)
 	return err
+}
+
+func GetComplainFormRequestBySemester(userID uint, semesterID uint) ([]dto.MobileViewComplainForm, error) {
+	formList, notFound, err := repository.QueryListComplainFormByUserSemester(userID, semesterID)
+	if err != nil {
+		return nil, errors.New("error when query form list")
+	}
+
+	resultList := make([]dto.MobileViewComplainForm, 0)
+	if notFound {
+		return resultList, nil
+	}
+
+	var checkinStatus string
+	for i := 0; i < len(formList); i++ {
+
+		checkinStatus = ""
+
+		teacherInfo, err := repository.QueryUserNameInfo(formList[i].ReceiveUserID)
+		if err != nil {
+			continue
+		}
+
+		schedule, err := repository.QueryScheduleRoomCourseByID(formList[i].ScheduleID)
+		if err != nil {
+			continue
+		}
+
+		attendance, notFound, err := repository.QueryAttendanceStatusByUserSchedule(userID, formList[i].ScheduleID)
+		if err != nil {
+			continue
+		}
+		if notFound {
+			checkinStatus = apptypes.Absence
+		} else {
+			checkinStatus = attendance.CheckInStatus
+		}
+
+		resultList = append(resultList, dto.MobileViewComplainForm{
+			FormID:        formList[i].ID,
+			CreatedTime:   formList[i].CreatedAt,
+			RequestStatus: formList[i].RequestStatus,
+			FormStatus:    formList[i].FormStatus,
+			ToTeacherName: teacherInfo.LastName + " " + teacherInfo.FirstName,
+			CourseName:    schedule.Course.CourseID + " - " + schedule.Course.Name,
+			CurrentStatus: checkinStatus,
+		})
+	}
+
+	return resultList, nil
+}
+
+func GetComplainFormRequestDetail(userID, formID uint) (*dto.MobileViewDetailComplainForm, error) {
+	form, notFound, err := repository.QueryComplainFormByID(formID)
+	if err != nil || notFound {
+		return nil, errors.New("error when query complain form")
+	}
+
+	if form.RequestUserID != userID {
+		return nil, errors.New("user does not own this complain form")
+	}
+
+	teacherInfo, err := repository.QueryUserNameInfo(form.ReceiveUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	schedule, err := repository.QueryScheduleRoomCourseByID(form.ScheduleID)
+	if err != nil {
+		return nil, err
+	}
+
+	var checkinStatus string
+	var checkinTime *time.Time = nil
+	attendance, notFound, err := repository.QueryAttendanceStatusByUserSchedule(userID, form.ScheduleID)
+	if err != nil {
+		return nil, err
+	}
+	if notFound {
+		checkinStatus = apptypes.Absence
+	} else {
+		checkinStatus = attendance.CheckInStatus
+		checkinTime = &attendance.CheckInTime
+	}
+
+	return &dto.MobileViewDetailComplainForm{
+		CourseName:    schedule.Course.CourseID + " - " + schedule.Course.Name,
+		ToTeacherName: teacherInfo.LastName + " " + teacherInfo.FirstName,
+		StartTime:     schedule.StartTime,
+		EndTime:       schedule.EndTime,
+		Room:          schedule.Room.RoomID,
+		CheckInTime:   checkinTime,
+		CurrentStatus: checkinStatus,
+		RequestStatus: form.RequestStatus,
+		FormStatus:    form.FormStatus,
+		Reason:        form.Reason,
+		RejectReason:  form.RejectReason,
+	}, nil
 }
