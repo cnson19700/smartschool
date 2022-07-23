@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/smartschool/apptypes"
+	"github.com/smartschool/helper"
 	"github.com/smartschool/service/fireapp"
 
 	"github.com/dgrijalva/jwt-go"
@@ -180,6 +181,9 @@ func GetCourseAttendanceOfOneUser(c *gin.Context) {
 		return
 	}
 
+	if res == nil {
+		res = make([]dto.AttendanceListElement, 0)
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"course":          course.CourseID + " - " + course.Name,
 		"attendance_list": res,
@@ -188,7 +192,7 @@ func GetCourseAttendanceOfOneUser(c *gin.Context) {
 
 func GetInDayAttendance(c *gin.Context) {
 	request := struct {
-		TimezoneOffset int `form:"time_offset" binding:"required"`
+		TimezoneOffset string `form:"time_offset" binding:"required"`
 	}{}
 
 	err := c.ShouldBind(&request)
@@ -227,6 +231,9 @@ func GetInDayAttendance(c *gin.Context) {
 		return
 	}
 
+	if res == nil {
+		res = make([]dto.CheckInHistoryListElement, 0)
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"checkin_list": res,
 	})
@@ -450,6 +457,12 @@ func GetComplainFormRequest(c *gin.Context) {
 		return
 	}
 
+	var request_checkin_option []string
+	if schedule.CurrentStatus == apptypes.Unknown {
+		request_checkin_option = apptypes.Option_Absence[:]
+	} else {
+		request_checkin_option = apptypes.Option_Complain[:]
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"schedule_id":             schedule.ScheduleID,
 		"course_name":             schedule.CourseName,
@@ -457,8 +470,8 @@ func GetComplainFormRequest(c *gin.Context) {
 		"start_time":              schedule.StartTime,
 		"end_time":                schedule.EndTime,
 		"check_in_time":           schedule.CheckInTime,
-		"current_check_in_status": schedule.CurrentStatus,
-		"request_status":          apptypes.Option_CheckinStatus,
+		"current_check_in_status": helper.MapCheckinStatus_E2V(schedule.CurrentStatus, false),
+		"request_status":          request_checkin_option,
 		"teacher_list":            teacherList,
 	})
 }
