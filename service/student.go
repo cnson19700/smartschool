@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"time"
 
 	"github.com/smartschool/apptypes"
@@ -79,12 +80,15 @@ func GetCheckInHistoryInDay(userID uint, facultyID uint, timezoneOffset string) 
 	if err != nil {
 		return nil, err
 	}
-	year, month, day := currentDate.Date()
+	startDateTime := currentDate.Add(time.Hour * time.Duration(apptypes.TimeZone) * -1)
 
-	startDateTime := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+	UTCnow := time.Now().UTC().Add(time.Hour * time.Duration(apptypes.TimeZone))
+	Uyear, Umonth, Uday := UTCnow.Date()
+	UTCstart := time.Date(Uyear, Umonth, Uday, 0, 0, 0, 0, time.UTC).Add(time.Hour * time.Duration(apptypes.TimeZone) * -1)
 
-	//startDateTime = startDateTime.Add(time.Hour * time.Duration(timezoneOffset) * -1)
-	startDateTime = startDateTime.Add(time.Hour * -7)
+	if timeDiff := UTCstart.Sub(startDateTime); timeDiff > 0 {
+		return nil, errors.New("past schedules can not be viewed")
+	}
 	endDateTime := startDateTime.Add(time.Hour * 24)
 
 	semesterID, notFound, err := repository.QuerySemesterByFacultyTime(facultyID, startDateTime)

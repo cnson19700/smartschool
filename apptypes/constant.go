@@ -57,6 +57,8 @@ const (
 	Approve string = "Approve"
 	Reject  string = "Reject"
 	Pending string = "Pending"
+
+	TimeZone int = 7
 )
 
 var Option_CheckinStatus = [...]string{"Late", "Attend"}
