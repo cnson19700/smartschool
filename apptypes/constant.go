@@ -20,8 +20,6 @@ const (
 	CheckinType_QR    = "QR"
 	CheckinType_Error = "ERROR"
 
-	CheckinStatus_Attend                  string = "Attend"
-	CheckinStatus_Late                    string = "Late"
 	CheckinStatus_InvalidCheckinTime      string = "[Abnormal]: Invalid Checkin time - Delay over 5 second"
 	CheckinStatus_InvalidCardUserNotFound string = "[Abnormal]: Invalid Card - User not found"
 	CheckinStatus_InvalidCardRoleNotFound string = "[Abnormal]: Invalid Card - Role not found"
@@ -54,7 +52,7 @@ const (
 	Late                  string = "Late"
 	Absence               string = "Absence"
 	AbsenceWithPermission string = "Absence with permission"
-	Unknown               string = "Unknown"
+	Unknown               string = "No data"
 
 	Approve string = "Approve"
 	Reject  string = "Reject"

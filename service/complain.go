@@ -43,13 +43,13 @@ func GetComplainFormRequest(userID uint, scheduleID uint) (*dto.RequestChangeAtt
 		return nil, nil, errors.New("current status is attend")
 	}
 
-	notFound, err = repository.QueryExistComplainFormByUser(userID, scheduleID)
-	if err != nil {
-		return nil, nil, err
-	}
-	if !notFound {
-		return nil, nil, errors.New("form already exists")
-	}
+	// notFound, err = repository.QueryExistComplainFormByUser(userID, scheduleID)
+	// if err != nil {
+	// 	return nil, nil, err
+	// }
+	// if !notFound {
+	// 	return nil, nil, errors.New("form already exists")
+	// }
 
 	teacherIDList, notFound, err := repository.QueryEnrollmentOfTeacherInCourse(scheduleInfo.CourseID)
 	if err != nil || notFound {
@@ -58,7 +58,7 @@ func GetComplainFormRequest(userID uint, scheduleID uint) (*dto.RequestChangeAtt
 
 	teacherInfoList, notFound, err := repository.QueryListUserNameInfo(teacherIDList)
 	if err != nil || notFound {
-		return nil, nil, errors.New("teacher for this course not found")
+		return nil, nil, errors.New("teacher info for this course not found")
 	}
 
 	teacherList := make([]dto.TeacherList, 0)
@@ -92,7 +92,7 @@ func RequestChangeAttendanceStatus(userId uint, request dto.ChangeAttendanceStat
 		return errors.New("can not resolve requests of passed semester")
 	}
 
-	notFound, err := repository.QueryExistComplainFormByUser(userId, schedule.ID)
+	_, notFound, err := repository.QueryComplainFormByUser(userId, request.ToUserID, schedule.ID)
 	if err != nil {
 		return err
 	}
@@ -149,10 +149,7 @@ func GetComplainFormRequestBySemester(userID uint, semesterID uint) ([]dto.Mobil
 		return resultList, nil
 	}
 
-	var checkinStatus string
 	for i := 0; i < len(formList); i++ {
-
-		checkinStatus = ""
 
 		teacherInfo, err := repository.QueryUserNameInfo(formList[i].ReceiveUserID)
 		if err != nil {
@@ -169,9 +166,11 @@ func GetComplainFormRequestBySemester(userID uint, semesterID uint) ([]dto.Mobil
 			continue
 		}
 		if notFound {
-			checkinStatus = apptypes.Absence
-		} else {
-			checkinStatus = attendance.CheckInStatus
+			if time.Since(schedule.EndTime) >= 0 {
+				attendance.CheckInStatus = apptypes.Absence
+			} else {
+				attendance.CheckInStatus = apptypes.Unknown
+			}
 		}
 
 		resultList = append(resultList, dto.MobileViewComplainForm{
@@ -181,7 +180,7 @@ func GetComplainFormRequestBySemester(userID uint, semesterID uint) ([]dto.Mobil
 			FormStatus:    formList[i].FormStatus,
 			ToTeacherName: teacherInfo.LastName + " " + teacherInfo.FirstName,
 			CourseName:    schedule.Course.CourseID + " - " + schedule.Course.Name,
-			CurrentStatus: checkinStatus,
+			CurrentStatus: attendance.CheckInStatus,
 		})
 	}
 
@@ -208,16 +207,18 @@ func GetComplainFormRequestDetail(userID, formID uint) (*dto.MobileViewDetailCom
 		return nil, err
 	}
 
-	var checkinStatus string
 	var checkinTime *time.Time = nil
 	attendance, notFound, err := repository.QueryAttendanceStatusByUserSchedule(userID, form.ScheduleID)
 	if err != nil {
 		return nil, err
 	}
 	if notFound {
-		checkinStatus = apptypes.Absence
+		if time.Since(schedule.EndTime) >= 0 {
+			attendance.CheckInStatus = apptypes.Absence
+		} else {
+			attendance.CheckInStatus = apptypes.Unknown
+		}
 	} else {
-		checkinStatus = attendance.CheckInStatus
 		checkinTime = &attendance.CheckInTime
 	}
 
@@ -228,10 +229,23 @@ func GetComplainFormRequestDetail(userID, formID uint) (*dto.MobileViewDetailCom
 		EndTime:       schedule.EndTime,
 		Room:          schedule.Room.RoomID,
 		CheckInTime:   checkinTime,
-		CurrentStatus: checkinStatus,
+		CurrentStatus: attendance.CheckInStatus,
 		RequestStatus: form.RequestStatus,
 		FormStatus:    form.FormStatus,
 		Reason:        form.Reason,
 		RejectReason:  form.RejectReason,
 	}, nil
+}
+
+func DeleteComplainForm(userID, formID uint) error {
+	form, notFound, err := repository.QueryComplainFormByID(formID)
+	if err != nil || notFound {
+		return errors.New("error when query complain form")
+	}
+
+	if form.RequestUserID != userID {
+		return errors.New("user does not own this complain form")
+	}
+
+	return repository.DeleteComplainForm(formID)
 }

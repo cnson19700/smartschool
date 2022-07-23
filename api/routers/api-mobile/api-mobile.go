@@ -110,7 +110,7 @@ func UpdatePassword(c *gin.Context) {
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"messgae": "Update Password request is invalid",
+			"message": "Update Password request is invalid",
 		})
 		return
 	}
@@ -150,7 +150,7 @@ func GetCourseAttendanceOfOneUser(c *gin.Context) {
 	err := c.ShouldBind(&request)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"messgae": "Cannot capture request",
+			"message": "Cannot capture request",
 		})
 		return
 	}
@@ -194,7 +194,7 @@ func GetInDayAttendance(c *gin.Context) {
 	err := c.ShouldBind(&request)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"messgae": "Cannot capture request",
+			"message": "Cannot capture request",
 		})
 		return
 	}
@@ -295,7 +295,7 @@ func GetCourseInSemesterOfOneUser(c *gin.Context) {
 	err := c.ShouldBind(&request)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"messgae": "Cannot capture request",
+			"message": "Cannot capture request",
 		})
 		return
 	}
@@ -314,7 +314,7 @@ func GetCourseInSemesterOfOneUser(c *gin.Context) {
 	res, err := service.GetListCourseByUserSemester(uint(userId), request.SemesterID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"messgae": "Cannot get list course in selected semester for user",
+			"message": "Cannot get list course in selected semester for user",
 		})
 		return
 	}
@@ -342,7 +342,7 @@ func GetSemesterInFaculty(c *gin.Context) {
 	res, err := service.GetSemesterByFacultyID(uint(userFacultyId))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"messgae": "Cannot get list semester for user",
+			"message": "Cannot get list semester for user",
 		})
 		return
 	}
@@ -357,7 +357,7 @@ func ChangePasswordFirstTime(c *gin.Context) {
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"messgae":     "Update Password request is invalid",
+			"message":     "Update Password request is invalid",
 			"is_activate": false,
 		})
 		return
@@ -427,7 +427,7 @@ func GetComplainFormRequest(c *gin.Context) {
 	err := c.ShouldBind(&request)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"messgae": "Cannot capture request",
+			"message": "Cannot capture request",
 		})
 		return
 	}
@@ -481,7 +481,7 @@ func RequestChangeAttendanceStatus(c *gin.Context) {
 	err := c.ShouldBindJSON(&request)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"messgae": "Cannot capture request",
+			"message": "Cannot capture request",
 		})
 		return
 	}
@@ -493,7 +493,7 @@ func RequestChangeAttendanceStatus(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"messgae": "Success",
+		"message": "Form is posted",
 	})
 }
 
@@ -505,7 +505,7 @@ func GetComplainFormRequestBySemester(c *gin.Context) {
 	err := c.ShouldBind(&request)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"messgae": "Cannot capture request",
+			"message": "Cannot capture request",
 		})
 		return
 	}
@@ -541,7 +541,7 @@ func GetComplainFormRequestDetail(c *gin.Context) {
 	err := c.ShouldBind(&request)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"messgae": "Cannot capture request",
+			"message": "Cannot capture request",
 		})
 		return
 	}
@@ -566,5 +566,41 @@ func GetComplainFormRequestDetail(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"form_detail": formDetail,
+	})
+}
+
+func DeleteComplainForm(c *gin.Context) {
+	request := struct {
+		FormID uint `form:"form_id" binding:"required"`
+	}{}
+
+	err := c.ShouldBind(&request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Cannot capture request",
+		})
+		return
+	}
+
+	id, isGet := c.Get("userId")
+	if !isGet {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
+		return
+	}
+
+	userId, canConvert := id.(float64)
+	if !canConvert {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Authenticate fail"})
+		return
+	}
+
+	err = service.DeleteComplainForm(uint(userId), request.FormID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot delete complain form info for this request"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Form is deleted",
 	})
 }
