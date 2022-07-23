@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/smartschool/apptypes"
+	"github.com/smartschool/helper"
 	"github.com/smartschool/service/fireapp"
 
 	"github.com/dgrijalva/jwt-go"
@@ -456,6 +457,12 @@ func GetComplainFormRequest(c *gin.Context) {
 		return
 	}
 
+	var request_checkin_option []string
+	if schedule.CurrentStatus == apptypes.Unknown {
+		request_checkin_option = apptypes.Option_Absence[:]
+	} else {
+		request_checkin_option = apptypes.Option_Complain[:]
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"schedule_id":             schedule.ScheduleID,
 		"course_name":             schedule.CourseName,
@@ -463,8 +470,8 @@ func GetComplainFormRequest(c *gin.Context) {
 		"start_time":              schedule.StartTime,
 		"end_time":                schedule.EndTime,
 		"check_in_time":           schedule.CheckInTime,
-		"current_check_in_status": schedule.CurrentStatus,
-		"request_status":          apptypes.Option_CheckinStatus,
+		"current_check_in_status": helper.MapCheckinStatus_E2V(schedule.CurrentStatus, false),
+		"request_status":          request_checkin_option,
 		"teacher_list":            teacherList,
 	})
 }

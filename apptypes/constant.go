@@ -48,17 +48,26 @@ const (
 	ProfileUser_Gender_Male   string = "Nam"
 	ProfileUser_Gender_Female string = "Nữ"
 
-	Attend                string = "Attend"
-	Late                  string = "Late"
-	Absence               string = "Absence"
-	AbsenceWithPermission string = "Absence with permission"
-	Unknown               string = ""
+	Attend                 string = "Attend"
+	Late                   string = "Late"
+	Absence                string = "Absence"
+	AbsenceWithPermission  string = "Absence with permission"
+	Unknown                string = "No data"
+	VAttend                string = "Hợp lệ"
+	VLate                  string = "Đi trễ"
+	VAbsence               string = "Vắng"
+	VAbsenceWithPermission string = "Vắng có phép (Hợp lệ)"
 
-	Approve string = "Approve"
-	Reject  string = "Reject"
-	Pending string = "Pending"
+	Approve  string = "Approve"
+	Reject   string = "Reject"
+	Pending  string = "Pending"
+	VApprove string = "Chấp nhận"
+	VReject  string = "Từ chối"
+	VPending string = "Đang chờ duyệt"
 
 	TimeZone int = 7
 )
 
-var Option_CheckinStatus = [...]string{"Late", "Attend"}
+var Option_CheckinStatus = [...]string{"Attend", "Late"}
+var Option_Complain = [...]string{"Hợp lệ", "Đi trễ"}
+var Option_Absence = [...]string{"Vắng có phép (Hợp lệ)", "Đi trễ"}

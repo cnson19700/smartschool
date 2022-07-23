@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/smartschool/apptypes"
+	"github.com/smartschool/helper"
 	"github.com/smartschool/model/dto"
 	"github.com/smartschool/model/entity"
 	"github.com/smartschool/repository"
@@ -124,11 +125,15 @@ func RequestChangeAttendanceStatus(userId uint, request dto.ChangeAttendanceStat
 		return errors.New("current status is attend")
 	}
 
+	requestStatus := helper.MapCheckinStatus_V2E(request.RequestCheckInStatus)
+	if requestStatus == apptypes.CheckinType_Error {
+		return errors.New("abnormal request")
+	}
 	recordRequest := entity.ComplainForm{
 		RequestUserID: userId,
 		ReceiveUserID: request.ToUserID,
 		SemesterID:    schedule.Course.SemesterID,
-		RequestStatus: request.RequestCheckInStatus,
+		RequestStatus: requestStatus,
 		FormStatus:    apptypes.Pending,
 		Reason:        request.Reason,
 		ScheduleID:    request.ScheduleID,
@@ -149,6 +154,7 @@ func GetComplainFormRequestBySemester(userID uint, semesterID uint) ([]dto.Mobil
 		return resultList, nil
 	}
 
+	var isAbsenceForm bool
 	for i := 0; i < len(formList); i++ {
 
 		teacherInfo, err := repository.QueryUserNameInfo(formList[i].ReceiveUserID)
@@ -173,14 +179,18 @@ func GetComplainFormRequestBySemester(userID uint, semesterID uint) ([]dto.Mobil
 			}
 		}
 
+		isAbsenceForm = false
+		if attendance.CheckInStatus == apptypes.Unknown {
+			isAbsenceForm = true
+		}
 		resultList = append(resultList, dto.MobileViewComplainForm{
 			FormID:        formList[i].ID,
 			CreatedTime:   formList[i].CreatedAt,
-			RequestStatus: formList[i].RequestStatus,
-			FormStatus:    formList[i].FormStatus,
+			RequestStatus: helper.MapCheckinStatus_E2V(formList[i].RequestStatus, isAbsenceForm),
+			FormStatus:    helper.MapFormStatus_E2V(formList[i].FormStatus),
 			ToTeacherName: teacherInfo.LastName + " " + teacherInfo.FirstName,
 			CourseName:    schedule.Course.CourseID + " - " + schedule.Course.Name,
-			CurrentStatus: attendance.CheckInStatus,
+			CurrentStatus: helper.MapCheckinStatus_E2V(attendance.CheckInStatus, false),
 		})
 	}
 
@@ -222,6 +232,10 @@ func GetComplainFormRequestDetail(userID, formID uint) (*dto.MobileViewDetailCom
 		checkinTime = &attendance.CheckInTime
 	}
 
+	isAbsenceForm := false
+	if attendance.CheckInStatus == apptypes.Unknown {
+		isAbsenceForm = true
+	}
 	return &dto.MobileViewDetailComplainForm{
 		CourseName:    schedule.Course.CourseID + " - " + schedule.Course.Name,
 		ToTeacherName: teacherInfo.LastName + " " + teacherInfo.FirstName,
@@ -229,9 +243,9 @@ func GetComplainFormRequestDetail(userID, formID uint) (*dto.MobileViewDetailCom
 		EndTime:       schedule.EndTime,
 		Room:          schedule.Room.RoomID,
 		CheckInTime:   checkinTime,
-		CurrentStatus: attendance.CheckInStatus,
-		RequestStatus: form.RequestStatus,
-		FormStatus:    form.FormStatus,
+		CurrentStatus: helper.MapCheckinStatus_E2V(attendance.CheckInStatus, false),
+		RequestStatus: helper.MapCheckinStatus_E2V(form.RequestStatus, isAbsenceForm),
+		FormStatus:    helper.MapFormStatus_E2V(form.FormStatus),
 		Reason:        form.Reason,
 		RejectReason:  form.RejectReason,
 	}, nil
