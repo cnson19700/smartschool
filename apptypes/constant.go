@@ -52,7 +52,7 @@ const (
 	Late                  string = "Late"
 	Absence               string = "Absence"
 	AbsenceWithPermission string = "Absence with permission"
-	Unknown               string = "No data"
+	Unknown               string = ""
 
 	Approve string = "Approve"
 	Reject  string = "Reject"

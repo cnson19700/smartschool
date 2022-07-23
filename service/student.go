@@ -67,18 +67,24 @@ func GetMe(id string) (*dto.StudentProfile, error) {
 	return &StudentProfile, nil
 }
 
-func GetCheckInHistoryInDay(userID uint, facultyID uint, timezoneOffset int) ([]dto.CheckInHistoryListElement, error) {
-	if timezoneOffset > 14 || timezoneOffset < -12 {
-		return nil, nil
-	}
+func GetCheckInHistoryInDay(userID uint, facultyID uint, timezoneOffset string) ([]dto.CheckInHistoryListElement, error) {
+	// if timezoneOffset > 14 || timezoneOffset < -12 {
+	// 	return nil, nil
+	// }
 
-	currentDateTime := time.Now().UTC().Add(time.Hour * time.Duration(timezoneOffset))
+	//currentDateTime := time.Now().UTC().Add(time.Hour * time.Duration(timezoneOffset))
 	//currentDateTime := time.Date(2022, 1, 12, 15, 0, 0, 0, time.UTC).Add(time.Hour * time.Duration(timezoneOffset))
-	year, month, day := currentDateTime.Date()
+
+	currentDate, err := time.Parse("2006-01-02", timezoneOffset)
+	if err != nil {
+		return nil, err
+	}
+	year, month, day := currentDate.Date()
 
 	startDateTime := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
 
-	startDateTime = startDateTime.Add(time.Hour * time.Duration(timezoneOffset) * -1)
+	//startDateTime = startDateTime.Add(time.Hour * time.Duration(timezoneOffset) * -1)
+	startDateTime = startDateTime.Add(time.Hour * -7)
 	endDateTime := startDateTime.Add(time.Hour * 24)
 
 	semesterID, notFound, err := repository.QuerySemesterByFacultyTime(facultyID, startDateTime)

@@ -180,6 +180,9 @@ func GetCourseAttendanceOfOneUser(c *gin.Context) {
 		return
 	}
 
+	if res == nil {
+		res = make([]dto.AttendanceListElement, 0)
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"course":          course.CourseID + " - " + course.Name,
 		"attendance_list": res,
@@ -188,7 +191,7 @@ func GetCourseAttendanceOfOneUser(c *gin.Context) {
 
 func GetInDayAttendance(c *gin.Context) {
 	request := struct {
-		TimezoneOffset int `form:"time_offset" binding:"required"`
+		TimezoneOffset string `form:"time_offset" binding:"required"`
 	}{}
 
 	err := c.ShouldBind(&request)
@@ -227,6 +230,9 @@ func GetInDayAttendance(c *gin.Context) {
 		return
 	}
 
+	if res == nil {
+		res = make([]dto.CheckInHistoryListElement, 0)
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"checkin_list": res,
 	})
