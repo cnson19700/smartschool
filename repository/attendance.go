@@ -291,7 +291,7 @@ func CreateChangeAttendanceRequest(request entity.ComplainForm) error {
 
 func QueryAttendanceStatusByUserSchedule(user_id uint, schedule_id uint) (entity.Attendance, bool, error) {
 	var attendance entity.Attendance
-	result := database.DbInstance.Select("checkin_status").Where("user_id = ? AND schedule_id = ?", user_id, schedule_id).Find(&attendance)
+	result := database.DbInstance.Where("user_id = ? AND schedule_id = ?", user_id, schedule_id).Find(&attendance)
 
 	return attendance, result.RowsAffected == 0, result.Error
 }

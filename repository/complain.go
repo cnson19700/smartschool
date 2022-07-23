@@ -39,3 +39,7 @@ func QueryComplainFormByID(form_id uint) (entity.ComplainForm, bool, error) {
 
 	return form, result.RowsAffected == 0, result.Error
 }
+
+func DeleteComplainForm(form_id uint) error {
+	return database.DbInstance.Delete(&entity.ComplainForm{}, form_id).Error
+}
