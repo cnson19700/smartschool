@@ -470,7 +470,7 @@ func GetComplainFormRequest(c *gin.Context) {
 		"start_time":              schedule.StartTime,
 		"end_time":                schedule.EndTime,
 		"check_in_time":           schedule.CheckInTime,
-		"current_check_in_status": helper.MapCheckinStatus_E2V(schedule.CurrentStatus, false),
+		"current_check_in_status": helper.MapCheckinStatus_E2V(schedule.CurrentStatus),
 		"request_status":          request_checkin_option,
 		"teacher_list":            teacherList,
 	})
@@ -535,7 +535,7 @@ func GetComplainFormRequestBySemester(c *gin.Context) {
 		return
 	}
 
-	formList, err := service.GetComplainFormRequestBySemester(uint(userId), request.SemesterID)
+	formList, err := service.GetFormRequestBySemester(uint(userId), request.SemesterID, true)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot get complain form list for this request"})
 		return
@@ -546,7 +546,43 @@ func GetComplainFormRequestBySemester(c *gin.Context) {
 	})
 }
 
-func GetComplainFormRequestDetail(c *gin.Context) {
+func GetAbsenceFormRequestBySemester(c *gin.Context) {
+	request := struct {
+		SemesterID uint `form:"semester_id" binding:"required"`
+	}{}
+
+	err := c.ShouldBind(&request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Cannot capture request",
+		})
+		return
+	}
+
+	id, isGet := c.Get("userId")
+	if !isGet {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Cannot get userID"})
+		return
+	}
+
+	userId, canConvert := id.(float64)
+	if !canConvert {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Authenticate fail"})
+		return
+	}
+
+	formList, err := service.GetFormRequestBySemester(uint(userId), request.SemesterID, false)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot get complain form list for this request"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"form_list": formList,
+	})
+}
+
+func GetFormRequestDetail(c *gin.Context) {
 	request := struct {
 		FormID uint `form:"form_id" binding:"required"`
 	}{}
@@ -571,7 +607,7 @@ func GetComplainFormRequestDetail(c *gin.Context) {
 		return
 	}
 
-	formDetail, err := service.GetComplainFormRequestDetail(uint(userId), request.FormID)
+	formDetail, err := service.GetFormRequestDetail(uint(userId), request.FormID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot get complain form detail info for this request"})
 		return
