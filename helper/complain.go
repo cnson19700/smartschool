@@ -11,7 +11,7 @@ func MapCheckinStatus_V2E(str string) string {
 	case apptypes.VAbsence:
 		return apptypes.Absence
 	case apptypes.VAbsenceWithPermission:
-		return apptypes.Attend
+		return apptypes.AbsenceWithPermission
 	case apptypes.Unknown:
 		return ""
 	default:
@@ -19,14 +19,10 @@ func MapCheckinStatus_V2E(str string) string {
 	}
 }
 
-func MapCheckinStatus_E2V(str string, isAbsenceForm bool) string {
+func MapCheckinStatus_E2V(str string) string {
 	switch str {
 	case apptypes.Attend:
-		if isAbsenceForm {
-			return apptypes.VAbsenceWithPermission
-		} else {
-			return apptypes.VAttend
-		}
+		return apptypes.VAttend
 	case apptypes.Late:
 		return apptypes.VLate
 	case apptypes.Absence:

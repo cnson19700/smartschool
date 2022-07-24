@@ -93,13 +93,14 @@ func RequestChangeAttendanceStatus(userId uint, request dto.ChangeAttendanceStat
 		return errors.New("can not resolve requests of passed semester")
 	}
 
-	_, notFound, err := repository.QueryComplainFormByUser(userId, request.ToUserID, schedule.ID)
-	if err != nil {
-		return err
-	}
-	if !notFound {
-		return errors.New("form already exists")
-	}
+	// _, notFound, err := repository.QueryComplainFormByUser(userId, request.ToUserID, schedule.ID)
+	// if err != nil {
+	// 	return err
+	// }
+	// if !notFound {
+	// 	return errors.New("form already exists")
+	// }
+
 	// if len(formIDList) > 0 {
 	// 	notFound, err := repository.ExistFormSchedule(formIDList, request.ScheduleID)
 	// 	if err != nil || !notFound {
@@ -107,7 +108,7 @@ func RequestChangeAttendanceStatus(userId uint, request dto.ChangeAttendanceStat
 	// 	}
 	// }
 
-	notFound, err = repository.ExistEnrollmentByStudentCourse(userId, schedule.CourseID)
+	notFound, err := repository.ExistEnrollmentByStudentCourse(userId, schedule.CourseID)
 	if err != nil || notFound {
 		return errors.New("student does not enroll this course")
 	}
@@ -143,7 +144,7 @@ func RequestChangeAttendanceStatus(userId uint, request dto.ChangeAttendanceStat
 	return err
 }
 
-func GetComplainFormRequestBySemester(userID uint, semesterID uint) ([]dto.MobileViewComplainForm, error) {
+func GetFormRequestBySemester(userID uint, semesterID uint, isComplainForm bool) ([]dto.MobileViewComplainForm, error) {
 	formList, notFound, err := repository.QueryListComplainFormByUserSemester(userID, semesterID)
 	if err != nil {
 		return nil, errors.New("error when query form list")
@@ -154,7 +155,6 @@ func GetComplainFormRequestBySemester(userID uint, semesterID uint) ([]dto.Mobil
 		return resultList, nil
 	}
 
-	var isAbsenceForm bool
 	for i := 0; i < len(formList); i++ {
 
 		teacherInfo, err := repository.QueryUserNameInfo(formList[i].ReceiveUserID)
@@ -179,25 +179,25 @@ func GetComplainFormRequestBySemester(userID uint, semesterID uint) ([]dto.Mobil
 			}
 		}
 
-		isAbsenceForm = false
-		if attendance.CheckInStatus == apptypes.Unknown {
-			isAbsenceForm = true
+		if (isComplainForm && attendance.CheckInStatus == apptypes.Unknown) || (!isComplainForm && attendance.CheckInStatus != apptypes.Unknown) {
+			continue
 		}
+
 		resultList = append(resultList, dto.MobileViewComplainForm{
 			FormID:        formList[i].ID,
 			CreatedTime:   formList[i].CreatedAt,
-			RequestStatus: helper.MapCheckinStatus_E2V(formList[i].RequestStatus, isAbsenceForm),
+			RequestStatus: helper.MapCheckinStatus_E2V(formList[i].RequestStatus),
 			FormStatus:    helper.MapFormStatus_E2V(formList[i].FormStatus),
 			ToTeacherName: teacherInfo.LastName + " " + teacherInfo.FirstName,
 			CourseName:    schedule.Course.CourseID + " - " + schedule.Course.Name,
-			CurrentStatus: helper.MapCheckinStatus_E2V(attendance.CheckInStatus, false),
+			CurrentStatus: helper.MapCheckinStatus_E2V(attendance.CheckInStatus),
 		})
 	}
 
 	return resultList, nil
 }
 
-func GetComplainFormRequestDetail(userID, formID uint) (*dto.MobileViewDetailComplainForm, error) {
+func GetFormRequestDetail(userID, formID uint) (*dto.MobileViewDetailComplainForm, error) {
 	form, notFound, err := repository.QueryComplainFormByID(formID)
 	if err != nil || notFound {
 		return nil, errors.New("error when query complain form")
@@ -232,10 +232,6 @@ func GetComplainFormRequestDetail(userID, formID uint) (*dto.MobileViewDetailCom
 		checkinTime = &attendance.CheckInTime
 	}
 
-	isAbsenceForm := false
-	if attendance.CheckInStatus == apptypes.Unknown {
-		isAbsenceForm = true
-	}
 	return &dto.MobileViewDetailComplainForm{
 		CourseName:    schedule.Course.CourseID + " - " + schedule.Course.Name,
 		ToTeacherName: teacherInfo.LastName + " " + teacherInfo.FirstName,
@@ -243,8 +239,8 @@ func GetComplainFormRequestDetail(userID, formID uint) (*dto.MobileViewDetailCom
 		EndTime:       schedule.EndTime,
 		Room:          schedule.Room.RoomID,
 		CheckInTime:   checkinTime,
-		CurrentStatus: helper.MapCheckinStatus_E2V(attendance.CheckInStatus, false),
-		RequestStatus: helper.MapCheckinStatus_E2V(form.RequestStatus, isAbsenceForm),
+		CurrentStatus: helper.MapCheckinStatus_E2V(attendance.CheckInStatus),
+		RequestStatus: helper.MapCheckinStatus_E2V(form.RequestStatus),
 		FormStatus:    helper.MapFormStatus_E2V(form.FormStatus),
 		Reason:        form.Reason,
 		RejectReason:  form.RejectReason,
@@ -259,6 +255,10 @@ func DeleteComplainForm(userID, formID uint) error {
 
 	if form.RequestUserID != userID {
 		return errors.New("user does not own this complain form")
+	}
+
+	if form.FormStatus != apptypes.Pending {
+		return errors.New("can not delete considered form")
 	}
 
 	return repository.DeleteComplainForm(formID)
