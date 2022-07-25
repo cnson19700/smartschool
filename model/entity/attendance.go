@@ -13,6 +13,7 @@ type Attendance struct {
 	ScheduleID    uint      `gorm:"index; column:schedule_id" json:"schedule_id"`
 	CheckInTime   time.Time `gorm:"column:checkin_time" json:"checkin_time"`
 	CheckInStatus string    `gorm:"column:checkin_status" json:"checkin_status"`
+	Note          string    `gorm:"column:note" json:"note"`
 	//DeletedAt     gorm.DeletedAt `gorm:"column:deleted_at"`
 	gorm.Model
 
