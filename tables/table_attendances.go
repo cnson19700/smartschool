@@ -1,13 +1,16 @@
 package tables
 
 import (
+	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	template2 "html/template"
 
 	"github.com/GoAdminGroup/go-admin/context"
 	"github.com/GoAdminGroup/go-admin/modules/db"
+	form2 "github.com/GoAdminGroup/go-admin/plugins/admin/modules/form"
 	"github.com/GoAdminGroup/go-admin/plugins/admin/modules/parameter"
 	"github.com/GoAdminGroup/go-admin/plugins/admin/modules/table"
 	"github.com/GoAdminGroup/go-admin/template"
@@ -15,9 +18,11 @@ import (
 	"github.com/GoAdminGroup/go-admin/template/types"
 	"github.com/GoAdminGroup/go-admin/template/types/action"
 	"github.com/GoAdminGroup/go-admin/template/types/form"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/smartschool/database"
 	"github.com/smartschool/model/entity"
 	"github.com/smartschool/repository"
+	"gorm.io/gorm/clause"
 )
 
 var total_lates, total_intime, total_absences, total_student_inclass = 0, 0, 0, 0
@@ -28,13 +33,14 @@ func GetAttendances(ctx *context.Context) table.Table {
 
 	tableAttendaces := table.NewDefaultTable(table.DefaultConfigWithDriver("sqlite"))
 
-	tmp_course, _, _ := repository.QueryCourseByID(ctx.FormValue("course_id"))
-	student_id, _ := repository.QueryFirstStudentInCourseEnrollment(int(tmp_course.ID))
-	student, _ := repository.QueryStudentByID(fmt.Sprint(student_id))
-	batch = student.Batch
-
+	if !strings.Contains(ctx.Request.URL.Path, "edit") {
+		tmp_course, _, _ := repository.QueryCourseByID(ctx.FormValue("course_id"))
+		student_id, _ := repository.QueryFirstStudentInCourseEnrollment(int(tmp_course.ID))
+		student, _ := repository.QueryStudentByID(fmt.Sprint(student_id))
+		batch = student.Batch
+	}
 	info := tableAttendaces.GetInfo().HideFilterArea()
-	info.AddField("ID", "id", db.Int).HideEditButton().FieldSortable()
+	info.AddField("ID", "id", db.Int).FieldSortable()
 	info.AddField("Course", "course_id", db.Varchar).FieldFilterable(types.FilterType{
 		Options: []types.FieldOption{
 			{
@@ -71,21 +77,21 @@ func GetAttendances(ctx *context.Context) table.Table {
 	info.AddField("Created At", "created_at", db.Timestamp).FieldFilterable(types.FilterType{FormType: form.DateRange, Placeholder: " ... "}).
 		FieldDisplay(func(value types.FieldModel) interface{} {
 			c, _ := value.Row["created_at"].(string)
-			var a, b int
+			var a int
 			var d float64
 			add_attr := "attend-stt"
 			database.DbInstance.Raw("select extract(dow from date '" + strings.Split(c, " ")[0] + "')").Scan(&a)
 			for _, i := range in_time_schedules {
-				database.DbInstance.Raw("select extract(dow from date '" + i.StartTime.Format("2006-01-02") + "')").Scan(&b)
-				if a == b {
+				if strings.Contains(i.StartTime.Format("2006-01-02 15:04:05"), strings.Split(c, " ")[0]) {
 					database.DbInstance.Raw("select extract(epoch FROM (TIMESTAMP '" + c + "' -  TIMESTAMP'" + i.StartTime.Format("2006-01-02 15:04:05") + "'))/60").Scan(&d)
 					//checkin time - schedule time > 0 == late
-					if int(d) > 0 && int(d) < 10 {
+					if int(d) > 5 && int(d) < 10 {
 						add_attr = "range_five"
 					} else if int(d) >= 10 {
 						add_attr = "range_ten"
 					}
 				}
+				continue
 			}
 			return "<span id=" + add_attr + ">" + c + "</span>"
 		})
@@ -145,7 +151,76 @@ func GetAttendances(ctx *context.Context) table.Table {
 
 	info.AddButton("Absences Students", icon.Tv, action.Jump(absence_url))
 	info.SetTable("attendances").SetTitle("Attendances " + ctx.FormValue("course_id") + " - " + batch).SetDescription("Attendances")
+
+	/////////// Update Attendance ///////////
+
+	formList := tableAttendaces.GetForm()
+	formList.AddField("ID", "id", db.Int, form.Default).FieldDisplayButCanNotEditWhenUpdate().FieldDisableWhenCreate()
+	// formList.AddField("Student ID", "user_id", db.Int, form.Default).FieldDisplayButCanNotEditWhenUpdate().FieldDisableWhenCreate()
+	formList.AddField("Student Name", "student_name", db.Int, form.Text).
+		FieldDisplayButCanNotEditWhenUpdate().
+		FieldDisableWhenCreate().FieldDisplay(func(value types.FieldModel) interface{} {
+		student_name := value.Row["student_name"].(string)
+		return student_name
+	})
+	formList.AddField("Checkin Status", "checkin_status", db.Varchar, form.SelectSingle).FieldOptions(types.FieldOptions{
+		{
+			Text:  "Attend",
+			Value: "Attend",
+		}, {
+			Text:  "Late",
+			Value: "Late",
+		},
+	}).FieldDisplay(func(value types.FieldModel) interface{} {
+		role, _ := value.Row["checkin_status"].(string)
+		return role
+	})
+	formList.AddField("Note", "note", db.Text, form.Text)
+
+	formList.SetTable("attendances").SetTitle("Attendances").SetDescription("Attendances")
+	formList.EnableAjax("Success", "Fail")
+
+	formList.SetUpdateFn(func(values form2.Values) error {
+		spew.Dump(values)
+		if values.IsEmpty("checkin_status") {
+			return errors.New("Status cannot be empty")
+		}
+
+		id, _ := strconv.Atoi(values.Get("id"))
+
+		updated := database.DbInstance.Model(&entity.Attendance{}).Where("id = ? ", id).Clauses(clause.Returning{}).Updates(map[string]interface{}{
+			"checkin_status": values.Get("checkin_status"),
+			"note":           values.Get("note"),
+		}).Error
+		if updated != nil {
+			return updated
+		}
+		return nil
+	})
+
+	detail := tableAttendaces.GetDetail()
+	detail.SetGetDataFn(func(param parameter.Parameters) ([]map[string]interface{}, int) {
+		return GetAttendanceData(param.GetFieldValue(parameter.PrimaryKey))
+	})
 	return tableAttendaces
+}
+
+func GetAttendanceData(param string) ([]map[string]interface{}, int) {
+	attendance := &entity.Attendance{}
+	database.DbInstance.Find(attendance, param)
+	tableResult := make([]map[string]interface{}, 1)
+	tempResult := make(map[string]interface{})
+
+	user := repository.QueryUserBySID(fmt.Sprint(attendance.UserID))
+
+	tempResult["id"] = attendance.ID
+	tempResult["student_name"] = user.LastName + " " + user.FirstName
+	tempResult["user_id"] = attendance.UserID
+	tempResult["checkin_status"] = attendance.CheckInStatus
+
+	tableResult[0] = tempResult
+
+	return tableResult, 1
 }
 
 func GetAllAttendancesData(param parameter.Parameters) ([]map[string]interface{}, int) {

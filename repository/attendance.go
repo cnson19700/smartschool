@@ -198,10 +198,10 @@ func AttendanceByTeacherCourse(params parameter.Parameters) ([]*entity.Attendanc
 		database.DbInstance.Raw(query_schedules).Scan(&scheduleIDs)
 		if len(scheduleIDs) > 1 {
 			query.Where("schedule_id IN ? ", scheduleIDs)
-			database.DbInstance.Table("schedules").Where("id IN ?", scheduleIDs).Find(&in_time_schedules)
+			database.DbInstance.Table("schedules").Where("id IN ?", scheduleIDs).Where("deleted_at is null").Find(&in_time_schedules)
 		} else {
 			query.Where("schedule_id = ? ", scheduleIDs)
-			database.DbInstance.Table("schedules").Where("id = ?", scheduleIDs).Find(&in_time_schedules)
+			database.DbInstance.Table("schedules").Where("id = ?", scheduleIDs).Where("deleted_at is null").Find(&in_time_schedules)
 		}
 	} else if len(course_id) > 0 {
 		query_schedules := `select distinct schedules.id

@@ -8,7 +8,6 @@ import (
 	"github.com/GoAdminGroup/go-admin/modules/db"
 	"github.com/GoAdminGroup/go-admin/plugins/admin/modules/parameter"
 	"github.com/GoAdminGroup/go-admin/plugins/admin/modules/table"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/smartschool/database"
 	"github.com/smartschool/model/entity"
 	"github.com/smartschool/repository"
@@ -51,7 +50,6 @@ func GetAbsencesData(params parameter.Parameters) ([]map[string]interface{}, int
 	// AND NOW()::DATE-EXTRACT(DOW from NOW())::INTEGER))`
 
 	date_constaint := `and a.created_at >= current_date at time zone 'UTC' - interval '6 days')`
-	spew.Dump(schedules)
 	schedules_ids := strings.Split(schedules, ",")
 
 	if len(schedules_ids) > 1 {
